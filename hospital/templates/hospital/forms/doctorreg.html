@@ -1,0 +1,198 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Registration</title>
+  <link rel="stylesheet" href="{% static 'css/forms.css' %}">  {# optional external css #}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .form-container {
+      background: #fff;
+      padding: 20px;
+      width: 900px;
+      border-radius: 6px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-bottom: 20px;
+      border-bottom: 2px solid #007bff;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+    h3 {
+      margin: 20px 0 15px;
+      color: #333;
+      margin-left: 20px;
+    }
+    .form-section {
+      margin-bottom: 20px;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 15px;
+      margin-left: 20px;
+    }
+    .form-group {
+      flex: 1;
+      min-width: 250px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    input, select, textarea {
+      width: 80%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    select {
+      width: 88%;
+    }
+    textarea {
+      resize: none;
+      height: 50px;
+    }
+    input[type="submit"] {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+    input[type="submit"]:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Doctor Registration</h2>
+
+    <!-- ✅ Django form -->
+    <form method="POST" action="{% url 'doctorreg' %}">
+      {% csrf_token %}
+
+      <!-- Basic Info Section -->
+      <div class="form-section">
+        <h3>Basic Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fullname">Full Name</label>
+            <input type="text" id="fullname" name="fullname" required>
+          </div>
+          <div class="form-group">
+            <label for="fname">Father Name</label>
+            <input type="text" id="fname" name="fname" required>
+          </div>
+          <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" name="dob" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender" required>
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cnic">CNIC</label>
+            <input type="text" id="cnic" name="cnic" placeholder="XXXXX-XXXXXXX-X">
+          </div>
+          <div class="form-group">
+            <label for="phone">Contact Number</label>
+            <input type="text" id="phone" name="phone" placeholder="03XXXXXXXXX">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="p_addr">Permanent Address</label>
+            <textarea id="p_addr" name="p_addr"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="c_addr">Current Address</label>
+            <textarea id="c_addr" name="c_addr"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Professional Details -->
+      <div class="form-section">
+        <h3>Professional Details</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="spec">Specialization</label>
+            <select id="spec" name="spec">
+              <option value="">-- Select Specialization --</option>
+              <option>Physicians</option>
+              <option>Cardiology</option>
+              <option>Neurology</option>
+              <option>Dentistry</option>
+              <option>Dermatology</option>
+              <option>Orthopaedic</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="dept">Department</label>
+            <select id="dept" name="dept">
+              <option value="">-- Select Department --</option>
+              <option>General Medicine</option>
+              <option>Cardiology</option>
+              <option>Neurology</option>
+              <option>Dentistry</option>
+              <option>Dermatology</option>
+              <option>Orthopaedics</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="qual">Qualification</label>
+            <input type="text" id="qual" name="qual" placeholder="e.g., MBBS, FCPS">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="exp">Years of Experience</label>
+            <input type="number" id="exp" name="exp" min="0">
+          </div>
+          <div class="form-group">
+            <label for="license">Medical License</label>
+            <input type="text" id="license" name="license">
+          </div>
+          <div class="form-group">
+            <label for="avail">Availability</label>
+            <input type="text" id="avail" name="avail" placeholder="e.g., 9AM - 5PM">
+          </div>
+        </div>
+      </div>
+
+      <input type="submit" value="Submit">
+    </form>
+  </div>
+</body>
+</html>

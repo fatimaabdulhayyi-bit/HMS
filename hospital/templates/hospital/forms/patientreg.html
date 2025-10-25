@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="{% static 'images/favicon.png' %}" rel="icon">
+  <title>Patient Registration</title>
+  <style>
+    .Patreg-body {
+      font-family: Arial, sans-serif;
+      background: url("{% static 'images/blur-hospital.jpg' %}?v=2") no-repeat center center;
+      background-size: cover;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    form {
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+      width: 360px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #0079f1;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 6px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      resize: none;
+    }
+
+    .error {
+      color: red;
+      font-size: 12px;
+      margin-top: -8px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    input[type="submit"] {
+      background: rgb(57, 180, 154);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 15px;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    input[type="submit"]:hover {
+      background: rgb(40, 150, 130);
+    }
+  </style>
+</head>
+
+<body class="Patreg-body">
+  <form id="patientForm" method="POST" action="{% url 'patientreg' %}">
+    {% csrf_token %}
+    <h2>Patient Registration</h2>
+
+    <label for="fullname">Full Name</label>
+    <input type="text" id="fullname" name="fullname" placeholder="Enter your name">
+    <span class="error" id="fullnameError"></span>
+
+    <label for="dob">Date of Birth</label>
+    <input type="date" id="dob" name="dob" required>
+    <span class="error" id="dobError"></span>
+
+    <label for="gender">Gender</label>
+    <select id="gender" name="gender" required>
+      <option value="">Select Gender</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      <option value="other">Other</option>
+    </select>
+    <span class="error" id="genderError"></span>
+
+    <label for="phone">Contact Number</label>
+    <input type="text" id="phone" name="phone" placeholder="+92XXXXXXXXXX" required>
+    <span class="error" id="phoneError"></span>
+
+    <label for="address">Address</label>
+    <textarea id="address" name="address" rows="3" placeholder="Enter your address"></textarea>
+    <span class="error" id="addressError"></span>
+
+    <input type="submit" value="Register">
+  </form>
+
+  <script>
+  document.getElementById("patientForm").addEventListener("submit", function(event){
+    let isValid = true;
+    document.querySelectorAll(".error").forEach(e => e.textContent = "");
+
+    // ✅ Full name validation
+    const fullname = document.getElementById("fullname").value.trim();
+    if(!/^[A-Za-z\s]+$/.test(fullname)){
+      document.getElementById("fullnameError").textContent = "Only letters are allowed.";
+      isValid = false;
+    }
+
+    // ✅ DOB validation
+    const dob = document.getElementById("dob").value;
+    if(dob){
+      const today = new Date().toISOString().split("T")[0];
+      if(dob > today){
+        document.getElementById("dobError").textContent = "DOB cannot be in the future.";
+        isValid = false;
+      }
+    }
+
+    // ✅ Pakistan Phone validation
+    const phone = document.getElementById("phone").value.trim();
+    const pkPattern = /^(\+92\d{10}|03\d{9})$/;
+    if(!pkPattern.test(phone)){
+      document.getElementById("phoneError").textContent = 
+        "Enter valid Pakistan number (e.g., +92XXXXXXXXXX or 03XXXXXXXXX).";
+      isValid = false;
+    }
+
+    // ✅ Address validation
+    const address = document.getElementById("address").value.trim();
+    if(address.length === 0){
+      document.getElementById("addressError").textContent = "Address cannot be empty.";
+      isValid = false;
+    }
+
+    if(!isValid){
+      event.preventDefault();
+    } else {
+      alert("Registration Successful!");
+    }
+  });
+  </script>
+</body>
+</html>

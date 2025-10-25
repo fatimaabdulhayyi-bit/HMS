@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HEF Care Hospital - Departments</title>
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 220px;
+      height: 100%;
+      background: #fff;
+      border-right: 1px solid #ddd;
+      padding-top: 60px;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      padding: 20px 0;
+      margin: 0;
+      background: #00aaff;
+      color: #fff;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .sidebar ul li {
+      padding: 15px 20px;
+      cursor: pointer;
+      color: #333;
+      display: flex;
+      align-items: center;
+    }
+
+    .sidebar ul li:hover {
+      background: #f0f0f0;
+    }
+
+    .sidebar ul li i {
+      margin-right: 10px;
+    }
+
+    /* Main Content */
+    .main {
+      margin-left: 220px;
+      padding: 20px;
+    }
+
+    .topbar {
+      background: #00aaff;
+      padding: 15px 20px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .btn {
+      background: #00aaff;
+      color: #fff;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #008ecc;
+    }
+
+    /* Table */
+    .card {
+      background: #fff;
+      border-radius: 5px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    table thead {
+      background: #f0f0f0;
+    }
+
+    table th, table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .status {
+      padding: 5px 10px;
+      background: #d4f5e9;
+      color: #0a8a5c;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .pagination {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pagination button {
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    .pagination button.active {
+      background: #00aaff;
+      color: #fff;
+      border-color: #00aaff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>HMS</h2>
+    <ul>
+      <li><i>🏠</i> <a href="{% url 'index' %}">Dashboard</a></li>
+      <li><i>👨‍⚕️</i> <a href="#">Doctors</a></li>
+      <li><i>🧑‍🤝‍🧑</i> <a href="#">Patients</a></li>
+      <li><i>📅</i> <a href="#">Appointments</a></li>
+      <li><i>🕑</i> <a href="#">Doctor Schedule</a></li>
+      <li><i>🏥</i> <a href="{% url 'department' %}">Departments</a></li>
+      <li><i>👔</i> <a href="#">Employees</a></li>
+    </ul>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <h1>Departments</h1>
+      <a href="{% url 'add_department' %}">
+        <button class="btn">+ Add Department</button>
+      </a>
+    </div>
+
+    <div class="card">
+      <label>Show 
+        <select>
+          <option>10</option>
+          <option>25</option>
+          <option>50</option>
+        </select> entries
+      </label>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Department Name</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cardiology</td>
+            <td>Heart-related treatments</td>
+            <td><span class="status">Active</span></td>
+            <td><button class="btn">Edit</button></td>
+          </tr>
+          <tr>
+            <td>Neurology</td>
+            <td>Brain and nervous system</td>
+            <td><span class="status">Active</span></td>
+            <td><button class="btn">Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <p>Showing 1 to 2 of 2 entries</p>
+        <div>
+          <button>Previous</button>
+          <button class="active">1</button>
+          <button>Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,191 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Department - HMS</title>
+  <style>
+   body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f9f9f9;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100%;
+  background: #fff;
+  border-right: 1px solid #ddd;
+  padding-top: 60px;
+}
+
+.sidebar h2 {
+  text-align: center;
+  padding: 20px 0;
+  margin: 0;
+  background: #00aaff;
+  color: #fff;
+  font-size: 22px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  padding: 15px 20px;
+  cursor: pointer;
+  color: #333;
+  display: flex;
+  align-items: center;
+  transition: background 0.3s;
+}
+
+.sidebar ul li:hover {
+  background: #f0f0f0;
+}
+
+/* Main */
+.main {
+  margin-left: 220px;
+  padding: 20px;
+}
+
+.topbar {
+  background: #00aaff;
+  padding: 15px 20px;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.back-btn {
+  background: #00aaff;
+  color: #fff;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.back-btn:hover {
+  background: #008ecc;
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 30px;
+  margin: 40px auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  max-width: 600px;
+}
+
+label {
+  display: block;
+  margin: 15px 0 8px;
+  font-weight: bold;
+  color: #333;
+  font-size: 14px;
+}
+
+input[type="text"],
+textarea,
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+input[type="text"]:focus,
+textarea:focus,
+select:focus {
+  border-color: #00aaff;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0,170,255,0.3);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.btn {
+  background: #00aaff;
+  color: #fff;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 15px;
+  margin-top: 20px;
+  width: 100%;
+  transition: background 0.3s;
+}
+
+.btn:hover {
+  background: #008ecc;
+}
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>HMS</h2>
+    <ul>
+      <li>🏠 Dashboard</li>
+      <li>👨‍⚕️ Doctors</li>
+      <li>🧑‍🤝‍🧑 Patients</li>
+      <li>📅 Appointments</li>
+      <li>🕑 Doctor Schedule</li>
+      <li>🏥 Departments</li>
+      <li>👔 Employees</li>
+    </ul>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <h1>Add Department</h1>
+    </div>
+
+    <div class="card">
+      <!-- ✅ Django form -->
+      <form method="POST" action="{% url 'add_department' %}">
+        {% csrf_token %}
+
+        <label for="deptName">Department Name</label>
+        <input type="text" id="deptName" name="deptName" placeholder="Enter department name" required>
+
+        <label for="desc">Description</label>
+        <textarea id="desc" name="desc" placeholder="Enter description"></textarea>
+
+        <label for="status">Department Status</label>
+        <select id="status" name="status" required>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+
+        <input type="submit" value="Create Department" class="btn">
+      </form>
+    </div>
+  </div>
+</body>
+</html>
