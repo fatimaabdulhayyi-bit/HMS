@@ -1,0 +1,200 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" type="image/x-icon" />
+  <title>Hospital Login</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(rgba(253, 253, 253,0.1), rgba(21, 127, 218,0.8));
+      background-size: cover;
+      margin: 0;
+    }
+    .login-container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      width: 1000px;
+      min-height: 80vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .side-img {
+      flex: 1;
+      background:url("{% static 'images/sign_up.jpg' %}") no-repeat center center;
+      background-size: cover;
+    }
+
+    .form-container{
+      display: flex;                
+      justify-content: center;      
+      align-items: center;          
+      padding: 10px;
+      width: 40%;       
+    }
+
+    .form-box {                    
+      width: 80%;
+      max-width: 350px;
+    }
+
+    .form-box h2 {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      text-transform: uppercase;
+      background: rgba(21, 127, 218,0.8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    .form-box label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+      color: #34495e;
+    }
+
+    .form-box input[type="email"],
+    .form-box input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 2px solid #000;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+    }
+
+    .login-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    .login-options a {
+      color: #2980b9;
+      text-decoration: none;
+    }
+
+    .login-options a:hover {
+      text-decoration: underline;
+    }
+
+    .form-box input[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      color: #fff;
+      background: #1E90FF;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .form-box input[type="submit"]:hover {
+      background: #0d7ae8;
+    }
+
+    /* Tablet screens */
+    @media (max-width: 768px) {
+      .login-container {
+        flex-direction: column;
+        width: 95%;
+        min-height: auto;
+      }
+      .side-img {
+        width: 100%;
+        height: 200px;
+      }
+      .form-container {
+        width: 100%;
+        padding: 20px;
+      }
+    }
+
+    /* Mobile screens */
+    @media (max-width: 480px) {
+      .side-img {
+        width: 100%;
+        height: 150px;
+        display: block;
+      }
+
+      .form-container {
+        width: 100%;
+        padding: 15px;
+      }
+
+      .form-box h2 {
+        font-size: 18px;
+        margin-top: 10px;
+      }
+      .form-box input[type="email"],
+      .form-box input[type="password"] {
+        padding: 8px;
+        font-size: 14px;
+      }
+      .form-box input[type="submit"] {
+        padding: 10px;
+        font-size: 15px;
+      }
+      .login-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="side-img"></div>
+
+    <div class="form-container">
+      <div class="form-box">
+        <h2>HOSPITAL LOGIN</h2>
+
+        <!-- ✅ Django Form -->
+        <form method="POST" action="{% url 'login' %}">
+          {% csrf_token %}
+          
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password"
+          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+          title="Must contain at least one number, one uppercase, one lowercase, and 8 characters"
+          placeholder="Enter your password" required>
+
+          <div class="login-options">
+            <a href="#">Forgot Password?</a>
+            <label>
+              <input type="checkbox" id="remember" name="remember">
+              Remember Me
+            </label>
+          </div>
+
+          <input type="submit" value="Login">
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

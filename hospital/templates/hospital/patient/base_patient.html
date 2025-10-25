@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Patient Dashboard{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/patient.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="profile">
+        <div class="profile-img"><i class="fa fa-user"></i></div>
+        <h4>Patient</h4>
+        <h2>User</h2>
+      </div>
+      <ul class="menu">
+        <li><a href="{% url 'patient_dashboard' %}" class="menu-link"><i class="fa fa-home"></i> Dashboard</a></li>
+        <li><a href="{% url 'appointments' %}" class="menu-link"><i class="fa fa-calendar"></i> Appointments</a></li>
+        <li><a href="{% url 'bill' %}" class="menu-link"><i class="fa fa-credit-card"></i> Bill</a></li>
+        <li><a href="{% url 'medical_records' %}" class="menu-link"><i class="fa fa-file-medical"></i> Medical Records</a></li>
+        <li><a href="{% url 'feedback' %}" class="menu-link"><i class="fa fa-comment-dots"></i> Feedback</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <header class="topbar">
+        <img src="{% static 'images/logo.png' %}" alt="logo" class="logo">
+        <div class="top-icons">
+          <i class="fa fa-bell"></i>
+          <button class="logout-btn"><i class="fa fa-sign-out-alt"></i> Logout</button>
+        </div>
+      </header>
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<aside class="sidebar">
+  <div class="profile">
+    <div class="profile-img"><i class="fa fa-user"></i></div>
+    <h4>Patient</h4>
+    <h2>{{ user.username }}</h2>
+  </div>
+
+  <ul class="menu">
+    <li><a href="{% url 'patient_dashboard' %}" class="menu-link"><i class="fa fa-home"></i> Dashboard</a></li>
+    <li><a href="{% url 'appointments' %}" class="menu-link"><i class="fa fa-calendar"></i> My Appointments</a></li>
+    <li><a href="{% url 'bill' %}" class="menu-link"><i class="fa fa-credit-card"></i> Bill</a></li>
+    <li><a href="{% url 'medical_records' %}" class="menu-link"><i class="fa fa-file-medical"></i> Medical Records</a></li>
+    <li><a href="{% url 'feedback' %}" class="menu-link"><i class="fa fa-comment-dots"></i> Feedback</a></li>
+  </ul>
+</aside>

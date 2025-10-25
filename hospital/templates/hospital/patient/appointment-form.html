@@ -1,0 +1,55 @@
+{% extends 'hospital/patient/base_patient.html' %}
+{% load static %}
+
+{% block title %}Book Appointment{% endblock %}
+
+{% block content %}
+<section class="appointment-card">
+    <header>Book Appointment Details</header>
+    <form action="{% url 'appointment_form' %}" method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col">
+                <input type="text" name="name" placeholder="Your Name" required>
+            </div>
+            <div class="col">
+                <input type="email" name="email" placeholder="Your Email" required>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <input type="tel" name="phone" placeholder="Your Phone" required>
+            </div>
+            <div class="col">
+                <input type="datetime-local" name="date" required>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <select name="department" required>
+                    <option value="">Select Department</option>
+                    <option>Cardiology</option>
+                    <option>Neurology</option>
+                    <option>Orthopedics</option>
+                </select>
+            </div>
+            <div class="col">
+                <select name="doctor" required>
+                    <option value="">Select Doctor</option>
+                    <option>Fatima Abdul Hayyi</option>
+                    <option>Dr. Ahmed</option>
+                    <option>Dr. Sara</option>
+                </select>
+            </div>
+        </div>
+
+        <textarea name="message" rows="4" placeholder="Message (Optional)"></textarea>
+
+        <div class="form-submit">
+            <input type="submit" value="Book">
+        </div>
+    </form>
+</section>
+{% endblock %}

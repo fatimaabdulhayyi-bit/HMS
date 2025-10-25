@@ -1,0 +1,222 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+body {
+    background: #f0f2f5;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* ---------------------- */
+/* Sidebar */
+/* ---------------------- */
+.sidebar {
+    background: #1976d2;
+    color: white;
+    width: 250px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 30px;
+}
+
+.profile {
+    text-align: center;
+}
+
+.profile-img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 15px;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.profile-img i {
+    font-size: 40px;
+    color: #1976d2;
+}
+
+.profile h4 {
+    font-weight: 400;
+}
+
+.profile h2 {
+    margin: 8px 0 20px;
+}
+
+/* Sidebar Menu */
+.sidebar ul.menu {
+    color: #fff;
+    list-style: none;
+    width: 100%;
+    margin-top: 20px;
+    padding: 0;
+}
+
+.sidebar ul.menu li {
+    padding: 12px 20px;
+    cursor: pointer;
+    color: white;
+    display: flex;
+    align-items: center;
+    transition: background 0.3s, color 0.3s;
+}
+
+.sidebar ul.menu li a {
+    color: white;
+    /* make link text white */
+    text-decoration: none;
+    /* remove underline */
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+
+.sidebar ul.menu li i {
+    margin-right: 10px;
+    font-size: 18px;
+    transition: color 0.3s;
+}
+
+/* Hover Effect */
+.sidebar ul.menu li:hover {
+    background: #1565c0;
+    /* darker shade for hover */
+    color: #ffffff;
+}
+
+.sidebar ul.menu li:hover i {
+    color: #ffffff;
+}
+
+/* Active Link (slightly darker blue background) */
+.sidebar ul.menu li.active {
+    background: #1565c0;
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 10px 0 0 10px;
+}
+
+.sidebar ul.menu li.active a {
+    color: #fff;
+}
+
+/* ---------------------- */
+/* Main Content */
+/* ---------------------- */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.topbar {
+    background-color: #ffffff;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+    height: 70px;
+}
+
+.top-icons {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.top-icons .fa-bell {
+    font-size: 22px;
+    cursor: pointer;
+    color: #1977cc;
+}
+
+.logout-btn {
+    background: #e74c3c;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.logout-btn:hover {
+    background: #c0392b;
+}
+
+/* ---------------------- */
+/* Cards Section */
+/* ---------------------- */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    padding: 40px;
+    justify-items: center;
+}
+
+/* Profile Card */
+.profile-card {
+    background: #fff;
+    width: 300px;
+    text-align: center;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: #333;
+}
+
+.profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.profile-icon {
+    background-color: #1977cc;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+}
+
+.profile-icon i {
+    color: #fff;
+    font-size: 28px;
+}
+
+.profile-card h3 {
+    font-size: 18px;
+    margin-bottom: 5px;
+    color: #1977cc;
+}
+
+.profile-card p {
+    font-size: 14px;
+    color: #666;
+}

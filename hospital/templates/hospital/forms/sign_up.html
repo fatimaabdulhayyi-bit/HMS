@@ -1,0 +1,220 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" type="image/x-icon" />
+  <title>Sign Up</title>
+
+  <style>
+     .signup-body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(rgba(253, 253, 253,0.1), rgba(21, 127, 218,0.8));
+      background-size: cover;
+      overflow: hidden;
+    }
+    .signup-container {
+      background: rgb(255, 255, 255);
+      border-radius: 12px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      width: 1000px;
+      display: flex;
+      overflow: hidden;
+    }
+    
+    .side-img {
+      flex: 1;
+      background: url("{% static 'images/sign_up.jpg' %}") no-repeat center center;
+      background-size: cover;
+    }
+    
+    .form-container {
+      flex: 1;
+      padding: 30px;
+      max-width: 350px;
+    }
+
+    .form-container h2 {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: rgba(0, 128, 241, 0.8);
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+      position: relative;
+    }
+
+    .form-container img {
+      width: 70px;
+      margin:0 auto 5px;
+      display: block;
+    }
+
+    .form-container label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+      color: #34495e;
+    }
+
+    .form-container input,
+    .form-container select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 2px solid #000000;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+    }
+
+    .form-container input[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      color: white;
+      background: #0079f1;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .form-container input[type="submit"]:hover {
+       color: white;
+       background: #308de9;
+    }
+
+    .form-container p {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .form-container a {
+      color: #0099fff1;
+      text-decoration: none;
+    }
+
+    .form-container a:hover {
+      text-decoration: underline;
+    }
+
+    /* Tablet */
+    @media (max-width: 992px) {
+      .signup-container {
+        width: 80%;
+        height: auto;
+      }
+      .form-container {
+        max-width: 100%;
+        padding: 25px;
+      }
+    }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      .signup-container {
+        flex-direction: column;
+        width: 100%;
+        border-radius: 0;    
+      }
+      .form-container {
+        padding: 20px;
+      }
+
+      .side-img {
+        display: none;
+      }
+
+      .form-container h2 {
+        font-size: 18px;
+        margin-top: 15px;
+      }
+
+      .form-container input,
+      .form-container select {
+        padding: 8px;
+        font-size: 14px;
+      }
+
+      .form-container input[type="submit"] {
+        padding: 10px;
+        font-size: 15px;
+      }
+
+      .form-container p {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body class="signup-body">
+  <div class="signup-container">
+    <div class="side-img"></div>
+
+    <div class="form-container">
+      <h2>HOSPITAL SIGNUP</h2>
+
+      <!-- ✅ Django-compatible form -->
+      <form method="POST" action="{% url 'signup' %}" onsubmit="return validateform()">
+        {% csrf_token %}
+        <label for="fullname">Full Name</label>
+        <input type="text" id="fullname" name="fullname" placeholder="Enter your name">
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+
+        <label for="role">Role</label>
+        <select id="role" name="role" required>
+          <option value="">-- Select Role --</option>
+          <option value="admin">Admin</option>
+          <option value="doctor">Doctor</option>
+          <option value="patient">Patient</option>
+          <option value="lab">Laboratory</option>
+          <option value="pharmacy">Pharmacy</option>
+          <option value="nursing">Nursing</option>
+        </select>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+          title="Must contain at least one number, one uppercase, one lowercase, and at least 8 characters"
+          placeholder="Create password" required>
+
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password"
+          placeholder="Re-enter password"
+          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+          title="Must contain at least one number, one uppercase, one lowercase, and at least 8 characters"
+          required>
+        
+        <input type="submit" value="Sign Up">
+
+        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  function validateform() {
+    let x = document.getElementById("fullname").value;
+    if (x == "") {
+      alert("Name must be filled out");
+      return false;
+    }
+    let p1 = document.getElementById("password").value;
+    let p2 = document.getElementById("confirm_password").value;
+    if (p1 != p2) {
+      alert("Password and Confirm Password are not the same");
+      return false;
+    }
+  }
+  </script>
+</body>
+</html>

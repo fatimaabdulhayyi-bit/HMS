@@ -1,0 +1,23 @@
+{% extends 'hospital/patient/base_patient.html' %}
+
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block content %}
+<section class="cards">
+  <a href="{% url 'profile' %}" class="profile-card">
+    <div class="profile-icon"><i class="fa fa-user-circle"></i></div>
+    <h3>My Profile</h3>
+    <p>Update Profile</p>
+  </a>
+  <a href="{% url 'appointments' %}" class="profile-card">
+    <div class="profile-icon"><i class="fa fa-calendar-check"></i></div>
+    <h3>My Appointments</h3>
+    <p>View Appointment History</p>
+  </a>
+  <a href="{% url 'appointment_form' %}" class="profile-card">
+    <div class="profile-icon"><i class="fa fa-stethoscope"></i></div>
+    <h3>Book My Appointment</h3>
+    <p>Book Appointment</p>
+  </a>
+</section>
+{% endblock %}
