@@ -6,6 +6,28 @@
 * License: https://bootstrapmade.com/license/
 */
 
+
+function isInViewport(el) {
+  const rect = el.getBoundingClientRect();
+  return rect.top <= window.innerHeight - 50 && rect.bottom >= 0;
+}
+
+function animateElements() {
+  const elements = document.querySelectorAll('.fade-down, .fade-up, .fade-in, .zoom-out');
+  elements.forEach(el => {
+    const delay = parseInt(el.getAttribute('data-delay')) || 0;
+    if (isInViewport(el) && !el.classList.contains('show')) {
+      setTimeout(() => el.classList.add('show'), delay);
+    }
+  });
+}
+
+// Run once on load + whenever scroll happens
+window.addEventListener('load', animateElements);
+window.addEventListener('scroll', animateElements);
+
+
+
 (function() {
   "use strict";
 

@@ -19,9 +19,9 @@
   <!-- ✅ Vendor CSS Files (fixed quotes & rel syntax) -->
   <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
-  <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
+  {% comment %} <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet"> {% endcomment %}
   <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
-  <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+  {% comment %} <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet"> {% endcomment %}
   <link href="{% static 'vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
 
   <!-- ✅ Main CSS File -->
@@ -99,11 +99,12 @@
 
     <!-- Hero Section -->
     <section id="hero" class="hero section light-background">
+
       <img src="{% static 'images/hero-bg.jpg' %}" alt="" data-aos="fade-in">
 
       <div class="container position-relative">
-
-        <div class="welcome position-relative" data-aos="fade-down" data-aos-delay="100">
+      <div class="welcome position-relative fade-down" data-delay="200" >
+        {% comment %} <div class="welcome position-relative" data-aos="fade-down" data-aos-delay="100"> {% endcomment %}
           <h2>WELCOME TO</h2>
           <h2>HEF CARE Hospital</h2>
           <p>We're determined for your better life.</p>
@@ -111,7 +112,8 @@
 
         <div class="content row gy-4">
           <div class="col-lg-4 d-flex align-items-stretch">
-            <div class="why-box" data-aos="zoom-out" data-aos-delay="200">
+            <div class="why-box zoom-out" data-delay="200">
+            {% comment %} <div class="why-box" data-aos="zoom-out" data-aos-delay="200"> {% endcomment %}
               <h3>Why Choose Us?</h3>
              <p>
         At <b>HEF</b>, we bring together expert medical care and modern hospital management technology. 
@@ -128,7 +130,8 @@
               <div class="row gy-4">
 
                 <div class="col-xl-4 d-flex align-items-stretch">
-                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="300">
+                  <div class="icon-box zoom-out" data-delay="300">
+                  {% comment %} <div class="icon-box" data-aos="zoom-out" data-aos-delay="300"> {% endcomment %}
                     <i class="bi bi-clipboard-data"></i>
                   <h4>Smart Patient Records</h4>
                   <p>Securely manage patient history, prescriptions, and reports in one digital platform.</p>  
@@ -136,7 +139,8 @@
                 </div><!-- End Icon Box -->
 
                 <div class="col-xl-4 d-flex align-items-stretch">
-                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="400">
+                                    <div class="icon-box zoom-out" data-delay="300">
+                  {% comment %} <div class="icon-box" data-aos="zoom-out" data-aos-delay="400"> {% endcomment %}
                     <i class="fas fa-heartbeat"></i>
                   <h4>Expert Doctors & Staff</h4>
                   <p>Qualified specialists and trained staff dedicated to providing world-class healthcare.</p>
@@ -145,7 +149,8 @@
                 </div><!-- End Icon Box -->
 
                 <div class="col-xl-4 d-flex align-items-stretch">
-                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="500">
+                 <div class="icon-box zoom-out" data-delay="300">
+                  {% comment %} <div class="icon-box" data-aos="zoom-out" data-aos-delay="500"> {% endcomment %}
                     <i class="fas fa-vials"></i>
                     <h4>24/7 Diagnostics</h4>
                     <p>Fast and accurate lab results available online anytime for patients and doctors.</p>
@@ -168,13 +173,13 @@
       <div class="container">
 
         <div class="row gy-4 gx-5">
-
-          <div class="col-lg-6 position-relative align-self-start" data-aos="fade-up" data-aos-delay="200">
+          <div class="col-lg-6 position-relative align-self-start fade-up" data-delay="200">
+           {% comment %} <div class="col-lg-6 position-relative align-self-start" data-aos="fade-up" data-aos-delay="200"> {% endcomment %}
             <img src="{% static 'images/about.jpg' %}" class="img-fluid" alt="">
-            <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8" class="glightbox pulsating-play-btn"></a>
+            <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8" target="_blank" class="pulsating-play-btn"></a>
           </div>
-
-          <div class="col-lg-6 content" data-aos="fade-up" data-aos-delay="100">
+           <div class="col-lg-6 content fade-up" data-delay="100">
+          {% comment %} <div class="col-lg-6 content" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
             <h3>About Us</h3>
             <p>
           Our Hospital Management System is designed to provide a modern and efficient way to manage healthcare services. From patient registration to doctor appointments and medical records, we ensure smooth operations with user-friendly features and secure data handling.
@@ -1065,8 +1070,8 @@
 
   <!-- Vendor JS Files -->
  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'vendor/aos/aos.js' %}"></script>
-<script src="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></script>
+{% comment %} <script src="{% static 'vendor/aos/aos.js' %}"></script> {% endcomment %}
+{% comment %} <script src="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></script> {% endcomment %}
 <script src="{% static 'vendor/swiper/swiper-bundle.min.js' %}"></script>
 <script src="{% static 'vendor/purecounter/purecounter_vanilla.js' %}"></script>
 
