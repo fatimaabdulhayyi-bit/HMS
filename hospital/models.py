@@ -37,6 +37,13 @@ class UserAccount(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['fullname', 'role']
 
+    # FIX: Custom Table Name
+    class Meta:
+        # Table ka naam sirf 'users' set kar dega
+        db_table = 'users'  
+        # OR, agar aap 'user_accounts' chahti hain
+        # db_table = 'user_accounts'
+
     def __str__(self):
      return f"{self.fullname} | {self.email} | {self.role} | {self.password}"
         
