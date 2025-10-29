@@ -1,3 +1,8 @@
+/* patient.css */
+
+/* ---------------------- */
+/* Appointment Card */
+/* ---------------------- */
 .appointment-card {
     max-width: 700px;
     margin: 50px auto;
@@ -22,12 +27,14 @@
 
 .appointment-card .row {
     display: flex;
+    flex-wrap: wrap;
     gap: 20px;
     margin-bottom: 20px;
 }
 
 .appointment-card .col {
     flex: 1;
+    min-width: 250px;
 }
 
 .appointment-card input,
@@ -73,8 +80,11 @@
     background-color: #3571c0;
 }
 
+/* ---------------------- */
+/* Responsive */
+/* ---------------------- */
 @media (max-width: 768px) {
-    .appointment-card .row {
-        flex-direction: column;
+    .appointment-card {
+        margin: 20px;
     }
 }

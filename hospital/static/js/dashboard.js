@@ -3,12 +3,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const currentPath = window.location.pathname; // example: /patient/appointments/
 
     menuItems.forEach(link => {
-        const linkPath = link.getAttribute("href");
-        // match only if path is same or ends with that path
-        if (currentPath === linkPath || currentPath.endsWith(linkPath)) {
-            link.parentElement.classList.add("active");
-        } else {
-            link.parentElement.classList.remove("active");
-        }
-    });
+    const linkPath = link.getAttribute("href");
+    if (currentPath === linkPath || currentPath.endsWith(linkPath)) {
+        link.parentElement.classList.add("active");
+    } else {
+        link.parentElement.classList.remove("active");
+    }
 });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebarMenu");
+  const toggleBtn = document.getElementById("sidebarToggle");
+    const closeBtn = document.getElementById("sidebarClose");
+    
+  toggleBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("show");
+  });
+    
+  closeBtn.addEventListener("click", () => {
+    sidebar.classList.remove("show");
+ });
+    
+});
+
+
+
+

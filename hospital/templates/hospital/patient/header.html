@@ -1,9 +1,17 @@
-<header class="topbar">
-  <img src="{% static 'images/logo.png' %}" alt="logo" class="logo">
-  <div class="top-icons">
+<header class="topbar border-bottom pb-3 mb-3">
+  <!-- Left side: toggle + logo -->
+  <div class="topbar-left d-flex align-items-center gap-2">
+    <button class="btn sidebar-toggle d-lg-none" type="button" id="sidebarToggle">
+      <i class="fa fa-bars"></i>
+    </button>
+    <img src="{% static 'images/logo.png' %}" alt="logo" class="logo">
+  </div>
+
+  <!-- Right side: bell + logout -->
+  <div class="topbar-right d-flex align-items-center gap-2">
     <i class="fa fa-bell"></i>
-    <button class="logout-btn">
-      <i class="fa fa-sign-out-alt"></i> Logout
+    <button class="btn btn-danger ">
+      <i class="fa fa-sign-out-alt me-1"></i> Logout
     </button>
   </div>
 </header>

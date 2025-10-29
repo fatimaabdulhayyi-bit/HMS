@@ -27,16 +27,6 @@ def signup(request):
             password=password  # plain text (unsafe)
     )
 
-          
-        # Validate data
-    #     if fullname and email and password:
-    #         user = UserAccount.objects.create_user(
-    #         email=email,
-    #         fullname=fullname,
-    #         role=role if role else 'patient',
-    #         password=password
-    # )
-
             user.set_password(password)   #Hash password securely
             user.save()
             print("✅ User saved:", user.fullname, user.email, user.role, user.password)
@@ -69,10 +59,10 @@ def doctorreg(request):
     return render(request, 'hospital/forms/doctorreg.html')
 
 def department(request):
-    return render(request, 'hospital/dashboard/department.html')
+    return render(request, 'hospital/admin/department.html')
 
 def add_department(request):
-    return render(request, 'hospital/dashboard/add_department.html')
+    return render(request, 'hospital/admin/add_department.html')
 
 def admin_dashboard(request):
     return render(request, 'hospital/admin/admin_dashboard.html')

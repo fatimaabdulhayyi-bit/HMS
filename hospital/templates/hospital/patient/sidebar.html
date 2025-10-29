@@ -1,15 +1,24 @@
-<aside class="sidebar">
-  <div class="profile">
-    <div class="profile-img"><i class="fa fa-user"></i></div>
-    <h4>Patient</h4>
-    <h2>{{ user.username }}</h2>
-  </div>
+  <!-- ✅ Sidebar -->
+      <aside class="sidebar flex-column" id="sidebarMenu">
+        <div class="sidebar-inner">
+          <!-- Mobile toggle close button -->
+          <button class="btn sidebar-close d-lg-none" id="sidebarClose">
+            <i class="fa fa-bars"></i>
+          </button>
 
-  <ul class="menu">
-    <li><a href="{% url 'patient_dashboard' %}" class="menu-link"><i class="fa fa-home"></i> Dashboard</a></li>
-    <li><a href="{% url 'appointments' %}" class="menu-link"><i class="fa fa-calendar"></i> My Appointments</a></li>
-    <li><a href="{% url 'bill' %}" class="menu-link"><i class="fa fa-credit-card"></i> Bill</a></li>
-    <li><a href="{% url 'medical_records' %}" class="menu-link"><i class="fa fa-file-medical"></i> Medical Records</a></li>
-    <li><a href="{% url 'feedback' %}" class="menu-link"><i class="fa fa-comment-dots"></i> Feedback</a></li>
-  </ul>
-</aside>
+          <div class="profile text-center my-3">
+            <div class="profile-img mb-2"><i class="fa fa-user fa-2x"></i></div>
+            <h4>Patient</h4>
+            <h6>{{ user.username }}</h6>
+          </div>
+
+          <ul class="nav flex-column mb-auto w-100 menu">
+            <li class="nav-item"><a href="{% url 'patient_dashboard' %}" class="nav-link"><i class="fa fa-home me-2"></i>Dashboard</a></li>
+            <li><a href="{% url 'appointments' %}" class="nav-link"><i class="fa fa-calendar me-2"></i>My Appointments</a></li>
+            <li><a href="{% url 'appointment_form' %}" class="nav-link"><i class="fa fa-stethoscope me-2"></i>Book Appointment</a></li>
+            <li><a href="{% url 'bill' %}" class="nav-link"><i class="fa fa-credit-card me-2"></i>Bill</a></li>
+            <li><a href="{% url 'medical_records' %}" class="nav-link"><i class="fa fa-file-medical me-2"></i>Medical Records</a></li>
+            <li><a href="{% url 'feedback' %}" class="nav-link"><i class="fa fa-comment-dots me-2"></i>Feedback</a></li>
+          </ul>
+        </div>
+      </aside>

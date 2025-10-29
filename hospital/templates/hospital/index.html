@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Index - Medilab Bootstrap Template</title>
+  <title>HEF-Care hospital</title>
   <meta name="description" content="">
   <meta name="keywords" content="">
 
@@ -21,7 +21,7 @@
   <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
   {% comment %} <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet"> {% endcomment %}
   <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
-  {% comment %} <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet"> {% endcomment %}
+  <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
   <link href="{% static 'vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
 
   <!-- ✅ Main CSS File -->
@@ -86,9 +86,15 @@
           <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
           
         </nav>
-
+        {% comment %} <a class="cta-btn d-none d-sm-block" href="{% url 'doctor_recommendations' %}" style="background-color: #007bff; border-color: #007bff;">Find Doctor</a> {% endcomment %}
+        {% comment %} <a class="cta-btn d-none d-sm-block" href="#">Find Doctor</a> {% endcomment %}
         <a class="cta-btn d-none d-sm-block" href="#appointment">Make an Appointment</a>
-        <a class="login-button" href="{% url 'signup' %}">Sign Up</a>
+        <a class="cta-btn d-none d-sm-block" href="{% url 'signup' %}">Sign Up</a>
+     {% comment %} <div class="d-flex align-items-center gap-0"> 
+    <a class="cta-btn d-none d-sm-block" href="#">Find Doctor</a>
+    <a class="cta-btn d-none d-sm-block" href="#appointment">Make an Appointment</a>
+    <a class="cta-btn d-none d-sm-block" href="{% url 'signup' %}">Sign Up</a> 
+</div> {% endcomment %}
       </div>
 
     </div>
@@ -139,7 +145,7 @@
                 </div><!-- End Icon Box -->
 
                 <div class="col-xl-4 d-flex align-items-stretch">
-                                    <div class="icon-box zoom-out" data-delay="300">
+                   <div class="icon-box zoom-out" data-delay="300">
                   {% comment %} <div class="icon-box" data-aos="zoom-out" data-aos-delay="400"> {% endcomment %}
                     <i class="fas fa-heartbeat"></i>
                   <h4>Expert Doctors & Staff</h4>
@@ -217,8 +223,8 @@
 
     <!-- Stats Section -->
     <section id="stats" class="stats section light-background">
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
+          <div class="container fade-up" data-delay="100">  
+      {% comment %} <div class="container" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
 
         <div class="row gy-4">
 
@@ -264,16 +270,17 @@
     <section id="services" class="services section" style="background: url(assets/img/bg-testimonial.png) no-repeat center center/cover; ">
 
       <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Services</h2>
-<p>We offer a wide range of healthcare services including advanced diagnostics, specialist consultations, pharmacy support, and emergency care — all under one roof.</p>      </div><!-- End Section Title -->
-      <div class="container">
+      <div class="container section-title fade-up">
+               {% comment %} <div class="container section-title" data-aos="fade-up"> {% endcomment %}
+           <h2>Services</h2>
+           <p>We offer a wide range of healthcare services including advanced diagnostics, specialist consultations, pharmacy support, and emergency care — all under one roof.</p>      </div><!-- End Section Title -->
+        <div class="container">
 
-        <div class="row gy-4">
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="service-item  position-relative">
-              <div class="icon">
+          <div class="row gy-4">
+             <div class="col-lg-4 col-md-6 fade-up"  data-delay="100">
+               {% comment %} <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
+               <div class="service-item  position-relative">
+               <div class="icon">
                 <i class="fas fa-user-md"></i>
               </div>
               <a href="#" class="stretched-link">
@@ -281,10 +288,10 @@
               </a>
               <p>We provide modern infrastructure, advanced medical equipment, and comfortable patient rooms to ensure the best healthcare experience.</p>
             </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-            <div class="service-item position-relative">
+           </div><!-- End Service Item -->
+           <div class="col-lg-4 col-md-6 fade-up" data-delay="200"> 
+            {% comment %} <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200"> {% endcomment %}
+           <div class="service-item position-relative">
               <div class="icon">
                 <i class="fas fa-flask"></i>
               </div>
@@ -293,9 +300,9 @@
               </a>
                     <p>Our fully equipped diagnostic laboratory offers accurate and timely tests to support effective treatment and patient care.</p>
             </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+           </div><!-- End Service Item -->
+           <div class="col-lg-4 col-md-6 fade-up" data-delay="300"> 
+            {% comment %} <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300"> {% endcomment %}
             <div class="service-item position-relative">
               <div class="icon">
                 <i class="fas fa-stethoscope"></i>
@@ -306,46 +313,7 @@
                   <p>A wide range of medical specialists including cardiologists, neurologists, dermatologists, and surgeons to meet all healthcare needs.</p>
             </div>
           </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-pills"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Pharmacy</h3>
-              </a>
-                      <p>24/7 in-house pharmacy with authentic medicines and healthcare products at affordable prices.</p>
-              <a href="#" class="stretched-link"></a>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-vials"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Blood Banking</h3>
-              </a>
-               <p>Safe and reliable blood bank facilities with all blood groups available for emergency and scheduled medical needs.</p>
-              <a href="#" class="stretched-link"></a>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-ambulance"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Emergency Services</h3>
-              </a>
-              <p>Immediate response team available 24/7 for accidents, trauma, and critical care emergencies.</p>
-              <a href="#" class="stretched-link"></a>
-            </div>
-          </div><!-- End Service Item -->
-
+              
         </div>
 
       </div>
@@ -428,13 +396,14 @@
     <section id="departments" class="departments section">
 
       <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
+           <div class="container section-title fade-up">
+      {% comment %} <div class="container section-title" data-aos="fade-up"> {% endcomment %}
         <h2>Departments</h2>
   <p>We provide specialized medical care through our dedicated departments to ensure the best treatment for every patient.</p>
         </div><!-- End Section Title -->
 
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-
+      {% comment %} <div class="container" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
+      <div class="container fade-up" data-delay="100">
         <div class="row">
           <div class="col-lg-3">
             <ul class="nav nav-tabs flex-column">
@@ -528,7 +497,8 @@
     <section id="doctors" class="doctors section">
 
       <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
+      <div class="container section-title fade-up"> 
+      {% comment %} <div class="container section-title" data-aos="fade-up"> {% endcomment %}
         <h2>Doctors</h2>
          <p>Meet our team of dedicated specialists committed to providing the best healthcare services.</p>
       </div><!-- End Section Title -->
@@ -536,8 +506,8 @@
       <div class="container">
 
         <div class="row gy-4">
-
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="col-lg-6 fade-up"  data-delay="100">
+          {% comment %} <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
             <div class="team-member d-flex align-items-start">
               <div class="pic"><img src="{% static 'images/doctor_01.png' %}" style="background: #d3d3d3;" class="img-fluid" alt=""></div>
               <div class="member-info">
@@ -553,8 +523,8 @@
               </div>
             </div>
           </div><!-- End Team Member -->
-
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="col-lg-6 fade-up" data-delay="200">
+          {% comment %} <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200"> {% endcomment %}
             <div class="team-member d-flex align-items-start">
               <div class="pic"><img src="{% static 'images/doctor_02.png' %}" style="background-color: #d3d3d3;" class="img-fluid" alt=""></div>
               <div class="member-info">
@@ -570,8 +540,8 @@
               </div>
             </div>
           </div><!-- End Team Member -->
-
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="col-lg-6 fade-up" data-delay="300">
+          {% comment %} <div class="col-lg-6" data-aos="fade-up" data-aos-delay="300"> {% endcomment %}
             <div class="team-member d-flex align-items-start">
               <div class="pic"><img src="{% static 'images/doctor_03.png' %}" style="background-color: #d3d3d3;" class="img-fluid" alt=""></div>
               <div class="member-info">
@@ -587,8 +557,8 @@
               </div>
             </div>
           </div><!-- End Team Member -->
-
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="400">
+        <div class="col-lg-6 fade-up" data-delay="400">
+          {% comment %} <div class="col-lg-6" data-aos="fade-up" data-aos-delay="400"> {% endcomment %}
             <div class="team-member d-flex align-items-start">
               <div class="pic"><img src="{% static 'images/doctor_04.png' %}" style="background-color: #d3d3d3;" class="img-fluid" alt=""></div>
               <div class="member-info">
@@ -615,7 +585,8 @@
     <section id="faq" class="faq section light-background">
 
       <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
+    <div class="container section-title fade-up"> 
+      {% comment %} <div class="container section-title" data-aos="fade-up"> {% endcomment %}
         <h2>Frequently Asked Questions</h2>
 <p>Here are some common questions patients ask about our hospital and services.</p>
       </div><!-- End Section Title -->
@@ -623,8 +594,8 @@
       <div class="container">
 
         <div class="row justify-content-center">
-
-          <div class="col-lg-10" data-aos="fade-up" data-aos-delay="100">
+        <div class="col-lg-10 fade-up" data-delay="100">
+          {% comment %} <div class="col-lg-10" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
 
             <div class="faq-container">
 
@@ -684,16 +655,16 @@
       <div class="container">
 
         <div class="row align-items-center">
-
-          <div class="col-lg-5 info" data-aos="fade-up" data-aos-delay="100">
+      <div class="col-lg-5 info fade-up" data-delay="100">
+          {% comment %} <div class="col-lg-5 info" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
             <h3>Testimonials</h3>
            <p>
           Hear from our patients, doctors, and partners who trust our services and commitment to providing 
           quality healthcare with compassion and professionalism.
         </p>
           </div>
-
-          <div class="col-lg-7" data-aos="fade-up" data-aos-delay="200">
+      <div class="col-lg-7 fade-up" data-delay="200">
+          {% comment %} <div class="col-lg-7" data-aos="fade-up" data-aos-delay="200"> {% endcomment %}
 
             <div class="swiper init-swiper">
               <script type="application/json" class="swiper-config">
@@ -830,12 +801,13 @@
     <section id="gallery" class="gallery section">
 
       <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
+    <div class="container section-title fade-up">  
+      {% comment %} <div class="container section-title" data-aos="fade-up"> {% endcomment %}
         <h2>Gallery</h2>
 <p>Explore our hospital facilities, dedicated staff, and moments that reflect our commitment to patient care.</p>
         </div><!-- End Section Title -->
-
-      <div class="container-fluid" data-aos="fade-up" data-aos-delay="100">
+    <div class="container-fluid fade-up" data-delay="100">
+      {% comment %} <div class="container-fluid" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
 
         <div class="row g-0">
 
@@ -913,22 +885,24 @@
     <section id="contact" class="contact section">
 
       <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
+    <div class="container section-title fade-up">
+      {% comment %} <div class="container section-title" data-aos="fade-up"> {% endcomment %}
         <h2>Contact</h2>
 <p>Get in touch with us for appointments, medical assistance, or any inquiries. We are here to help you 24/7.</p>
       </div><!-- End Section Title -->
-
-      <div class="mb-5" data-aos="fade-up" data-aos-delay="200">
+    <div class="mb-5 fade-up"  data-delay="200">
+      {% comment %} <div class="mb-5" data-aos="fade-up" data-aos-delay="200"> {% endcomment %}
          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3377.4394522191824!2d74.1990849!3d32.1654225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391f2a1e19d06637%3A0xc2a05ef56785ac70!2sGovt%20Post%20Graduate%20College%20for%20Women!5e0!3m2!1sen!2s!4v1756892902831!5m2!1sen!2s" width="100%" height="550px" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
 
       </div><!-- End Google Maps -->
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="container fade-up" data-delay="100">
+      {% comment %} <div class="container" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
 
         <div class="row gy-4">
 
           <div class="col-lg-4">
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="300">
+      <div class="info-item d-flex fade-up" data-delay="300">
+            {% comment %} <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="300"> {% endcomment %}
               <i class="bi bi-geo-alt flex-shrink-0"></i>
               <div>
                 <h3>Location</h3>
@@ -936,16 +910,16 @@
                 <p>Satellite Town Gujranwala</p>
               </div>
             </div><!-- End Info Item -->
-
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="400">
+        <div class="info-item d-flex fade-up" data-delay="400">
+            {% comment %} <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="400"> {% endcomment %}
               <i class="bi bi-telephone flex-shrink-0"></i>
               <div>
                 <h3>Call Us</h3>
                 <p>(055) 4290057</p>
               </div>
             </div><!-- End Info Item -->
-
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="500">
+        <div class="info-item d-flex fade-up" data-delay="500">
+            {% comment %} <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="500"> {% endcomment %}
               <i class="bi bi-envelope flex-shrink-0"></i>
               <div>
                 <h3>Email Us</h3>
@@ -1071,7 +1045,7 @@
   <!-- Vendor JS Files -->
  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 {% comment %} <script src="{% static 'vendor/aos/aos.js' %}"></script> {% endcomment %}
-{% comment %} <script src="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></script> {% endcomment %}
+<script src="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></script>
 <script src="{% static 'vendor/swiper/swiper-bundle.min.js' %}"></script>
 <script src="{% static 'vendor/purecounter/purecounter_vanilla.js' %}"></script>
 
