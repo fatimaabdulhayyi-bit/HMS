@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Admin Dashboard{% endblock %}</title>
+  <title>{% block title %}Doctor Dashboard{% endblock %}</title>
 
   <!-- Favicons -->
   <link href="{% static 'images/favicon.png' %}" rel="icon">
@@ -38,18 +38,30 @@
 
     <div class="profile text-center my-3">
       <div class="profile-img mb-2"><i class="fa fa-user fa-2x"></i></div>
-      <h4>Admin</h4>
+      <h4>Doctor</h4>
       <h6>User</h6>
     </div>
 
     <ul class="nav flex-column mb-auto w-100 menu">
-      <li class="nav-item"><a href="{% url 'admin_dashboard' %}" class="nav-link"><i class="fa fa-home me-2"></i>Dashboard</a></li>
-      <li><a href="{% url 'doctors' %}" class="nav-link"><i class="fa fa-user-md me-2"></i>Doctors</a></li>
-      <li><a href="{% url 'patients' %}" class="nav-link"><i class="fa fa-users me-2"></i>Patients</a></li>
-      <li><a href="{% url 'department' %}" class="nav-link"><i class="fa fa-building me-2"></i>Departments</a></li>
-      <li><a href="{% url 'manage_appointments' %}" class="nav-link"><i class="fa fa-calendar-check me-2"></i>Appointments</a></li>
-      <li><a href="{% url 'generate_bills' %}" class="nav-link"><i class="fa fa-file-invoice-dollar me-2"></i>Generate Bill</a></li>
-    </ul>
+  <li class="nav-item">
+    <a href="{% url 'admin_dashboard' %}" class="nav-link">
+      <i class="fa fa-home me-2"></i>Dashboard
+    </a>
+  </li>
+
+  <li>
+    <a href="{% url 'patients' %}" class="nav-link">
+      <i class="fa fa-calendar-check me-2"></i>Appointments
+    </a>
+  </li>
+
+  <li>
+    <a href="{% url 'department' %}" class="nav-link">
+      <i class="fa fa-clock me-2"></i>Schedules
+    </a>
+  </li>
+</ul>
+
   </div>
 </aside>
 
@@ -66,7 +78,7 @@
   </div>
 
   <!-- Right side: bell + logout -->
-    <div class="topbar-right d-flex align-items-center gap-2">
+     <div class="topbar-right d-flex align-items-center gap-2">
      <button class="btn btn-light" id="notificationBtn">
       <i class="fa fa-bell fs-5"></i>
   </button>

@@ -27,6 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
     
 });
 
+document.getElementById("notificationBtn").addEventListener("click", function () {
+    alert("Show notification list here");
+});
 
 
 

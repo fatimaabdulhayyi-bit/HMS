@@ -3,13 +3,10 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<div>
-  
-</div>
 <section class="cards">
-  <a href="{% url 'profile' %}" class="profile-card">
+  {% comment %} <a href="{% url 'profile' %}" class="profile-card">
     <div class="profile-icon"><i class="fa fa-user-circle"></i></div>
-    <h3>My Profile</h3>
+    <h3>Patients</h3>
     <p>Update Profile</p>
   </a>
   <a href="{% url 'appointments' %}" class="profile-card">
@@ -21,6 +18,6 @@
     <div class="profile-icon"><i class="fa fa-stethoscope"></i></div>
     <h3>Book My Appointment</h3>
     <p>Book Appointment</p>
-  </a>
+  </a> {% endcomment %}
 </section> 
 {% endblock %}
