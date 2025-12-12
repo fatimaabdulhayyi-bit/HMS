@@ -4,47 +4,39 @@ from django.http import HttpResponse
 
 def signup(request):
     if request.method == "POST":
-        print("✅ POST received")
-
         fullname = request.POST.get('fullname')
         email = request.POST.get('email')
         role = request.POST.get('role')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
 
-        print("Data from form:", fullname, email, role, password, confirm_password)
-
         # Check passwords match
         if password != confirm_password:
-            print("❌ Passwords do not match")
             return render(request, 'hospital/forms/sign_up.html', {'error': 'Passwords do not match'})
 
-        if fullname and email and password:
-            user = UserAccount.objects.create(
-            email=email,
-            fullname=fullname,
-            role=role if role else 'patient',
-            password=password  # plain text (unsafe)
-    )
+        # Only one Admin allowed
+        if role == "admin" and UserAccount.objects.filter(role="admin").exists():
+            return render(request, 'hospital/forms/sign_up.html', {'error': 'Admin already exists. You cannot create another admin.'})
 
-            user.set_password(password)   #Hash password securely
+        if fullname and email and password:
+            user = UserAccount.objects.create_user(
+                email=email,
+                fullname=fullname,
+                role=role,
+                password=password
+            )
             user.save()
-            print("✅ User saved:", user.fullname, user.email, user.role, user.password)
-              # ✅ Redirect based on role
+
+            # Redirect based on role
             if user.role == 'admin':
-                 return redirect('admin_dashboard')
+                return redirect('admin_dashboard')
             elif user.role == 'doctor':
                 return redirect('doctorreg')
-            elif user.role == 'patient':
-                return redirect('patientreg')
             else:
-                return redirect('/')  # fallback redirect
-            
-    #     return render(request, 'hospital/forms/sign_up.html', {'success': True})
-    # else:
-    #         print("❌ Missing data fields")
+                return redirect('patientreg')
 
     return render(request, 'hospital/forms/sign_up.html')
+
 
 def index(request):
     return render(request, 'hospital/index.html')
@@ -73,8 +65,8 @@ def ambulances(request):
 def manage_appointments(request):
     return render(request, 'hospital/admin/manage_appointments.html')
 
-def bills(request):
-    return render(request, 'hospital/admin/bills.html')
+def generate_bills(request):
+    return render(request, 'hospital/admin/generate_bills.html')
 
 def doctors(request):
     return render(request, 'hospital/admin/doctors.html')
@@ -85,7 +77,7 @@ def emergency(request):
 def patients(request):
     return render(request, 'hospital/admin/patients.html')
 def doctor_dashboard(request):
-    return render(request, 'hospital/dashboard/doctor_dashboard.html')
+    return render(request, 'hospital/doctor/doctor_dashboard.html')
 
 def patient_dashboard(request):
     return render(request, 'hospital/patient/patient_dashboard.html')

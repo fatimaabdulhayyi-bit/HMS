@@ -304,7 +304,7 @@ h6 {
   background-color: var(--background-color);
 }
 
-.header .topbar {
+/* .header .topbar {
   background-color: var(--accent-color);
   height: 40px;
   padding: 0;
@@ -321,25 +321,12 @@ h6 {
 .header .topbar .contact-info i span {
   padding-left: 5px;
   color: var(--contrast-color);
-}
-
-/* .login-button{
-  border: 1px solid var(--accent-color);
-  font-size: 20px;
-  padding: 8px 25px;
-  margin: 0 0 0 30px;
-  border-radius: 50px;
-  transition: 0.3s;
-}
-
-.login-button:hover{
-            color: white;
-            background:color-mix(in srgb, var(--accent-color), transparent 15%);
-                
+  font-size: 13px;
 } */
 
+
 /* Login Button Styling */
-.login-button {
+/* .login-button {
   border: 1px solid var(--accent-color);
   color: var(--accent-color);
   font-size: 18px;
@@ -354,7 +341,7 @@ h6 {
 .login-button:hover {
   color: white;
   background: color-mix(in srgb, var(--accent-color), transparent 15%);
-}
+} */
 
 /* Default visibility */
 .desktop-only {
@@ -365,53 +352,168 @@ h6 {
   display: none;
 }
 
-/* ✅ Tablet + Mobile (<=992px) */
+/* 🔹 Branding + Logo */
+.header .branding {
+  min-height: 60px;
+  padding: 10px 0;
+}
+
+.header .logo img {
+  height: 80px;
+  transition: all 0.3s ease;
+}
+
+/* 🔹 CTA Buttons (Main Buttons) */
+.header .cta-btn {
+  color: var(--contrast-color);
+  background: var(--accent-color);
+  font-size: 10px;
+  padding: 8px 25px;
+  margin-left: 20px;
+  border-radius: 50px;
+  transition: 0.3s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.header .cta-btn:hover {
+  background: color-mix(in srgb, var(--accent-color), transparent 15%);
+}
+
+/* ✅ Tablet + Mobile (<=1200px) */
+@media (max-width: 1200px) {
+  .header .logo img {
+    height: 70px;
+  }
+
+  .header .cta-btn {
+    font-size: 14px;
+    padding: 6px 20px;
+    margin-left: 10px;
+  }
+}
+
 @media (max-width: 992px) {
-  .desktop-only {
+
+  /* .desktop-only {
     display: block;
-    /* navbar ke andar wali button chhupao */
+   
   }
 
   .mobile-only {
     display: none;
-    /* logo ke neeche wali button show karo */
-    margin: 10px 0;
   }
 
   .tablet-only .login-button {
     display: block;
     width: 90%;
-    /* screen ka 90% */
+   
     margin: 15px auto;
-    /* center */
+   
     text-align: center;
     font-size: 16px;
+  } */
+  /* .header .logo img {
+    height: 65px;
+  }
+
+  .header .cta-btn {
+    font-size: 13px;
+    padding: 6px 18px;
+    margin-left: 10px;
+  } */
+  .header .branding .container {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .header .logo img {
+    height: 60px;
+  }
+
+  .header .cta-btn {
+    font-size: 13px;
+    padding: 6px 18px;
+    margin-left: 5px;
+  }
+
+  .navmenu ul {
+    text-align: center;
   }
 }
 
 
-/* ✅ Mobile Styles */
+/* ✅ Responsive Buttons (Mobile & Tablet) */
 @media (max-width: 768px) {
-  .desktop-only {
-    display: none;
-    /* hide navbar button */
+
+  /* .header .logo img {
+    height: 50px;
   }
 
-  .mobile-only {
-    display: block;
-    /* show below logo */
-    margin: 10px 0;
-  }
-
-  .mobile-only .login-button {
+  .header .cta-btn {
     display: block;
     width: 90%;
-    margin: 15px auto;
     text-align: center;
-    font-size: 16px;
+    margin: 8px auto;
+    font-size: 12px;
+    padding: 10px;
+    border-radius: 30px;
+  }
+
+  .header .cta-btn+.cta-btn {
+    margin-top: 10px;
+  } */
+  .header .branding {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .header .logo img {
+    height: 50px;
+    margin-bottom: 5px;
+  }
+
+  .header .cta-btn {
+    display: block;
+    width: 90%;
+    margin: 8px auto;
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .header .cta-btn+.cta-btn {
+    margin-top: 8px;
   }
 }
 
+/* ✅ Extra Small (≤480px) */
+@media (max-width: 480px) {
+  .header .logo img {
+    height: 40px;
+  }
+
+  .header .cta-btn {
+    width: 95%;
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .header .logo img {
+    height: 40px;
+  }
+
+  .header .cta-btn {
+    width: 95%;
+    font-size: 11px;
+    padding: 8px 8px;
+  }
+
+  .navmenu a {
+    font-size: 15px;
+  }
+}
 
 @media (max-width: 575px) {
 
@@ -589,7 +691,7 @@ h6 {
     color: var(--nav-hover-color);
   }
 
-  /* .navmenu .dropdown ul {
+  .navmenu .dropdown ul {
     margin: 0;
     padding: 10px 0;
     background: var(--nav-dropdown-background-color);
@@ -643,7 +745,7 @@ h6 {
     top: 0;
     left: -100%;
     visibility: visible;
-  } */
+  }
 }
 
 /* Mobile Navigation */
@@ -776,6 +878,7 @@ h6 {
 # Global Footer
 --------------------------------------------------------------*/
 .footer {
+  margin-top: 0%;
   color: var(--default-color);
   background-color: var(--background-color);
   border-top: 1px solid color-mix(in srgb, var(--accent-color), transparent 75%);
@@ -1823,7 +1926,16 @@ section,
 /*--------------------------------------------------------------
 # Contact Section
 --------------------------------------------------------------*/
-.contact .info-item+.info-item {
+#contact.section {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+#contact .mb-5 {
+  margin-bottom: 0 !important;
+}
+
+/* .contact .info-item+.info-item {
   margin-top: 40px;
 }
 
@@ -1893,12 +2005,4 @@ section,
 
 .contact .php-email-form button[type=submit]:hover {
   background: color-mix(in srgb, var(--accent-color), transparent 20%);
-}
-
-/*-----------------------------------------------------------------
-              # Signup form section
--------------------------------------------------------------------*/
-
-/* -------------------------------------------------------
-              #login form section
-----------------------------------------------------------*/
+} */

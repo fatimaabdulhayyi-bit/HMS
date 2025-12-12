@@ -32,9 +32,8 @@
 <body class="index-page">
 
   <header id="header" class="header sticky-top">
-
-    <div class="topbar d-flex align-items-center">
-      <div class="container d-flex justify-content-center justify-content-md-between">
+    {% comment %} <div class="topbar d-flex align-items-center">
+       <div class="container d-flex justify-content-center justify-content-md-between"> 
         <div class="contact-info d-flex align-items-center">
           <i class="bi bi-envelope d-flex align-items-center"><a href="mailto:info@hefcarehospital.com">info@hefcarehospital.com</a></i>
           <i class="bi bi-phone d-flex align-items-center ms-4"><span>(055) 4290057</span></i>
@@ -46,7 +45,7 @@
           <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
         </div>
       </div>
-    </div><!-- End Top Bar -->
+    </div><!-- End Top Bar -->  {% endcomment %}
 
     <div class="branding d-flex align-items-center">
 
@@ -64,23 +63,16 @@
             <li><a href="#services">Services</a></li>
             <li><a href="#departments">Departments</a></li>
             <li><a href="#doctors">Doctors</a></li>
-            <!-- <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-              <ul>
-                <li><a href="#">Dropdown 1</a></li>
-                <li class="dropdown"><a href="#"><span>Deep Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                  <ul>
-                    <li><a href="#">Deep Dropdown 1</a></li>
-                    <li><a href="#">Deep Dropdown 2</a></li>
-                    <li><a href="#">Deep Dropdown 3</a></li>
-                    <li><a href="#">Deep Dropdown 4</a></li>
-                    <li><a href="#">Deep Dropdown 5</a></li>
-                  </ul>
-                </li>
-                <li><a href="#">Dropdown 2</a></li>
-                <li><a href="#">Dropdown 3</a></li>
-                <li><a href="#">Dropdown 4</a></li>
-              </ul>
-            </li> -->
+             <!-- ✅ Fixed Dropdown -->
+          <li class="dropdown">
+            <a href="#"><span>More</span> <i class="bi bi-chevron-down"></i></a>
+            <ul>
+              <li><a href="#faq">FAQ</a></li>
+              <li><a href="#testimonials">Testimonials</a></li>
+              <li><a href="#gallery">Gallery</a></li>
+            </ul>
+          </li>
+
             <li><a href="#contact">Contact</a></li>
           </ul>
           <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
@@ -88,8 +80,8 @@
         </nav>
         {% comment %} <a class="cta-btn d-none d-sm-block" href="{% url 'doctor_recommendations' %}" style="background-color: #007bff; border-color: #007bff;">Find Doctor</a> {% endcomment %}
         {% comment %} <a class="cta-btn d-none d-sm-block" href="#">Find Doctor</a> {% endcomment %}
-        <a class="cta-btn d-none d-sm-block" href="#appointment">Make an Appointment</a>
-        <a class="cta-btn d-none d-sm-block" href="{% url 'signup' %}">Sign Up</a>
+        <a class="cta-btn" href="{% url 'signup' %}">Book Appointment</a>
+        <a class="cta-btn" href="{% url 'signup' %}">Sign Up</a>
      {% comment %} <div class="d-flex align-items-center gap-0"> 
     <a class="cta-btn d-none d-sm-block" href="#">Find Doctor</a>
     <a class="cta-btn d-none d-sm-block" href="#appointment">Make an Appointment</a>
@@ -106,7 +98,7 @@
     <!-- Hero Section -->
     <section id="hero" class="hero section light-background">
 
-      <img src="{% static 'images/hero-bg.jpg' %}" alt="" data-aos="fade-in">
+      <img src="{% static 'images/hero-bg.jpg' %}" alt="" class="fade-in">
 
       <div class="container position-relative">
       <div class="welcome position-relative fade-down" data-delay="200" >
@@ -119,12 +111,12 @@
         <div class="content row gy-4">
           <div class="col-lg-4 d-flex align-items-stretch">
             <div class="why-box zoom-out" data-delay="200">
-            {% comment %} <div class="why-box" data-aos="zoom-out" data-aos-delay="200"> {% endcomment %}
               <h3>Why Choose Us?</h3>
-             <p>
-        At <b>HEF</b>, we bring together expert medical care and modern hospital management technology. 
-        From booking appointments to accessing lab results online, we ensure a smooth and reliable healthcare experience for every patient.
-      </p>
+            {% comment %} <div class="why-box" data-aos="zoom-out" data-aos-delay="200"> {% endcomment %}
+               At <b>HEF</b>, we bring together expert medical care and modern hospital management technology.
+                From booking appointments to managing patient records and billing online, we ensure a smooth and
+                reliable healthcare
+                experience for every patient.
               <div class="text-center">
                 <a href="#about" class="more-btn"><span>Learn More</span> <i class="bi bi-chevron-right"></i></a>
               </div>
@@ -148,19 +140,19 @@
                    <div class="icon-box zoom-out" data-delay="300">
                   {% comment %} <div class="icon-box" data-aos="zoom-out" data-aos-delay="400"> {% endcomment %}
                     <i class="fas fa-heartbeat"></i>
-                  <h4>Expert Doctors & Staff</h4>
-                  <p>Qualified specialists and trained staff dedicated to providing world-class healthcare.</p>
-            
+                <h4>Qualified Doctors</h4>
+                    <p>Experienced doctors dedicated to providing the best medical care and ensuring patient
+                      satisfaction.</p>
                   </div>
                 </div><!-- End Icon Box -->
 
                 <div class="col-xl-4 d-flex align-items-stretch">
                  <div class="icon-box zoom-out" data-delay="300">
                   {% comment %} <div class="icon-box" data-aos="zoom-out" data-aos-delay="500"> {% endcomment %}
-                    <i class="fas fa-vials"></i>
-                    <h4>24/7 Diagnostics</h4>
-                    <p>Fast and accurate lab results available online anytime for patients and doctors.</p>
-            
+                    <i class="bi bi-calendar-check"></i>
+                    <h4>Online Appointment Booking</h4>
+                    <p>Patients can easily schedule, reschedule, or cancel appointments anytime with just a few clicks.
+                    </p>
                   </div>
                 </div><!-- End Icon Box -->
 
@@ -182,7 +174,7 @@
           <div class="col-lg-6 position-relative align-self-start fade-up" data-delay="200">
            {% comment %} <div class="col-lg-6 position-relative align-self-start" data-aos="fade-up" data-aos-delay="200"> {% endcomment %}
             <img src="{% static 'images/about.jpg' %}" class="img-fluid" alt="">
-            <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8" target="_blank" class="pulsating-play-btn"></a>
+            {% comment %} <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8" target="_blank" class="pulsating-play-btn"></a> {% endcomment %}
           </div>
            <div class="col-lg-6 content fade-up" data-delay="100">
           {% comment %} <div class="col-lg-6 content" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
@@ -237,26 +229,26 @@
           </div><!-- End Stats Item -->
 
           <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
-            <i class="fa-regular fa-hospital"></i>
+<i class="fa-solid fa-bed-pulse"></i>
             <div class="stats-item">
               <span data-purecounter-start="0" data-purecounter-end="18" data-purecounter-duration="1" class="purecounter"></span>
+              <p>Patients</p>
+            </div>
+          </div><!-- End Stats Item -->
+
+          <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
+            <i class="fa-solid fa-stethoscope"></i>
+            <div class="stats-item">
+              <span data-purecounter-start="0" data-purecounter-end="12" data-purecounter-duration="1" class="purecounter"></span>
               <p>Departments</p>
             </div>
           </div><!-- End Stats Item -->
 
           <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
-            <i class="fas fa-flask"></i>
-            <div class="stats-item">
-              <span data-purecounter-start="0" data-purecounter-end="12" data-purecounter-duration="1" class="purecounter"></span>
-              <p>Research Labs</p>
-            </div>
-          </div><!-- End Stats Item -->
-
-          <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
-            <i class="fas fa-ambulance"></i>
+            <i class="fa-solid fa-calendar-check"></i>
             <div class="stats-item">
               <span data-purecounter-start="0" data-purecounter-end="150" data-purecounter-duration="1" class="purecounter"></span>
-              <p>Ambulances</p>
+              <p>Appointments</p>
             </div>
           </div><!-- End Stats Item -->
 
@@ -273,7 +265,7 @@
       <div class="container section-title fade-up">
                {% comment %} <div class="container section-title" data-aos="fade-up"> {% endcomment %}
            <h2>Services</h2>
-           <p>We offer a wide range of healthcare services including advanced diagnostics, specialist consultations, pharmacy support, and emergency care — all under one roof.</p>      </div><!-- End Section Title -->
+           <p>Our Hospital Management System offers smart digital healthcare solutions that improve hospital efficiency, reduce waiting times, and enhance patient care through automation and real-time updates.</p>      </div><!-- End Section Title -->
         <div class="container">
 
           <div class="row gy-4">
@@ -284,21 +276,22 @@
                 <i class="fas fa-user-md"></i>
               </div>
               <a href="#" class="stretched-link">
-                <h3>PREMIUM FACILITIES</h3>
+              <h3>IPD & OPD Management</h3>
               </a>
-              <p>We provide modern infrastructure, advanced medical equipment, and comfortable patient rooms to ensure the best healthcare experience.</p>
-            </div>
+              <p>Efficiently manage inpatient and outpatient services — from patient registration and consultations to
+                admission, treatment, and discharge tracking.</p>  
+              </div>
            </div><!-- End Service Item -->
            <div class="col-lg-4 col-md-6 fade-up" data-delay="200"> 
             {% comment %} <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200"> {% endcomment %}
            <div class="service-item position-relative">
               <div class="icon">
-                <i class="fas fa-flask"></i>
+                <i class="fas fa-file-medical"></i>
               </div>
-              <a href="#" class="stretched-link">
-                <h3>Labortory</h3>
-              </a>
-                    <p>Our fully equipped diagnostic laboratory offers accurate and timely tests to support effective treatment and patient care.</p>
+            <a href="#" class="stretched-link">
+            <h3>Digital Medical Records</h3>
+          </a>
+          <p>Doctors can access and update patient records digitally, making treatment and diagnosis faster, more accurate, and paperless.</p>  
             </div>
            </div><!-- End Service Item -->
            <div class="col-lg-4 col-md-6 fade-up" data-delay="300"> 
@@ -321,21 +314,19 @@
     </section><!-- /Services Section -->
 
    <!-- Appointment Section -->
-<section id="appointment" class="appointment section" style="background: url('{% static 'images/form_bg.jpg' %}') no-repeat center center/cover; position: relative; min-height: 500px;">
+{% comment %} <section id="appointment" class="appointment section" style="background: url('{% static 'images/form_bg.jpg' %}') no-repeat center center/cover; position: relative; min-height: 500px;">
 
-  <!-- Overlay (optional, taake text aur form clear dikhain) -->
+
   <div style="background: rgba(255,255,255,0.7); position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
 
   <div class="container" style="position: relative; z-index: 2;">
     <div class="row justify-content-end">
       <div class="col-lg-6">
-        <!-- Section Title -->
         <div class="section-title" data-aos="fade-up">
           <h2>Appointment</h2>
           <p>Book your appointment easily with our online form.</p>
         </div>
 
-        <!-- Appointment Form -->
          <div class="appointment-form bg-white p-4 rounded shadow">
           <form method="post" action>
              {% csrf_token %}
@@ -389,7 +380,7 @@
       </div>
     </div>
   </div>
-</section>
+</section> {% endcomment %}
 
 
     <!-- Departments Section -->
@@ -888,44 +879,40 @@
     <div class="container section-title fade-up">
       {% comment %} <div class="container section-title" data-aos="fade-up"> {% endcomment %}
         <h2>Contact</h2>
-<p>Get in touch with us for appointments, medical assistance, or any inquiries. We are here to help you 24/7.</p>
+        <p>Get in touch with us for appointments, medical assistance, or any inquiries. We are here to help you 24/7.</p>
       </div><!-- End Section Title -->
-    <div class="mb-5 fade-up"  data-delay="200">
+     <div class="mb-5 fade-up"  data-delay="200">
       {% comment %} <div class="mb-5" data-aos="fade-up" data-aos-delay="200"> {% endcomment %}
          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3377.4394522191824!2d74.1990849!3d32.1654225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391f2a1e19d06637%3A0xc2a05ef56785ac70!2sGovt%20Post%20Graduate%20College%20for%20Women!5e0!3m2!1sen!2s!4v1756892902831!5m2!1sen!2s" width="100%" height="550px" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
 
       </div><!-- End Google Maps -->
-    <div class="container fade-up" data-delay="100">
-      {% comment %} <div class="container" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
+     {% comment %} <div class="container fade-up" data-delay="100">
 
         <div class="row gy-4">
 
           <div class="col-lg-4">
       <div class="info-item d-flex fade-up" data-delay="300">
-            {% comment %} <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="300"> {% endcomment %}
               <i class="bi bi-geo-alt flex-shrink-0"></i>
               <div>
                 <h3>Location</h3>
                 <p>Government Post Graduate College For Women </p>
                 <p>Satellite Town Gujranwala</p>
               </div>
-            </div><!-- End Info Item -->
+            </div>
         <div class="info-item d-flex fade-up" data-delay="400">
-            {% comment %} <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="400"> {% endcomment %}
               <i class="bi bi-telephone flex-shrink-0"></i>
               <div>
                 <h3>Call Us</h3>
                 <p>(055) 4290057</p>
               </div>
-            </div><!-- End Info Item -->
+            </div>
         <div class="info-item d-flex fade-up" data-delay="500">
-            {% comment %} <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="500"> {% endcomment %}
               <i class="bi bi-envelope flex-shrink-0"></i>
               <div>
                 <h3>Email Us</h3>
                 <p>info@hefcarehospital.com</p>
               </div>
-            </div><!-- End Info Item -->
+            </div>
 
           </div>
 
@@ -963,7 +950,7 @@
 
         </div>
 
-      </div>
+      </div> {% endcomment %}
 
     </section><!-- /Contact Section -->
 
@@ -984,10 +971,10 @@
             <p><strong>Email:</strong> <span>info@hefcarehospital.com</span></p>
           </div>
           <div class="social-links d-flex mt-4">
-            <a href=""><i class="bi bi-twitter-x"></i></a>
+            {% comment %} <a href=""><i class="bi bi-twitter-x"></i></a>
             <a href=""><i class="bi bi-facebook"></i></a>
             <a href=""><i class="bi bi-instagram"></i></a>
-            <a href=""><i class="bi bi-linkedin"></i></a>
+            <a href=""><i class="bi bi-linkedin"></i></a> {% endcomment %}
           </div>
         </div>
 
