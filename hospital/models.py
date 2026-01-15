@@ -31,19 +31,15 @@ class UserAccount(AbstractBaseUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    is_approved = models.BooleanField(default=False)  # Doctor approval flag
 
     objects = UserAccountManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['fullname', 'role']
 
-    # FIX: Custom Table Name
     class Meta:
-        # Table ka naam sirf 'users' set kar dega
-        db_table = 'users'  
-        # OR, agar aap 'user_accounts' chahti hain
-        # db_table = 'user_accounts'
+        db_table = 'users'
 
     def __str__(self):
-     return f"{self.fullname} | {self.email} | {self.role} | {self.password}"
-        
+        return f"{self.fullname} | {self.email} | {self.role} | {self.password}"

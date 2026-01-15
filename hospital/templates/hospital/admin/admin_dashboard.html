@@ -3,21 +3,143 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<section class="cards">
-  {% comment %} <a href="{% url 'profile' %}" class="profile-card">
-    <div class="profile-icon"><i class="fa fa-user-circle"></i></div>
-    <h3>Patients</h3>
-    <p>Update Profile</p>
+
+<section class="dashboard-cards">
+
+  <!-- Total Doctors -->
+  <a href="{% url 'doctors' %}" class="dashboard-card">
+    <div class="card-icon">
+      <i class="fa fa-user-md"></i>
+    </div>
+    <div class="card-content">
+      <h3>Doctors</h3>
+      <p>0</p>
+    </div>
   </a>
-  <a href="{% url 'appointments' %}" class="profile-card">
-    <div class="profile-icon"><i class="fa fa-calendar-check"></i></div>
-    <h3>My Appointments</h3>
-    <p>View Appointment History</p>
+
+  <!-- Total Patients -->
+  <a href="{% url 'patients' %}" class="dashboard-card">
+    <div class="card-icon">
+      <i class="fa fa-users"></i>
+    </div>
+    <div class="card-content">
+      <h3>Patients</h3>
+      <p>0</p>
+    </div>
   </a>
-  <a href="{% url 'appointment_form' %}" class="profile-card">
-    <div class="profile-icon"><i class="fa fa-stethoscope"></i></div>
-    <h3>Book My Appointment</h3>
-    <p>Book Appointment</p>
-  </a> {% endcomment %}
-</section> 
+
+  <!-- Total Appointments -->
+  <a href="{% url 'manage_appointments' %}" class="dashboard-card">
+    <div class="card-icon">
+      <i class="fa fa-calendar-check"></i>
+    </div>
+    <div class="card-content">
+      <h3>Appointments</h3>
+      <p>0</p>
+    </div>
+  </a>
+
+  <!-- Departments -->
+  <div class="dashboard-card">
+    <div class="card-icon">
+      <i class="fa fa-check-circle"></i>
+    </div>
+    <div class="card-content">
+      <h3>Departments</h3>
+      <p>0</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- Lists Section -->
+<section class="dashboard-lists">
+  <!-- Doctors Registration Requests -->
+  <div class="list-card list-doctors">
+    <div class="list-info">
+      <h3>Doctors</h3>
+
+      <!-- headings -->
+      <ul class="list-head">
+  <li>
+    <span>Name</span>
+    <span>Action</span>
+  </li>
+</ul>
+
+<ul class="list-body">
+  {% if pending_doctors %}
+    {% for doctor in pending_doctors %}
+      <li>
+        <span>{{ doctor.full_name }}</span>
+        <span class="actions">
+          <form method="post" action="{% url 'approve_doctor' doctor.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-accept">Accept</button>
+          </form>
+
+          <form method="post" action="{% url 'reject_doctor' doctor.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-reject">Reject</button>
+          </form>
+        </span>
+      </li>
+    {% endfor %}
+  {% else %}
+    <li class="empty">
+      <span>No pending requests</span>
+    </li>
+  {% endif %}
+</ul>
+
+    </div>
+
+    <div class="list-action">
+      <a href="{% url 'doctors' %}" class="btn-view">View All</a>
+    </div>
+  </div>
+
+  <!-- Ongoing Appointments -->
+  <div class="list-card list-appointments">
+    <div class="list-info">
+      <h3>Appointments</h3>
+
+      <!-- headings -->
+      <ul class="list-head">
+  <li>
+    <span>Patient</span>
+    <span>Date</span>
+    <span>Time</span>
+    <span>Doctor</span>
+  </li>
+</ul>
+
+<ul class="list-body">
+  {% if ongoing_appointments %}
+    {% for appointment in ongoing_appointments %}
+      <li>
+        <span>{{ appointment.patient_name }}</span>
+        <span>{{ appointment.date }}</span>
+        <span>{{ appointment.time }}</span>
+        <span>{{ appointment.doctor }}</span>
+      </li>
+    {% endfor %}
+  {% else %}
+    <li class="empty">
+      <span>No ongoing appointments</span>
+    </li>
+  {% endif %}
+</ul>
+
+    </div>
+
+    <div class="list-action">
+      <a href="{% url 'manage_appointments' %}" class="btn-view">View All</a>
+    </div>
+  </div>
+
+
+</section>
+
+
 {% endblock %}

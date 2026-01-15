@@ -1,6 +1,7 @@
 from django.shortcuts import render,redirect
 from .models import UserAccount
 from django.http import HttpResponse
+from django.contrib.auth import authenticate, login as auth_login
 
 def signup(request):
     if request.method == "POST":
@@ -10,13 +11,11 @@ def signup(request):
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
 
-        # Check passwords match
         if password != confirm_password:
             return render(request, 'hospital/forms/sign_up.html', {'error': 'Passwords do not match'})
 
-        # Only one Admin allowed
         if role == "admin" and UserAccount.objects.filter(role="admin").exists():
-            return render(request, 'hospital/forms/sign_up.html', {'error': 'Admin already exists. You cannot create another admin.'})
+            return render(request, 'hospital/forms/sign_up.html', {'error': 'Admin already exists.'})
 
         if fullname and email and password:
             user = UserAccount.objects.create_user(
@@ -25,23 +24,49 @@ def signup(request):
                 role=role,
                 password=password
             )
+            
+            # If doctor, mark not approved
+            if role == 'doctor':
+                user.is_approved = False
+                user.save()
+                return redirect('doctorreg')  # Doctor registration page
+
             user.save()
 
             # Redirect based on role
             if user.role == 'admin':
                 return redirect('admin_dashboard')
-            elif user.role == 'doctor':
-                return redirect('doctorreg')
             else:
                 return redirect('patientreg')
-
+                
     return render(request, 'hospital/forms/sign_up.html')
-
 
 def index(request):
     return render(request, 'hospital/index.html')
 
 def login(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, email=email, password=password)
+
+        if user is not None:
+            if user.role == 'doctor' and not user.is_approved:
+                return render(request, 'hospital/pending_approval.html', 
+                              {'error': 'Your account is pending admin approval.'})
+            
+            auth_login(request, user)  # Login the user
+            
+            if user.role == 'admin':
+                return redirect('admin_dashboard')
+            elif user.role == 'doctor':
+                return redirect('doctor_dashboard')
+            else:
+                return redirect('patient_dashboard')
+        else:
+            return render(request, 'hospital/forms/login.html', {'error': 'Invalid credentials.'})
+
     return render(request, 'hospital/forms/login.html')
 
 def patientreg(request):
@@ -76,11 +101,19 @@ def emergency(request):
 
 def patients(request):
     return render(request, 'hospital/admin/patients.html')
+
 def doctor_dashboard(request):
     return render(request, 'hospital/doctor/doctor_dashboard.html')
 
+def my_appointments(request):
+    return render(request, 'hospital/doctor/my_appointments.html')
+
+def schedules(request):
+    return render(request, 'hospital/doctor/schedules.html')
+
 def patient_dashboard(request):
     return render(request, 'hospital/patient/patient_dashboard.html')
+
 def appointments(request):
     return render(request, 'hospital/patient/appointments.html')
 
@@ -98,6 +131,8 @@ def medical_records(request):
 
 def profile(request):
     return render(request, 'hospital/patient/profile.html')
+
+
 
 # ========================= SHOW ALL USERS (DATABASE READ) =========================
 def show_users(request):

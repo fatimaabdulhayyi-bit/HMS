@@ -26,4 +26,6 @@ urlpatterns = [
     path('medical-records/', views.medical_records, name='medical_records'),
     path('profile/', views.profile, name='profile'),
     path('doctor_dashboard/',views.doctor_dashboard, name='doctor_dashboard'),
+    path('my_appointments',views.my_appointments, name='my_appointments'),
+    path('schedules',views.schedules, name='schedules'),
 ]

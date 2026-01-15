@@ -59,11 +59,11 @@ window.addEventListener('scroll', animateElements);
   /**
    * Hide mobile nav on same-page/hash links
    */
-  document.querySelectorAll('#navmenu a').forEach(navmenu => {
-    navmenu.addEventListener('click', () => {
-      if (document.querySelector('.mobile-nav-active')) {
-        mobileNavToogle();
-      }
+ document.querySelectorAll('#navmenu a:not(.toggle-dropdown)').forEach(link => {
+  link.addEventListener('click', () => {
+    if (document.querySelector('.mobile-nav-active')) {
+      mobileNavToogle();
+    }
     });
 
   });
@@ -75,7 +75,7 @@ window.addEventListener('scroll', animateElements);
     navmenu.addEventListener('click', function(e) {
       e.preventDefault();
       this.parentNode.classList.toggle('active');
-      this.parentNode.nextElementSibling.classList.toggle('dropdown-active');
+      this.nextElementSibling.classList.toggle('dropdown-active');
       e.stopImmediatePropagation();
     });
   });
