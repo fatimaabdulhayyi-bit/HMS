@@ -5,4 +5,39 @@
 
 {% block content %}
 
+<div class="container-fluid">
+
+  <!-- PATIENT CARDS -->
+  <div class="row g-4 px-4 py-4">
+
+    <!-- OPD -->
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+      <a href="{% url 'manage_appointments' %}" class="dashboard-card">
+        <div class="card-icon">
+          <i class="fa fa-calendar-check"></i>
+        </div>
+        <div class="card-content">
+          <h3>OPD</h3>
+          <p>0</p>
+        </div>
+      </a>
+    </div>
+
+    <!-- IPD -->
+   <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+      <a href="{% url 'manage_appointments' %}" class="dashboard-card">
+        <div class="card-icon">
+          <i class="fa fa-calendar-check"></i>
+        </div>
+        <div class="card-content">
+          <h3>IPD</h3>
+          <p>0</p>
+        </div>
+      </a>
+    </div>
+
+  </div>
+
+</div>
+
 {% endblock %}
