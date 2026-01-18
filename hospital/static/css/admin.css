@@ -1,251 +1,80 @@
 /* ============================= */
-/* ADMIN DASHBOARD CARDS */
+/* DASHBOARD CARDS */
 /* ============================= */
-.dashboard-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
-    padding: 40px;
-}
 
 .dashboard-card {
-    background: #fff;
-    text-align: center;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    padding: 25px;
-    transition: all 0.3s ease;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 170px;
     text-decoration: none;
     color: #333;
-    /* background: #ffffff; border-radius: 15px; */
-    /* ✅ same as patient card */
-    /* padding: 35px;
-           display: flex; 
-           align-items: center; 
-           justify-content: space-between; 
-           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
-           transition: all 0.3s ease; */
-    /* 
-           min-height: 140px; */
+    transition: all 0.3s ease;
 }
 
 .dashboard-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
 }
 
-.dashboard-card .card-icon {
+/* ICON */
+.card-icon {
+    width: 70px;
+    height: 70px;
     background-color: #1977cc;
-    width: 60px;
-    height: 60px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
-.dashboard-card .card-icon i {
+.card-icon i {
     color: #fff;
-    font-size: 28px;
+    font-size: 32px;
 }
 
-.dashboard-card .card-content {
+/* TEXT */
+.card-content {
     text-align: right;
 }
 
-.dashboard-card .card-content h3 {
-    font-size: 32px;
+.card-content h3 {
+    font-size: 26px;
     font-weight: 600;
     margin: 0;
     color: #1976d2;
 }
 
-.dashboard-card .card-content p {
+.card-content p {
     margin: 0;
-    font-size: 30px;
-    color: #777;
-    font-weight: bolder;
-}
-
-@media (max-width: 992px) {
-    .dashboard-cards {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 576px) {
-    .dashboard-cards {
-        grid-template-columns: 1fr;
-    }
+    font-size: 34px;
+    color: #555;
+    font-weight: bold;
 }
 
 /* ============================= */
-/* DOCTORS & APPOINTMENTS LISTS */
+/* LIST CARDS */
 /* ============================= */
-
-.dashboard-lists {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 25px;
-    padding: 30px;
-}
-
-/* ---------- LIST STRUCTURE ---------- */
-.list-head li,
-.list-body li {
-    display: grid;
-    grid-template-columns: 1.5fr 1.5fr 1fr;
-    gap: 10px;
-    padding: 8px 0;
-}
-
-.list-head {
-    font-weight: 700;
-    border-bottom: 2px solid #eee;
-    margin-bottom: 10px;
-}
-
-.list-body li {
-    border-bottom: 1px solid #f1f1f1;
-    font-weight: 500;
-}
-
-.list-body li.empty span {
-    grid-column: 1 / -1;
-    color: #777;
-}
-
-/* ---------- ACTION BUTTONS ---------- */
-.actions {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-accept {
-    background: #4caf50;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.btn-reject {
-    background: #f44336;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.btn-accept:hover {
-    background: #3d8b40;
-}
-
-.btn-reject:hover {
-    background: #d32f2f;
-}
-
-/* ---------- WIDTH DIFFERENCE (as asked earlier) ---------- */
-.list-appointments {
-    width: calc(100% + 25px);
-}
-
-.list-doctors {
-    width: calc(100% - 25px);
-}
 
 .list-card {
-    background: #fff;
+    background: #ffffff;
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    padding: 20px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    padding: 25px;
 }
 
-.list-info h3 {
-    margin: 0 0 10px 0;
-    color: #000000;
-}
-
-.list-info p {
-    margin: 0 0 10px 0;
-    color: #555;
-}
-
-.list-info ul {
-    margin: 0;
-    padding-left: 20px;
-}
-
-.list-info ul li {
-    margin-bottom: 5px;
-    font-weight: 500;
-}
-
-.list-action .btn-view {
-    text-decoration: none;
+/* BUTTONS */
+.btn-view {
     background: #1976d2;
     color: #fff;
-    padding: 8px 15px;
+    padding: 8px 16px;
     border-radius: 8px;
+    text-decoration: none;
     font-weight: 600;
-    transition: background 0.3s ease;
-}
-
-.list-action .btn-view:hover {
-    background: #0d4e8c;
-}
-
-/* ============================= */
-/* DOCTORS LIST (3 COLUMNS) */
-/* ============================= */
-.list-doctors .list-head li,
-.list-doctors .list-body li {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 150%;
-    padding: 8px 0;
-}
-
-/* ============================= */
-/* APPOINTMENTS LIST (4 COLUMNS) */
-/* ============================= */
-.list-appointments .list-head li,
-.list-appointments .list-body li {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
-    gap: 80px;
-    padding: 8px 0;
-}
-
-/* ---------- HEADINGS ---------- */
-.list-head {
-    font-weight: 700;
-    border-bottom: 2px solid #eee;
-    margin-bottom: 10px;
-}
-
-/* ---------- ROWS ---------- */
-.list-body li {
-    border-bottom: 1px solid #f1f1f1;
-    font-weight: 500;
-}
-
-.list-body li.empty span {
-    grid-column: 1 / -1;
-    color: #777;
-}
-
-/* ---------- ACTION BUTTONS ---------- */
-.actions {
-    display: flex;
-    gap: 8px;
 }
 
 .btn-accept {
@@ -254,8 +83,6 @@
     border: none;
     padding: 6px 12px;
     border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
 }
 
 .btn-reject {
@@ -264,32 +91,69 @@
     border: none;
     padding: 6px 12px;
     border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.btn-accept:hover {
-    background: #3d8b40;
-}
-
-.btn-reject:hover {
-    background: #d32f2f;
 }
 
 /* ============================= */
 /* RESPONSIVE */
-@media (max-width: 992px) {
-    .dashboard-cards {
-        grid-template-columns: repeat(2, 1fr);
+/* ============================= */
+
+@media (max-width: 576px) {
+    .dashboard-card {
+        padding: 25px;
+        min-height: 140px;
     }
 
-    .dashboard-lists {
-        grid-template-columns: 1fr;
+    .card-content h3 {
+        font-size: 22px;
+    }
+
+    .card-content p {
+        font-size: 26px;
     }
 }
 
+/* Responsive adjustments */
 @media (max-width: 576px) {
-    .dashboard-cards {
-        grid-template-columns: 1fr;
+    .dashboard-card {
+        padding: 20px;
+        min-height: 140px;
+    }
+
+    .card-content h3 {
+        font-size: 20px;
+    }
+
+    .card-content p {
+        font-size: 24px;
+    }
+}
+
+@media (min-width: 577px) and (max-width: 991px) {
+    .dashboard-card {
+        padding: 30px;
+        min-height: 160px;
+    }
+
+    .card-content h3 {
+        font-size: 24px;
+    }
+
+    .card-content p {
+        font-size: 28px;
+    }
+}
+
+@media (min-width: 992px) {
+    .dashboard-card {
+        padding: 40px;
+        min-height: 170px;
+    }
+
+    .card-content h3 {
+        font-size: 26px;
+    }
+
+    .card-content p {
+        font-size: 34px;
     }
 }
