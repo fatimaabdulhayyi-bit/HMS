@@ -1,0 +1,245 @@
+{% extends 'hospital/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Generate Bill{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+<!-- HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="page-title">Generate Bill</h1>
+  <a href="{% url 'bill_list' %}" class="btn-back">Back</a>
+</div>
+
+<form method="POST">
+{% csrf_token %}
+
+<!-- ================= PATIENT DETAILS ================= -->
+<div class="list-card mb-4">
+<h5>Patient Details</h5>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <label>Select Patient</label>
+    <select name="patient" id="patientSelect"
+            class="form-select" required
+            onchange="loadPatientDetails()">
+      <option value="">Select</option>
+      {% for patient in patients %}
+      <option value="{{ patient.id }}"
+              data-age="{{ patient.age }}"
+              data-gender="{{ patient.gender }}"
+              data-contact="{{ patient.contact }}"
+              data-blood="{{ patient.blood_group }}">
+        {{ patient.full_name }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-md-3">
+    <label>Patient Type</label>
+    <select name="patient_type"
+            class="form-select"
+            required onchange="toggleIPD(this.value)">
+      <option value="">Select</option>
+      <option value="Out-Patient">Out-Patient</option>
+      <option value="In-Patient">In-Patient</option>
+    </select>
+  </div>
+
+  <div class="col-md-3">
+    <label>Bill Date</label>
+    <input type="date" name="bill_date"
+           class="form-control" required>
+  </div>
+</div>
+
+<!-- AUTO DETAILS -->
+<div class="row g-3 mt-3" id="patientDetailsBox" style="display:none;">
+  <div class="col-md-2"><input id="p_id" class="form-control" readonly></div>
+  <div class="col-md-2"><input id="p_age" class="form-control" readonly></div>
+  <div class="col-md-2"><input id="p_gender" class="form-control" readonly></div>
+  <div class="col-md-3"><input id="p_contact" class="form-control" readonly></div>
+  <div class="col-md-3"><input id="p_blood" class="form-control" readonly></div>
+</div>
+</div>
+
+<!-- ================= IPD DETAILS ================= -->
+<div class="list-card mb-4" id="ipdBox" style="display:none;">
+<h5>In-Patient Stay Details</h5>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <label>Admission Date</label>
+    <input type="date" name="admission_date"
+           id="admitDate"
+           class="form-control"
+           onchange="calculateStayDays()">
+  </div>
+
+  <div class="col-md-4">
+    <label>Discharge Date</label>
+    <input type="date" name="discharge_date"
+           id="dischargeDate"
+           class="form-control"
+           onchange="calculateStayDays()">
+  </div>
+
+  <div class="col-md-4">
+    <label>Staying Days</label>
+    <input type="number" name="staying_days"
+           id="stayDays"
+           class="form-control"
+           readonly>
+  </div>
+</div>
+</div>
+
+<!-- ================= SERVICES ================= -->
+<div class="list-card mb-4">
+<h5>Charge Items</h5>
+
+<table class="table table-bordered" id="billTable">
+<thead>
+<tr>
+  <th>Service</th>
+  <th>Qty</th>
+  <th>Unit Price</th>
+  <th>Discount</th>
+  <th>Total</th>
+  <th></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+  <td><input name="service_name[]" class="form-control" required></td>
+  <td><input name="qty[]" class="form-control qty" type="number" value="1"></td>
+  <td><input name="unit_price[]" class="form-control price" type="number"></td>
+  <td><input name="discount[]" class="form-control discount" type="number" value="0"></td>
+  <td><input class="form-control total" readonly></td>
+  <td><button type="button" class="btn btn-danger removeRow">×</button></td>
+</tr>
+</tbody>
+</table>
+<div class="text-end"> <button type="button" class="btn btn-outline-primary mt-4" onclick="addRow()"> + Add Service </button> </div>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<div class="list-card mb-4 text-end">
+<p><strong>Subtotal:</strong> <span id="subtotal">Rs 0</span></p>
+<p><strong>Discount:</strong> <span id="totalDiscount">Rs 0</span></p>
+<hr>
+<h5>Grand Total: <span id="grandTotal">Rs 0</span></h5>
+</div>
+
+<!-- ================= PAYMENT ================= -->
+<div class="list-card mb-4">
+<h5>Payment</h5>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <select name="payment_status" class="form-select">
+      <option>Unpaid</option>
+      <option>Paid</option>
+    </select>
+  </div>
+
+  <div class="col-md-4">
+    <select name="payment_method" class="form-select">
+      <option value="">Method</option>
+      <option>Cash</option>
+      <option>Card</option>
+      <option>Online</option>
+    </select>
+  </div>
+
+  <div class="col-md-4">
+    <input name="amount_paid" class="form-control" type="number"  placeholder="Paid Amount">
+  </div>
+</div>
+</div>
+
+<div class="text-center">
+<button class="btn-submit">Generate Bill</button>
+</div>
+
+</form>
+</div>
+
+<!-- ================= JS ================= -->
+<script>
+  function loadPatientDetails(){
+  if(!patientSelect.value){
+    patientDetailsBox.style.display="none";
+    return;
+  }
+  let opt = patientSelect.options[patientSelect.selectedIndex];
+  patientDetailsBox.style.display="flex";
+  p_id.value = opt.value;
+  p_age.value = opt.dataset.age;
+  p_gender.value = opt.dataset.gender;
+  p_contact.value = opt.dataset.contact;
+  p_blood.value = opt.dataset.blood;
+}
+
+const ipdBox = document.getElementById("ipdBox");
+const tbody = document.querySelector("#billTable tbody");
+
+function toggleIPD(type){
+  if(type === "In-Patient"){
+    ipdBox.style.display = "block";
+  } else {
+    ipdBox.style.display = "none";
+  }
+}
+
+
+function calculateStayDays(){
+  let a = new Date(admitDate.value);
+  let d = new Date(dischargeDate.value);
+  if(admitDate.value && dischargeDate.value){
+    stayDays.value = Math.max(1,
+      Math.ceil((d-a)/(1000*60*60*24)));
+  }
+}
+
+function calculate(){
+  let sub=0, disc=0;
+  tbody.querySelectorAll("tr").forEach(r=>{
+    let q=+r.querySelector(".qty").value||0;
+    let p=+r.querySelector(".price").value||0;
+    let d=+r.querySelector(".discount").value||0;
+    r.querySelector(".total").value=(q*p)-d;
+    sub+=q*p; disc+=d;
+  });
+  subtotal.innerText=`Rs ${sub}`;
+  totalDiscount.innerText=`Rs ${disc}`;
+  grandTotal.innerText=`Rs ${sub-disc}`;
+}
+
+document.addEventListener("input", calculate);
+
+function addRow(){
+tbody.insertAdjacentHTML("beforeend",`
+<tr>
+<td><input name="service_name[]" class="form-control"></td>
+<td><input name="qty[]" class="form-control qty" value="1"></td>
+<td><input name="unit_price[]" class="form-control price"></td>
+<td><input name="discount[]" class="form-control discount" value="0"></td>
+<td><input class="form-control total" readonly></td>
+<td><button type="button" class="btn btn-danger removeRow">×</button></td>
+</tr>`);
+}
+
+document.addEventListener("click",e=>{
+if(e.target.classList.contains("removeRow")){
+e.target.closest("tr").remove(); calculate();
+}});
+</script>
+
+{% endblock %}
+
+ 

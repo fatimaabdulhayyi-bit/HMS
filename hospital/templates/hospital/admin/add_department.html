@@ -1,0 +1,54 @@
+{% extends 'hospital/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Add Department{% endblock %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4 px-4 pt-4">
+    <h2 class="page-title">Add Department</h2>
+    <a href="{% url 'department' %}" class="btn-back">Back</a>
+</div>
+
+<!-- FORM WRAPPER -->
+<div class="department-form-wrapper">
+
+    <form method="POST" class="department-form">
+        {% csrf_token %}
+
+        <!-- Department Name -->
+        <div class="form-group">
+            <label class="form-label">Department Name</label>
+            <input type="text" name="department_name" class="form-control" required>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control textarea" rows="4"></textarea>
+        </div>
+
+        <!-- Status -->
+        <div class="form-group">
+            <label class="form-label">Department Status</label>
+            <div class="status-group">
+                <label class="radio-label">
+                    <input type="radio" name="status" value="Active" checked> Active
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="status" value="Inactive"> Inactive
+                </label>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="text-center mt-4">
+            <button type="submit" class="btn-submit">
+                CREATE DEPARTMENT
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

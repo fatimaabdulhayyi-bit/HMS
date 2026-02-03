@@ -1,0 +1,110 @@
+{% extends 'hospital/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Bills{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-4 py-4">
+
+  <!-- PAGE HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">Bills</h1>
+
+  </div>
+
+  <!-- BILLS TABLE -->
+  <div class="list-card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+
+        <thead>
+          <tr>
+            <th>Bill No</th>
+            <th>Patient Name</th>
+            <th>Type</th>
+            <th>Total Amount</th>
+            <th>Payment Status</th>
+            <th>Date</th>
+            <th class="text-center">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% if bills %}
+            {% for bill in bills %}
+            <tr>
+
+              <td>
+                <span class="badge bg-primary">
+                  {{ bill.bill_no }}
+                </span>
+              </td>
+
+              <td>{{ bill.patient.full_name }}</td>
+
+              <td>
+                {% if bill.patient_type == "OPD" %}
+                  <span class="badge bg-info">OPD</span>
+                {% else %}
+                  <span class="badge bg-secondary">IPD</span>
+                {% endif %}
+              </td>
+
+              <td>
+                Rs. {{ bill.total_amount }}
+              </td>
+
+              <td>
+                {% if bill.payment_status == "Paid" %}
+                  <span class="badge bg-success">Paid</span>
+                {% elif bill.payment_status == "Unpaid" %}
+                  <span class="badge bg-warning text-dark">Unpaid</span>
+                {% else %}
+                  <span class="badge bg-danger">Partial</span>
+                {% endif %}
+              </td>
+
+              <td>{{ bill.created_at|date:"d M Y" }}</td>
+
+              <td class="text-center">
+                <!-- View -->
+                <a href="{% url 'view_bill' bill.id %}"
+                 class="action-icon text-primary"
+                  title="View">
+                  <i class="fa fa-eye"></i>
+                   </a>
+
+                <!-- Update -->
+                <a href="{% url 'update_bill' bill.id %}"
+                class="action-icon text-warning"
+                title="Edit">
+               <i class="fa fa-edit"></i>
+               </a>
+
+               <!-- Delete -->
+              <a href="{% url 'delete_bill' bill.id %}"
+              class="action-icon text-danger"
+              title="Delete"
+              onclick="return confirm('Are you sure you want to delete this bill?')">
+              <i class="fa fa-trash"></i>
+              </a>
+             </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center text-muted">
+                No bills found
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,17 +1,24 @@
-<aside class="sidebar">
-  <div class="profile">
-    <div class="profile-img"><i class="fa fa-user"></i></div>
-    <h4>Admin</h4>
-    <h2>{{ user.username }}</h2>
-  </div>
+<!-- Sidebar -->
+<aside class="sidebar flex-column" id="sidebarMenu">
+  <div class="sidebar-inner">
 
-  <ul class="menu">
-    <li><a href="{% url 'admin_dashboard' %}" class="menu-link"><i class="fa fa-home"></i> Dashboard</a></li>
-    <li><a href="{% url 'doctors' %}" class="menu-link"><i class="fa fa-user-md"></i> Doctors</a></li>
-    <li><a href="{% url 'patients' %}" class="menu-link"><i class="fa fa-users"></i> Patients</a></li>
-    <li><a href="{% url 'manage_appointments' %}" class="menu-link"><i class="fa fa-calendar-check"></i> Appointments</a></li>
-    <li><a href="{% url 'emergency' %}" class="menu-link"><i class="fa fa-exclamation-triangle"></i> Emergency Cases</a></li>
-    <li><a href="{% url 'ambulances' %}" class="menu-link"><i class="fa fa-ambulance"></i> Ambulances</a></li>
-    <li><a href="{% url 'bills' %}" class="menu-link"><i class="fa fa-file-invoice-dollar"></i> Generate Bill</a></li>
-  </ul>
+     <!-- Close button for mobile -->
+    <button class="btn sidebar-close d-lg-none" id="sidebarClose">
+      <i class="fa fa-times"></i>
+    </button>
+    <div class="profile text-center my-3">
+      <div class="profile-img mb-2"><i class="fa fa-user fa-2x"></i></div>
+      <h4>Admin</h4>
+      <h6>User</h6>
+    </div>
+
+    <ul class="nav flex-column mb-auto w-100 menu">
+      <li class="nav-item"><a href="{% url 'admin_dashboard' %}" class="nav-link"><i class="fa fa-home me-2"></i>Dashboard</a></li>
+      <li><a href="{% url 'doctors' %}" class="nav-link"><i class="fa fa-user-md me-2"></i>Doctors</a></li>
+      <li><a href="{% url 'patients' %}" class="nav-link"><i class="fa fa-users me-2"></i>Patients</a></li>
+      <li><a href="{% url 'department' %}" class="nav-link"><i class="fa fa-exclamation-triangle me-2"></i>Departments</a></li>
+      <li><a href="{% url 'manage_appointments' %}" class="nav-link"><i class="fa fa-calendar-check me-2"></i>Appointments</a></li>
+      <li><a href="{% url 'generate_bills' %}" class="nav-link"><i class="fa fa-file-invoice-dollar me-2"></i>Generate Bill</a></li>
+    </ul>
+  </div>
 </aside>

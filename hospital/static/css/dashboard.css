@@ -1,3 +1,8 @@
+/* dashboard.css */
+
+/* ---------------------- */
+/* General Styles */
+/* ---------------------- */
 * {
     margin: 0;
     padding: 0;
@@ -7,25 +12,33 @@
 
 body {
     background: #f0f2f5;
+    overflow-x: hidden;
 }
 
 .container {
     display: flex;
-    height: 100vh;
+    flex-wrap: wrap;
+    min-height: 100vh;
 }
 
 /* ---------------------- */
-/* Sidebar */
+/* Sidebar Styling */
 /* ---------------------- */
 .sidebar {
     background: #1976d2;
     color: white;
     width: 250px;
-    height: 100vh;
+    min-height: 100vh;
+    padding: 20px 10px;
+    transition: transform 0.4s ease-in-out;
+    z-index: 1000;
+}
+
+/* Sidebar inner content */
+.sidebar-inner {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 30px;
 }
 
 .profile {
@@ -36,11 +49,11 @@ body {
     width: 90px;
     height: 90px;
     border-radius: 50%;
-    background: white;
+    background: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto 15px;
+    margin: 0 auto 10px;
     box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -50,70 +63,89 @@ body {
 }
 
 .profile h4 {
+    font-weight: 500;
+    margin-bottom: 3px;
+}
+
+.profile h6 {
+    font-weight: 400;
+    opacity: 0.85;
+}
+
+/* Menu Styles */
+.sidebar .menu {
+    list-style: none;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar .menu li {
+    width: 100%;
+}
+
+.sidebar .menu li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-radius: 8px;
     font-weight: 400;
 }
 
-.profile h2 {
-    margin: 8px 0 20px;
-}
-
-/* Sidebar Menu */
-.sidebar ul.menu {
-    color: #fff;
-    list-style: none;
-    width: 100%;
-    margin-top: 20px;
-    padding: 0;
-}
-
-.sidebar ul.menu li {
-    padding: 12px 20px;
-    cursor: pointer;
-    color: white;
-    display: flex;
-    align-items: center;
-    transition: background 0.3s, color 0.3s;
-}
-
-.sidebar ul.menu li a {
-    color: white;
-    /* make link text white */
-    text-decoration: none;
-    /* remove underline */
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-
-.sidebar ul.menu li i {
-    margin-right: 10px;
+.sidebar .menu li a i {
+    width: 22px;
+    text-align: center;
     font-size: 18px;
-    transition: color 0.3s;
 }
 
-/* Hover Effect */
-.sidebar ul.menu li:hover {
-    background: #1565c0;
-    /* darker shade for hover */
-    color: #ffffff;
+.sidebar .menu li a:hover,
+.sidebar .menu li a.active {
+    background: rgba(255, 255, 255, 0.2);
 }
 
-.sidebar ul.menu li:hover i {
-    color: #ffffff;
+/* Toggler icon customization */
+.navbar-toggler {
+    border: none;
+    background-color: #fff;
+    padding: 6px 10px;
+    border-radius: 5px;
 }
 
-/* Active Link (slightly darker blue background) */
-.sidebar ul.menu li.active {
-    background: #1565c0;
-    color: #ffffff;
-    font-weight: 600;
-    border-radius: 10px 0 0 10px;
-}
-
-.sidebar ul.menu li.active a {
+/* Ensure toggle button fits nicely in header */
+.sidebar-toggle {
+    background-color: #1976d2 !important;
     color: #fff;
+    font-size: 20px;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 8px;
 }
+
+.sidebar-toggle:hover {
+    background-color: #1565c0 !important;
+}
+
+/* Close button inside sidebar (mobile only) */
+.sidebar-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 22px;
+    color: white;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 1300;
+}
+
+.sidebar-close:hover {
+    color: #ffdddd;
+}
+
 
 /* ---------------------- */
 /* Main Content */
@@ -122,6 +154,8 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    width: calc(100% - 250px);
+    transition: all 0.4s ease-in-out;
 }
 
 /* Header */
@@ -132,16 +166,20 @@ body {
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .logo {
-    height: 70px;
+    height: 60px;
+    max-width: 100%;
 }
 
 .top-icons {
     display: flex;
     align-items: center;
-    gap: 30px;
+    gap: 20px;
 }
 
 .top-icons .fa-bell {
@@ -170,16 +208,13 @@ body {
 /* ---------------------- */
 .cards {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 25px;
     padding: 40px;
-    justify-items: center;
 }
 
-/* Profile Card */
 .profile-card {
     background: #fff;
-    width: 300px;
     text-align: center;
     border-radius: 15px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -211,12 +246,109 @@ body {
 }
 
 .profile-card h3 {
-    font-size: 18px;
+    font-size: 25px;
+    font-weight: 600;
     margin-bottom: 5px;
     color: #1977cc;
 }
 
 .profile-card p {
-    font-size: 14px;
+    font-size: 16px;
     color: #666;
+    font-weight: bolder;
+}
+
+/* ---------------------- */
+/* Responsive */
+/* ---------------------- */
+
+/* 📱 Tablet & Mobile (width < 992px) */
+@media (max-width: 991px) {
+
+    /* Sidebar hidden by default */
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 250px;
+        transform: translateX(-100%);
+        transition: transform 0.4s ease-in-out;
+        z-index: 1100;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .sidebar-toggle {
+        display: inline-flex !important;
+        color: #fff;
+        font-size: 22px;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        background: transparent;
+    }
+
+    .sidebar-toggle:hover {
+        background-color: #1565c0 !important;
+    }
+
+    .main-content {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .cards {
+        padding: 30px 20px;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 15px;
+    }
+
+    .topbar-left,
+    .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sidebar-toggle {
+        font-size: 20px;
+        padding: 6px 10px;
+    }
+
+    .logo {
+        height: 50px;
+        /* thoda chhota for mobile */
+    }
+}
+
+
+@media (min-width: 992px) {
+    .sidebar {
+        position: relative;
+        transform: none !important;
+        width: 250px;
+        display: flex !important;
+    }
+
+    .main-content {
+        width: calc(100% - 250px);
+    }
+
+    .sidebar-toggle {
+        display: none !important;
+    }
 }

@@ -1,12 +1,15 @@
-{% extends 'hospital/patient/base_patient.html' %}
+{% extends 'hospital/doctor/base_doctor.html' %}
 
-{% block title %}Patient Dashboard{% endblock %}
+{% block title %}Doctor Dashboard{% endblock %}
 
 {% block content %}
-<section class="cards">
+<div>
+  
+</div>
+{% comment %} <section class="cards">
   <a href="{% url 'profile' %}" class="profile-card">
-    <div class="container-sm profile-icon"><i class="fa fa-user-circle"></i></div>
-    <h3>My Profile</h3>
+    <div class="profile-icon"><i class="fa fa-user-circle"></i></div>
+    <h3>Patients</h3>
     <p>Update Profile</p>
   </a>
   <a href="{% url 'appointments' %}" class="profile-card">
@@ -19,5 +22,5 @@
     <h3>Book My Appointment</h3>
     <p>Book Appointment</p>
   </a>
-</section>
+</section>  {% endcomment %}
 {% endblock %}
