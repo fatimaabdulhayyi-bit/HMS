@@ -1,0 +1,95 @@
+{% extends 'hospital/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Add Appointment{% endblock %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4 px-4 pt-4">
+  <h2 class="page-title">Add Appointment</h2>
+  <a href="{% url 'appointments' %}" class="btn-back">Back</a>
+</div>
+
+<!-- FORM WRAPPER -->
+<div class="doctor-form-wrapper">
+
+  <form method="POST" class="doctor-form">
+    {% csrf_token %}
+
+    <!-- APPOINTMENT INFO -->
+    <div class="row g-4">
+
+      <div class="col-md-6">
+        <label class="form-label">Patient Name</label>
+        <select name="patient" class="form-select" required>
+          <option value="">Select Patient</option>
+          {% for patient in patients %}
+            <option value="{{ patient.id }}">
+              {{ patient.fullname }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Doctor Name</label>
+        <select name="doctor" class="form-select" required>
+          <option value="">Select Doctor</option>
+          {% for doctor in doctors %}
+            <option value="{{ doctor.id }}">
+              {{ doctor.user.first_name }} {{ doctor.user.last_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Department</label>
+        <select name="department" class="form-select" required>
+          <option value="">Select Department</option>
+          {% for dept in departments %}
+            <option value="{{ dept.id }}">{{ dept.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Appointment Date</label>
+        <input type="date" name="appointment_date" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Appointment Time</label>
+        <input type="time" name="appointment_time" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          <option value="Pending" selected>Pending</option>
+          <option value="Approved">Approved</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+
+      <div class="col-md-12">
+        <label class="form-label">Message</label>
+        <textarea name="message" class="form-control" rows="5"
+          placeholder="Enter patient problem / note"></textarea>
+      </div>
+
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="text-center mt-5">
+      <button type="submit" class="btn-submit">
+        Create Appointment
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}

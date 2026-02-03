@@ -1,0 +1,36 @@
+<!-- Sidebar -->
+<aside class="sidebar flex-column" id="sidebarMenu">
+  <div class="sidebar-inner">
+
+     <!-- Close button for mobile -->
+    <button class="btn sidebar-close d-lg-none" id="sidebarClose">
+      <i class="fa fa-times"></i>
+    </button>
+    <div class="profile text-center my-3">
+      <div class="profile-img mb-2"><i class="fa fa-user fa-2x"></i></div>
+      <h4>Doctor</h4>
+      <h6>User</h6>
+    </div>
+
+   <ul class="nav flex-column mb-auto w-100 menu">
+  <li class="nav-item">
+    <a href="{% url 'doctor_dashboard' %}" class="nav-link">
+      <i class="fa fa-home me-2"></i>Dashboard
+    </a>
+  </li>
+
+
+  <li>
+    <a href="{% url 'my_appointments' %}" class="nav-link">
+      <i class="fa fa-calendar-check me-2"></i>Appointments
+    </a>
+  </li>
+
+  <li>
+    <a href="{% url 'schedules' %}" class="nav-link">
+      <i class="fa fa-clock me-2"></i>Schedules
+    </a>
+  </li>
+</ul>
+  </div>
+</aside>
