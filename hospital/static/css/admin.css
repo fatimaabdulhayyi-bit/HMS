@@ -94,6 +94,27 @@
 }
 
 /* ============================= */
+/* TABLES */
+.table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-weight: 500;
+}
+
+.table th {
+    background-color: #ffffff;
+    font-weight: 600;
+}
+
+/* ============================= */
 /* RESPONSIVE */
 /* ============================= */
 
@@ -109,22 +130,6 @@
 
     .card-content p {
         font-size: 26px;
-    }
-}
-
-/* Responsive adjustments */
-@media (max-width: 576px) {
-    .dashboard-card {
-        padding: 20px;
-        min-height: 140px;
-    }
-
-    .card-content h3 {
-        font-size: 20px;
-    }
-
-    .card-content p {
-        font-size: 24px;
     }
 }
 
@@ -156,4 +161,257 @@
     .card-content p {
         font-size: 34px;
     }
+}
+
+/* ============================= */
+/* PAGE HEADER */
+/* ============================= */
+
+.page-title {
+    font-size: 34px;
+    /* Bigger title */
+    font-weight: 600;
+    margin-left: 20px;
+    /* Left spacing */
+}
+
+/* ADD BUTTON */
+.btn-add {
+    background: #1976d2;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 20px;
+}
+
+.btn-add:hover {
+    background: #125aa3;
+}
+
+
+/* ============================= */
+/* TABLE ACTION BUTTONS */
+/* ============================= */
+
+.btn-edit {
+    background: #4caf50;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    margin-right: 6px;
+}
+
+.btn-edit:hover {
+    background: #3d8b40;
+}
+
+.btn-delete {
+    background: #f44336;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.btn-delete:hover {
+    background: #c62828;
+}
+
+/* BACK BUTTON */
+
+.btn-back {
+    background: #1976d2;
+    color: #fff;
+    padding: 14px 30px;
+    /* Bigger button */
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    margin-right: 20px;
+    /* Right spacing */
+    transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+    background: #125aa3;
+}
+
+/* Form Center Wrapper */
+.doctor-form-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 0 20px 40px;
+
+}
+
+/* Form Box */
+.doctor-form {
+    width: 100%;
+    max-width: 900px;
+    /* background: #fff; */
+    padding: 30px 35px;
+    border-radius: 10px;
+}
+
+/* Labels */
+.form-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #555;
+}
+
+/* Inputs */
+.form-control,
+.form-select,
+textarea {
+    height: 42px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+textarea.form-control {
+    height: auto;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #1da1f2;
+    box-shadow: none;
+}
+
+/* Section Title */
+.section-title {
+    margin: 35px 0 15px;
+    font-size: 20px;
+    font-weight: 600;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 6px;
+}
+
+/* Radio */
+.radio-label {
+    font-size: 16px;
+    color: #444;
+}
+
+/* Submit Button */
+.btn-submit {
+    background: #1976d2;
+    color: #fff;
+    padding: 10px 36px;
+    border-radius: 25px;
+    border: none;
+    font-size: 15px;
+}
+
+.btn-submit:hover {
+    background: #125aa3;
+}
+
+/* ============================= */
+/* DEPARTMENT FORM (ONLY UNIQUE) */
+/* ============================= */
+
+/* Center wrapper */
+.department-form-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 20px 20px 40px;
+}
+
+/* Form box */
+.department-form {
+    width: 100%;
+    max-width: 900px;
+}
+
+/* Spacing between fields */
+.department-form .form-group {
+    margin-bottom: 22px;
+}
+
+/* Status radios spacing */
+.department-form .status-group {
+    display: flex;
+    gap: 30px;
+    margin-top: 8px;
+}
+
+/* Textarea height only */
+.department-form textarea.form-control {
+    height: auto;
+}
+
+
+
+/* Responsive */
+@media (max-width: 768px) {
+    .doctor-form {
+        padding: 25px 20px;
+    }
+
+    .department-form {
+        padding: 0 10px;
+    }
+}
+
+
+/* Tablet */
+@media (max-width: 991px) {
+    .page-title {
+        font-size: 30px;
+        margin-left: 8px;
+    }
+
+    .btn-back {
+        padding: 12px 26px;
+        font-size: 15px;
+        margin-right: 8px;
+    }
+
+    .btn-add {
+        padding: 12px 26px;
+        font-size: 15px;
+        margin-right: 8px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 576px) {
+    .page-title {
+        font-size: 30px;
+        margin-left: 6px;
+    }
+
+    .btn-back {
+        padding: 16px 26px;
+        font-size: 14px;
+        margin-right: 6px;
+    }
+
+    .btn-add {
+        padding: 10px 20px;
+        font-size: 15px;
+        margin-right: 8px;
+    }
+}
+
+.action-icon {
+    margin: 0 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.action-icon:hover {
+    opacity: 0.75;
 }
