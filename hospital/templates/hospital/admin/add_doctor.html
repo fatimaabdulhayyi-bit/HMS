@@ -1,0 +1,141 @@
+{% extends 'hospital/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Add Doctor{% endblock %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4 px-4 pt-4">
+  <h2 class="page-title">Add Doctor</h2>
+  <a href="{% url 'doctors' %}" class="btn-back">Back</a>
+</div>
+
+<!-- FORM WRAPPER (CENTERED) -->
+<div class="doctor-form-wrapper">
+
+  <form method="POST" class="doctor-form">
+    {% csrf_token %}
+
+    <!-- PERSONAL INFO -->
+    <div class="row g-4">
+      <div class="col-md-6">
+        <label class="form-label">Full Name</label>
+        <input type="text" name="fullname" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Father Name</label>
+        <input type="text" name="fname" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Phone</label>
+        <input type="text" name="phone" class="form-control">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Date of Birth</label>
+        <input type="date" name="dob" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Gender</label>
+        <select name="gender" class="form-select">
+          <option value="">Select</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">CNIC</label>
+        <input type="text" name="cnic" class="form-control">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Address</label>
+        <textarea name="address" class="form-control" rows="2"></textarea>
+      </div>
+    </div>
+
+    <!-- PROFESSIONAL INFO -->
+    <h5 class="section-title">Professional Details</h5>
+
+    <div class="row g-4">
+      <div class="col-md-6">
+        <label class="form-label">Specialization</label>
+        <select name="spec" class="form-select">
+          <option value="">Select</option>
+          <option>Physicians</option>
+          <option>Cardiology</option>
+          <option>Neurology</option>
+          <option>Dentistry</option>
+          <option>Dermatology</option>
+          <option>Orthopaedic</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Department</label>
+        <select name="dept" class="form-select">
+          <option value="">Select</option>
+          <option>General Medicine</option>
+          <option>Cardiology</option>
+          <option>Neurology</option>
+          <option>Dentistry</option>
+          <option>Dermatology</option>
+          <option>Orthopaedics</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Qualification</label>
+        <input type="text" name="qual" class="form-control">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Experience (Years)</label>
+        <input type="number" name="exp" class="form-control">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Medical License</label>
+        <input type="text" name="license" class="form-control">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Availability</label>
+        <input type="text" name="avail" class="form-control">
+      </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="mt-4">
+      <label class="form-label">Status</label>
+      <div class="d-flex gap-4">
+        <label class="radio-label">
+          <input type="radio" name="status" value="Active" checked> Active
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="status" value="Inactive"> Inactive
+        </label>
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="text-center mt-5">
+      <button type="submit" class="btn-submit">Create Doctor</button>
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}

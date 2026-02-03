@@ -14,32 +14,37 @@ def signup(request):
         if password != confirm_password:
             return render(request, 'hospital/forms/sign_up.html', {'error': 'Passwords do not match'})
 
-        if role == "admin" and UserAccount.objects.filter(role="admin").exists():
-            return render(request, 'hospital/forms/sign_up.html', {'error': 'Admin already exists.'})
+        if role == "admin":
+            # Admin signup form me nahi hai, backend-only
+            return render(request, 'hospital/forms/sign_up.html', {'error': 'Admin cannot signup here.'})
 
-        if fullname and email and password:
-            user = UserAccount.objects.create_user(
-                email=email,
-                fullname=fullname,
-                role=role,
-                password=password
-            )
-            
-            # If doctor, mark not approved
-            if role == 'doctor':
-                user.is_approved = False
-                user.save()
-                return redirect('doctorreg')  # Doctor registration page
-
-            user.save()
-
-            # Redirect based on role
-            if user.role == 'admin':
-                return redirect('admin_dashboard')
-            else:
+        # Check if user exists
+        user_exists = UserAccount.objects.filter(email=email).first()
+        if user_exists:
+            if user_exists.role == 'patient':
+                # Patient already exists → redirect to patient registration (profile completion)
                 return redirect('patientreg')
-                
+            else:
+                return render(request, 'hospital/forms/sign_up.html', {'error': 'User with this email already exists.'})
+
+        # Create user
+        user = UserAccount.objects.create_user(
+            email=email,
+            fullname=fullname,
+            role=role,
+            password=password
+        )
+
+        if role == 'doctor':
+            user.is_approved = False
+            user.save()
+            return redirect('doctorreg')
+
+        user.save()
+        return redirect('patientreg')  # New patient → go to registration page
+
     return render(request, 'hospital/forms/sign_up.html')
+
 
 def index(request):
     return render(request, 'hospital/index.html')
@@ -93,6 +98,9 @@ def manage_appointments(request):
 def generate_bills(request):
     return render(request, 'hospital/admin/generate_bills.html')
 
+def bill_list(request):
+    return render(request, 'hospital/admin/bill_list.html')
+
 def doctors(request):
     return render(request, 'hospital/admin/doctors.html')
 
@@ -101,6 +109,21 @@ def emergency(request):
 
 def patients(request):
     return render(request, 'hospital/admin/patients.html')
+
+def add_patient(request):
+    return render(request, 'hospital/admin/add_patient.html')
+
+def IPD(request):
+    return render(request, 'hospital/admin/IPD.html')
+
+def add_IPrecord(request):
+    return render(request, 'hospital/admin/add_IP-record.html')
+
+def add_doctor(request):
+    return render(request, 'hospital/admin/add_doctor.html')
+
+def add_appointment(request):
+    return render(request, 'hospital/admin/add_appointment.html')
 
 def doctor_dashboard(request):
     return render(request, 'hospital/doctor/doctor_dashboard.html')

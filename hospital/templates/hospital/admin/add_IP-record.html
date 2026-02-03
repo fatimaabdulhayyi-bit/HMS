@@ -1,0 +1,106 @@
+{% extends 'hospital/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Add In-Patient{% endblock %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4 px-4 pt-4">
+  <h2 class="page-title">Add In-Patient</h2>
+  <a href="{% url 'IPD' %}" class="btn-back">Back</a>
+</div>
+
+<!-- FORM WRAPPER -->
+<div class="doctor-form-wrapper">
+
+  <form method="POST" class="doctor-form">
+    {% csrf_token %}
+
+    <!-- IPD INFO -->
+    <div class="row g-4">
+
+      <!-- PATIENT -->
+      <div class="col-md-6">
+        <label class="form-label">Select Patient</label>
+        <select name="patient" class="form-select" required>
+          <option value="">Select</option>
+          {% for patient in patients %}
+            <option value="{{ patient.id }}">
+              {{ patient.full_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- DOCTOR -->
+      <div class="col-md-6">
+        <label class="form-label">Assign Doctor</label>
+        <select name="doctor" class="form-select" required>
+          <option value="">Select</option>
+          {% for doctor in doctors %}
+            <option value="{{ doctor.id }}">
+              {{ doctor.full_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- ROOM -->
+      <div class="col-md-6">
+        <label class="form-label">Room No</label>
+        <input type="text" name="room_no" class="form-control" required>
+      </div>
+
+      <!-- BED -->
+      <div class="col-md-6">
+        <label class="form-label">Bed No</label>
+        <input type="text" name="bed_no" class="form-control" required>
+      </div>
+
+      <!-- ADMISSION DATE -->
+      <div class="col-md-6">
+        <label class="form-label">Admission Date</label>
+        <input type="date" name="admission_date" class="form-control" required>
+      </div>
+      
+      <div class="col-md-6">
+  <label class="form-label">Admission Time</label>
+  <input type="time" name="admission_time" class="form-control" required>
+</div>
+
+      <!-- DIAGNOSIS -->
+      <div class="col-md-12">
+        <label class="form-label">Diagnosis</label>
+        <textarea name="diagnosis" class="form-control" rows="2" required></textarea>
+      </div>
+
+    </div>
+
+    <!-- STATUS (RADIO) -->
+    <div class="mt-4">
+      <label class="form-label">Status</label>
+      <div class="d-flex gap-4">
+        <label class="radio-label">
+          <input type="radio" name="status" value="Admitted" checked>
+          Admitted
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="status" value="Discharged">
+          Discharged
+        </label>
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="text-center mt-5">
+      <button type="submit" class="btn-submit">
+        Save In-Patient Record
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}
