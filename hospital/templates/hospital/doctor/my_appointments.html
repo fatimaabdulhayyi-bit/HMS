@@ -1,7 +1,89 @@
 {% extends 'hospital/doctor/base_doctor.html' %}
-
-{% block title %}My Appointments{% endblock %}
-
+{% load static %}
+{% block title %}Doctor Dashboard{% endblock %}
 {% block content %}
+
+<div class="doctor-dashboard">
+
+  <!-- TOKEN STATUS CARD -->
+  <div class="token-card">
+    <div class="token-header">Token Status</div>
+
+    <div class="token-body">
+      <p class="current-label">Current Token</p>
+
+      <div class="token-circle">
+        <span class="token-text">Token:</span>
+        <div id="tokenNumber" class="token-number">08</div>
+        <span class="now-serving">Now Serving...</span>
+      </div>
+
+      <div class="token-action">
+        <button onclick="nextToken()">Next Token <i class="fa fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPOINTMENTS CARD -->
+  <div class="appointments-card">
+
+    <div class="appointments-top">
+      <h3>Today’s Appointments</h3>
+      <span>Total Appointments: {{ today_appointments|length }}</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('today',this)">Today</button>
+      <button class="tab-btn" onclick="showTab('upcoming',this)">Upcoming</button>
+      <button class="tab-btn" onclick="showTab('checked',this)">Checked</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+      <table id="today">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Patient</th>
+            <th>Age</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for appt in today_appointments %}
+          <tr>
+            <td><span class="token-badge">{{ appt.token }}</span></td>
+            <td>
+              <strong>{{ appt.patient_name }}</strong><br>
+              <small>#{{ appt.patient_id }}</small>
+            </td>
+            <td>{{ appt.age }}</td>
+            <td>{{ appt.time }}</td>
+            <td><span class="status pending">Pending</span></td>
+            <td><a href="{%url 'view_medical_record' %}" class="view-btn">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let token = 8;
+function nextToken(){
+  token++;
+  document.getElementById("tokenNumber").innerText =
+    token < 10 ? "0"+token : token;
+}
+
+function showTab(id,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
 
 {% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'hospital/doctor/base_doctor.html' %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+
+<div class="profile-page-wrapper">
+  <div class="profile-container">
+
+    <!-- PROFILE HEADER -->
+    <div class="profile-header">
+      <h3>Dr. {{ doctor.full_name }} Profile</h3>
+
+      <div class="profile-img-wrapper">
+
+        {% if doctor.profile_image %}
+          <img src="{{ doctor.profile_image.url }}" class="docprofile-img">
+        {% else %}
+                      <div class="profile-img mb-2"><i class="fa fa-user fa-2x"></i></div>
+        {% endif %}
+
+      </div>
+
+      <form method="post" class="photo-form">
+        {% csrf_token %}
+        <input type="file" name="photo" class="form-control upload-input">
+        <button type="submit" class="btn-update-photo">
+          <i class="fa fa-upload"></i> UPLOAD PHOTO
+        </button>
+      </form>
+    </div>
+
+    <!-- DOCTOR INFORMATION -->
+    <div class="profile-card">
+      <div class="profile-card-header">
+        <h5><i class="fa fa-user-md"></i> Doctor Information</h5>
+        <a href="#" class="btn-edit border border-1 border-primary rounded-1"><i class="fa fa-edit"></i> Edit</a>
+      </div>
+
+      <div class="profile-info">
+
+        <div class="info-row">
+            <span>Full Name</span>
+            <p>{{ doctor.full_name }}</p>
+        </div>
+        <div class="info-row">
+            <span>Father Name</span>
+            <p>{{ doctor.father_name }}</p></div>
+        <div class="info-row"><span>Date of Birth</span><p>{{ doctor.date_of_birth }}</p></div>
+        <div class="info-row"><span>Gender</span><p>{{ doctor.gender }}</p></div>
+        <div class="info-row"><span>Email</span><p>{{ doctor.email }}</p></div>
+        <div class="info-row"><span>CNIC</span><p>{{ doctor.cnic }}</p></div>
+        <div class="info-row"><span>Contact</span><p>{{ doctor.phone }}</p></div>
+        <div class="info-row"><span>Address</span><p>{{ doctor.address }}</p></div>
+        <div class="info-row"><span>Department</span><p>{{ doctor.department }}</p></div>
+        <div class="info-row"><span>Medical License</span><p>{{ doctor.medical_license }}</p></div>
+        <div class="info-row"><span>Qualification</span><p>{{ doctor.qualification }}</p></div>
+        <div class="info-row"><span>Experience</span><p>{{ doctor.experience }} Years</p></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

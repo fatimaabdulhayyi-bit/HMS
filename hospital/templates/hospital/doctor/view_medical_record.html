@@ -1,0 +1,102 @@
+{% extends 'hospital/doctor/base_doctor.html' %}
+
+{% block title %}View Medical Record{% endblock %}
+{% block content %}
+
+<div class="container my-5">
+
+  <div class="card medical-card">
+    <div class="card-header text-center">
+      <h4>Patient Medical Record</h4>
+    </div>
+
+    <div class="card-body">
+
+      <!-- Patient Info -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <strong>Patient Name:</strong> {{ appointment.patient.name }}
+        </div>
+        <div class="col-md-6">
+          <strong>Appointment Date:</strong> {{ appointment.date }}
+        </div>
+        <div class="col-md-6 mt-2">
+          <strong>Token No:</strong> {{ appointment.token_number }}
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Medical Info -->
+      <div class="row g-3">
+
+        <div class="col-12">
+          <label class="form-label">Symptoms</label>
+          <textarea class="form-control" readonly>
+{{ medical_record.symptoms }}
+          </textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Diagnosis</label>
+          <input type="text"
+                 class="form-control"
+                 value="{{ medical_record.diagnosis }}"
+                 readonly>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Recommended Tests</label>
+          <input type="text"
+                 class="form-control"
+                 value="{{ medical_record.tests }}"
+                 readonly>
+        </div>
+
+        
+        <div class="col-12">
+  <label class="form-label fw-semibold">Prescribed Medicines</label>
+
+  <!-- Medicines Table -->
+  <table class="table table-bordered table-sm">
+    <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Medicine</th>
+        <th>Dosage / Instructions</th>
+      </tr>
+    </thead>
+    <tbody id="medicines-table-body">
+      {% for med in medical_record.medicines_list %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ med.name }}</td>
+        <td>{{ med.dosage }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3" class="text-center text-muted">No medicines prescribed yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Add Medicine Button -->
+  <div class="mt-2">
+    <button type="button" class="btn btn-primary btn-sm" id="add-medicine-btn">
+      Add Medicine
+    </button>
+  </div>
+</div>
+
+<!-- Optional: Modal or JS for adding new medicine dynamically -->
+
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
