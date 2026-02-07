@@ -3,24 +3,36 @@
 {% block title %}Doctor Dashboard{% endblock %}
 
 {% block content %}
-<div>
-  
-</div>
-{% comment %} <section class="cards">
-  <a href="{% url 'profile' %}" class="profile-card">
-    <div class="profile-icon"><i class="fa fa-user-circle"></i></div>
-    <h3>Patients</h3>
+
+<section class="cards">
+
+  <!-- Doctor Profile -->
+  <a href="{% url 'profiledoc' %}" class="profile-card">
+    <div class="profile-icon">
+      <i class="fa fa-user-circle"></i>
+    </div>
+    <h3>Profile</h3>
     <p>Update Profile</p>
   </a>
-  <a href="{% url 'appointments' %}" class="profile-card">
-    <div class="profile-icon"><i class="fa fa-calendar-check"></i></div>
+
+  <!-- Doctor Appointments -->
+  <a href="{% url 'my_appointments' %}" class="profile-card">
+    <div class="profile-icon">
+      <i class="fa fa-calendar-check"></i>
+    </div>
     <h3>My Appointments</h3>
     <p>View Appointment History</p>
   </a>
-  <a href="{% url 'appointment_form' %}" class="profile-card">
-    <div class="profile-icon"><i class="fa fa-stethoscope"></i></div>
-    <h3>Book My Appointment</h3>
-    <p>Book Appointment</p>
+
+  <!-- Doctor Schedule -->
+  <a href="{% url 'schedules' %}" class="profile-card">
+    <div class="profile-icon">
+      <i class="fa fa-clock"></i>
+    </div>
+    <h3>Schedule</h3>
+    <p>Manage Schedule</p>
   </a>
-</section>  {% endcomment %}
+
+</section>
+
 {% endblock %}

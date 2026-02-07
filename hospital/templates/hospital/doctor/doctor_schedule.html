@@ -1,0 +1,120 @@
+{% extends 'hospital/doctor/base_doctor.html' %}
+{% load static %}
+
+{% block title %}Edit Schedule{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+  <div class="col-lg-8 col-md-10">
+
+    <div class="card shadow-lg rounded-4">
+
+      <!-- Header -->
+      <div class="card-header bg-primary text-white rounded-top-4 d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="mb-0">Edit Schedule</h4>
+          <small>Modify day, time, and availability</small>
+        </div>
+
+        <!-- Back / Cancel Button -->
+        <a href="{% url 'doctor_schedule' %}" class="btn btn-light btn-sm fw-semibold">
+          Cancel
+        </a>
+      </div>
+
+      <!-- Body -->
+      <div class="card-body p-4">
+
+        <form method="POST">
+          {% csrf_token %}
+
+          <!-- Day Selection (hardcoded) -->
+          <!-- Weekly Day Selection -->
+<div class="mb-3">
+  <label class="form-label fw-semibold">Select Days</label>
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" name="days" id="monday" value="Monday" checked>
+    <label class="form-check-label" for="monday">Monday</label>
+  </div>
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" name="days" id="tuesday" value="Tuesday" checked>
+    <label class="form-check-label" for="tuesday">Tuesday</label>
+  </div>
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" name="days" id="wednesday" value="Wednesday" checked>
+    <label class="form-check-label" for="wednesday">Wednesday</label>
+  </div>
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" name="days" id="thursday" value="Thursday" checked>
+    <label class="form-check-label" for="thursday">Thursday</label>
+  </div>
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" name="days" id="friday" value="Friday" checked>
+    <label class="form-check-label" for="friday">Friday</label>
+  </div>
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" name="days" id="saturday" value="Saturday" checked>
+    <label class="form-check-label" for="saturday">Saturday</label>
+  </div>
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" name="days" id="sunday" value="Sunday" checked>
+    <label class="form-check-label" for="sunday">Sunday</label>
+  </div>
+</div>
+
+
+          <!-- Start & End Time -->
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="start_time" class="form-label fw-semibold">Start Time</label>
+              <input type="time" id="start_time" name="start_time"
+                     value="{{ schedule.start_time }}"
+                     class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="end_time" class="form-label fw-semibold">End Time</label>
+              <input type="time" id="end_time" name="end_time"
+                     value="{{ schedule.end_time }}"
+                     class="form-control" required>
+            </div>
+          </div>
+
+          <!-- Availability Checkbox -->
+          <!-- Availability Radio Buttons -->
+<div class="mt-3">
+  <label class="form-label fw-semibold">Availability</label>
+  
+  <div class="form-check">
+    <input class="form-check-input" type="radio" name="availability" id="available" value="available"
+           {% if schedule.is_available %}checked{% endif %}>
+    <label class="form-check-label fw-semibold" for="available">
+      Available
+    </label>
+  </div>
+  
+  <div class="form-check">
+    <input class="form-check-input" type="radio" name="availability" id="not_available" value="not_available"
+           {% if not schedule.is_available %}checked{% endif %}>
+    <label class="form-check-label fw-semibold" for="not_available">
+      Not Available
+    </label>
+  </div>
+</div>
+
+          <!-- Submit Button -->
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary px-4 fw-semibold">
+  Update Schedule
+</button>
+
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

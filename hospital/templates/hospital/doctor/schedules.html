@@ -1,7 +1,73 @@
 {% extends 'hospital/doctor/base_doctor.html' %}
-
-{% block title %}Schedules{% endblock %}
+{% load static %}
+{% block title %}Doctor Schedule{% endblock %}
 
 {% block content %}
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+  <div class="col-lg-8 col-md-10">
+
+    <div class="card shadow-lg rounded-4">
+
+      <!-- Header with Edit Button -->
+      <div class="card-header bg-primary text-white rounded-top-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="mb-0">Doctor Schedule</h4>
+            <small>From – To Availability</small>
+          </div>
+
+          <!-- EDIT BUTTON (MAIN) -->
+          <a href="{% url 'doctor_schedule' %}" 
+             class="btn btn-light btn-sm fw-semibold">
+            Edit Schedule
+          </a>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="card-body table-responsive p-4">
+        <table class="table table-bordered text-center align-middle">
+
+          <thead class="table-light">
+            <tr>
+              <th>Day</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for s in schedules %}
+            <tr>
+              <td class="fw-semibold">{{ s.day }}</td>
+              <td>{{ s.start_time }}</td>
+              <td>{{ s.end_time }}</td>
+
+              <td>
+                {% if s.is_available %}
+                  <span class="badge bg-success px-3 py-2">Available</span>
+                {% else %}
+                  <span class="badge bg-danger px-3 py-2">Not Available</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="text-muted">
+                No schedule added yet
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+</div>
 
 {% endblock %}
