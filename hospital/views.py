@@ -140,6 +140,7 @@ def view_medical_record(request):
 def doctor_schedule(request):
     return render(request, 'hospital/doctor/doctor_schedule.html' )
 
+
 def patient_dashboard(request):
     return render(request, 'hospital/patient/patient_dashboard.html')
 
