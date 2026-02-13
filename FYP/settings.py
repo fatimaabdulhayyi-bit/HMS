@@ -137,4 +137,6 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# settings.py ke aakhir mein ye line add karein:
+AUTH_USER_MODEL = 'hospital.UserAccount'
 
