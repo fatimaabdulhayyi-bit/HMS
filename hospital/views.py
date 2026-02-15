@@ -164,6 +164,7 @@ def profile(request):
 
 
 
+
 # ========================= SHOW ALL USERS (DATABASE READ) =========================
 def show_users(request):
     users = UserAccount.objects.all()
@@ -199,3 +200,20 @@ def show_users(request):
     """
 
     return HttpResponse(html)
+
+
+
+
+
+
+def patient_bills(request):
+    # Get the logged-in patient
+    patient = request.user.patient  # Assuming OneToOneField from User to Patient model
+
+    # Fetch bills only for this patient
+    bills = bill_list.objects.filter(patient=patient).order_by('-created_at')
+
+    context = {
+        'bills': bills
+    }
+    return render(request, 'hospital/patient/bills.html', context)
