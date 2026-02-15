@@ -4,7 +4,40 @@
 {% block title %}Feedback{% endblock %}
 
 {% block content %}
-<section class="appointments-section">
-   
-</section>
+
+
+
+<div class="page-wrapper">
+
+    <!-- Top heading -->
+    <div class="page-header">
+        <h2>Patient Feedback</h2>
+        <a href="#" class="back-btn">Back</a>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Centered Description -->
+        <div class="form-center">
+            <div class="mb-4">
+                {% comment %} <label class="form-label">Description</label> {% endcomment %}
+                <textarea 
+                    name="description" 
+                    class="form-control"
+                    placeholder="Enter your feedback..."></textarea>
+            </div>
+        </div>
+
+        <!-- Centered & Lower Button -->
+        <div class="submit-wrapper">
+            <button type="submit" class="submit-btn">
+               Submit Feedback
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
 {% endblock %}

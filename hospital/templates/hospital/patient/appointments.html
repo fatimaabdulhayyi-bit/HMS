@@ -5,6 +5,77 @@
 
 {% block content %}
 <section class="appointments-section">
-   
+<div class="patient-dashboard">
+
+  <!-- TOKEN STATUS CARD -->
+  <div class="token-card">
+    <div class="token-header">Token Status</div>
+
+    <div class="token-body">
+      <p class="current-label">Current Token</p>
+
+      <div class="token-circle">
+        <span class="token-text">Token:</span>
+        <div id="tokenNumber" class="token-number">08</div>
+        <span class="now-serving">Now Serving...</span>
+      </div>
+
+      <!-- YOUR TOKEN AND WAIT TIME -->
+      <div class="token-details">
+        <p class="your-token">Your Token: <strong>#12</strong></p>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <p class="wait-time">Estimated Wait: 10 minutes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPOINTMENTS TABLE -->
+  <div class="appointments-card">
+    <div class="appointments-top">
+      <h3>My Appointments</h3>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Doctor</th>
+            <th>Department</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for appt in patient_appointments %}
+          <tr>
+            <td>{{ appt.doctor_name }}</td>
+            <td>{{ appt.department }}</td>
+            <td>{{ appt.date }}</td>
+            <td>{{ appt.time }}</td>
+            <td>
+              {% if appt.status == 'Pending' %}
+                <span class="status pending">Pending</span>
+              {% elif appt.status == 'Completed' %}
+                <span class="status completed">Completed</span>
+              {% elif appt.status == 'Cancelled' %}
+                <span class="status cancelled">Cancelled</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="text-align:center;">No appointments found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
 </section>
 {% endblock %}
