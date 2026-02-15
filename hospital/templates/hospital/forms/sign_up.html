@@ -41,8 +41,7 @@ body {
 /* Side image */
 .side-img {
     flex: 1;
-    background: url("{% static 'images/sign_up.jpg' %}") no-repeat  center/cover;
-  
+    background: url("{% static 'images/sign_up.jpg' %}") no-repeat center/cover;
     background-position: top center;
 }
 
@@ -54,9 +53,9 @@ body {
 }
 
 h2 {
-   text-align: center;
-      font-size: 22px;
-      font-weight: bold;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
     margin-bottom: 20px;
     color: rgba(0, 128, 241, 0.9);
 }
@@ -86,8 +85,6 @@ h2 {
     font-size: 16px;
     transition: 0.3s;
     pointer-events: none;
-    
-    
 }
 
 /* Label animation on focus or filled input */
@@ -131,7 +128,7 @@ input[type="submit"]:hover {
 }
 .signIn-link a:hover {
       text-decoration: underline;
-    }
+}
 
 /* Responsive */
 @media (max-width: 480px) {
@@ -144,7 +141,13 @@ input[type="submit"]:hover {
     .side-img {
         display: none;
     }
+
+    .form-container {
+        max-width: 95%;
+        padding: 20px;
+    }
 }
+
 .toggle-eye{
   position: absolute;
   right: 10px;
@@ -155,11 +158,10 @@ input[type="submit"]:hover {
 }
 
 .toggle-eye i{
-  font-size: 18px;     /* size like image */
+  font-size: 18px;
   color: black;
-  font-weight: 400;    /* thin stroke */
+  font-weight: 400;
 }
-
 
 /* Remove default browser password icons */
 input[type="password"]::-ms-reveal,
@@ -177,22 +179,21 @@ input[type="password"] {
   -moz-appearance: textfield;
 }
 
-
-  </style>
+</style>
 </head>
 <body>
 
 <div class="signup-container">
   <div class="side-img"></div>
   <div class="form-container">
-    <h2>HOSPITAL SIGNUP</h2>
-    <form id="signupForm">
+    <h2>SIGNUP</h2>
+    <form method="POST" action="{% url 'signup' %}" onsubmit="return validateform()" id="signupForm">
+        {% csrf_token %}
 
       <!-- Full Name -->
       <div class="input-group">
         <input type="text" id="fullname" name="fullname" placeholder=" " required
-               pattern="[A-Za-z\s]+"
-               title="only letters and spaces are allowed">
+               pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed">
         <label>Full Name</label>
       </div>
 
@@ -212,27 +213,24 @@ input[type="password"] {
         </select>
         <label>Role</label>
       </div>
+
+      <!-- Password -->
       <div class="input-group" style="position:relative;">
-  <input type="password" id="password" 
-        pattern="(?=.\d)(?=.[a-z])(?=.*[A-Z]).{8,}" 
-          title="Must contain at least one number, one uppercase, one lowercase, and at least 8 characters" placeholder=" " name="password" required>
-  <label>Password</label>
+        <input type="password" id="password" placeholder=" " name="password" required
+               pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+               title="Must contain at least one number, one uppercase, one lowercase, and at least 8 characters">
+        <label>Password</label>
+        <span class="toggle-eye" id="togglePassword"><i class="fa-regular fa-eye"></i></span>
+      </div>
 
-  <span class="toggle-eye" id="togglePassword">
-  <i class="fa-regular fa-eye"></i>
-</span>
-
-</div>
+      <!-- Confirm Password -->
       <div class="input-group" style="position:relative;">
-  <input type="password" id="confirmPassword" placeholder=" " name="confirm_password" required
-     pattern="(?=.\d)(?=.[a-z])(?=.*[A-Z]).{8,}" 
-          title="Must contain at least one number, one uppercase, one lowercase, and at least 8 characters">
-  <label>Confirm Password</label>
-
-<span class="toggle-eye" id="toggleConfirm">
-  <i class="fa-regular fa-eye"></i>
-</span>
-</div>
+        <input type="password" id="confirmPassword" placeholder=" " name="confirm_password" required
+               pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+               title="Must contain at least one number, one uppercase, one lowercase, and at least 8 characters">
+        <label>Confirm Password</label>
+        <span class="toggle-eye" id="toggleConfirm"><i class="fa-regular fa-eye"></i></span>
+      </div>
 
       <input type="submit" value="Sign Up">
 
@@ -242,40 +240,33 @@ input[type="password"] {
     </form>
   </div>
 </div>
+
 <script>
 const password = document.getElementById("password");
 const confirmPassword = document.getElementById("confirmPassword");
-
 const togglePassword = document.getElementById("togglePassword");
 const toggleConfirm = document.getElementById("toggleConfirm");
 
 function handleEye(input, eye){
   const icon = eye.querySelector("i");
-
-  /* Show eye when typing */
   input.addEventListener("input", ()=>{
     if(input.value.length > 0){
       eye.style.display = "block";
     }else{
       eye.style.display = "none";
       input.type = "password";
-
       icon.classList.remove("fa-eye-slash");
       icon.classList.add("fa-eye");
     }
   });
 
-  /* Toggle click */
   eye.addEventListener("click", ()=>{
     if(input.type === "password"){
       input.type = "text";
-
       icon.classList.remove("fa-eye");
       icon.classList.add("fa-eye-slash");
-
     }else{
       input.type = "password";
-
       icon.classList.remove("fa-eye-slash");
       icon.classList.add("fa-eye");
     }
@@ -285,24 +276,21 @@ function handleEye(input, eye){
 handleEye(password, togglePassword);
 handleEye(confirmPassword, toggleConfirm);
 
- function validateform() {
-    let x = document.getElementById("fullname").value;
-    if (x == "") {
+function validateform() {
+    let name = document.getElementById("fullname").value.trim();
+    if (name === "") {
       alert("Name must be filled out");
       return false;
     }
-    let p1 = document.getElementById("password").value;
-    let p2 = document.getElementById("confirm_password").value;
-    if (p1 != p2) {
+    let p1 = password.value;
+    let p2 = confirmPassword.value;
+    if (p1 !== p2) {
       alert("Password and Confirm Password are not the same");
       return false;
     }
-  }
+    return true;
+}
 </script>
-
-
-
-
 
 </body>
 </html>

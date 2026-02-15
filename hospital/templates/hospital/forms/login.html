@@ -184,8 +184,8 @@ input[type="password"] {
 
     <div class="form-container">
       <h2>HOSPITAL LOGIN</h2>
-      <form id="loginForm">
-
+       <form method="POST" action="{% url 'login' %}"  id="loginForm">
+          {% csrf_token %}
         <!-- Email -->
         <div class="input-group">
           <input type="email" id="email" placeholder=" " name="email" required
@@ -194,7 +194,7 @@ input[type="password"] {
         </div>
         <div class="input-group" style="position:relative;">
   <input type="password" id="password" placeholder=" " name="password" required
-         pattern="(?=.\d)(?=.[a-z])(?=.*[A-Z]).{8,}" 
+         pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
           title="Must contain at least one number, one uppercase, one lowercase, and at least 8 characters">
   <label for="password">Password</label>
 
