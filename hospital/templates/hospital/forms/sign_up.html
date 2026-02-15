@@ -1,216 +1,293 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head> 
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" type="image/x-icon" />
-  <title>Sign Up</title>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital Sign Up</title>
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-  <style>
-     .signup-body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: linear-gradient(rgba(253, 253, 253,0.1), rgba(21, 127, 218,0.8));
-      background-size: cover;
-      overflow: hidden;
-    }
-    .signup-container {
-      background: rgb(255, 255, 255);
-      border-radius: 12px;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-      width: 1000px;
-      display: flex;
-      overflow: hidden;
-    }
-    
-    .side-img {
-      flex: 1;
-      background: url("{% static 'images/sign_up.jpg' %}") no-repeat center center;
-      background-size: cover;
-    }
-    
-    .form-container {
-      flex: 1;
-      padding: 30px;
-      max-width: 350px;
-    }
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
-    .form-container h2 {
-      text-align: center;
+/* Reset & global styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(rgba(253, 253, 253, 0.1), rgba(21, 127, 218, 0.8));
+}
+
+/* Signup container */
+.signup-container {
+    width: 1000px;
+    background: #fff;
+    display: flex;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    min-height: 500px;
+}
+
+/* Side image */
+.side-img {
+    flex: 1;
+    background: url("{% static 'images/sign_up.jpg' %}") no-repeat  center/cover;
+  
+    background-position: top center;
+}
+
+/* Form container */
+.form-container {
+    flex: 1;
+    padding: 30px;
+    max-width: 400px;
+}
+
+h2 {
+   text-align: center;
       font-size: 22px;
       font-weight: bold;
-      text-transform: uppercase;
-      color: rgba(0, 128, 241, 0.8);
-      margin-bottom: 20px;
-      letter-spacing: 1px;
-      position: relative;
-    }
+    margin-bottom: 20px;
+    color: rgba(0, 128, 241, 0.9);
+}
 
-    .form-container img {
-      width: 70px;
-      margin:0 auto 5px;
-      display: block;
-    }
+/* Input groups */
+.input-group {
+    position: relative;
+    margin: 20px 0;
+    border-bottom: 2px solid #000;
+}
 
-    .form-container label {
-      display: block;
-      margin: 10px 0 5px;
-      font-weight: bold;
-      color: #34495e;
-    }
+.input-group input,
+.input-group select {
+    width: 100%;
+    height: 40px;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 16px;
+    padding: 10px 5px 5px;
+}
 
-    .form-container input,
-    .form-container select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 2px solid #000000;
-      margin-bottom: 15px;
-      box-sizing: border-box;
-    }
+.input-group label {
+    position: absolute;
+    top: 10px;
+    left: 5px;
+    font-size: 16px;
+    transition: 0.3s;
+    pointer-events: none;
+    
+    
+}
 
-    .form-container input[type="submit"] {
-      width: 100%;
-      padding: 12px;
-      color: white;
-      background: #0079f1;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+/* Label animation on focus or filled input */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label,
+.input-group select:focus + label,
+.input-group select:valid + label {
+    top: -10px;
+    font-size: 12px;
+    color: rgba(21, 127, 218, 1);
+}
 
-    .form-container input[type="submit"]:hover {
-       color: white;
-       background: #308de9;
-    }
+/* Submit button */
+input[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 30px;
+    background: rgba(21, 127, 218, 1);
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+}
 
-    .form-container p {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 14px;
-    }
+input[type="submit"]:hover {
+    background: rgba(21, 127, 218, 0.8);
+}
 
-    .form-container a {
-      color: #0099fff1;
-      text-decoration: none;
-    }
+/* Sign-in link */
+.signIn-link {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+}
 
-    .form-container a:hover {
+.signIn-link a {
+    color: rgba(21, 127, 218, 1);
+    text-decoration: none;
+    font-weight: 500;
+}
+.signIn-link a:hover {
       text-decoration: underline;
     }
 
-    /* Tablet */
-    @media (max-width: 992px) {
-      .signup-container {
-        width: 80%;
-        height: auto;
-      }
-      .form-container {
-        max-width: 100%;
-        padding: 25px;
-      }
-    }
-
-    /* Mobile */
-    @media (max-width: 480px) {
-      .signup-container {
-        flex-direction: column;
+/* Responsive */
+@media (max-width: 480px) {
+    .signup-container {
         width: 100%;
-        border-radius: 0;    
-      }
-      .form-container {
-        padding: 20px;
-      }
-
-      .side-img {
-        display: none;
-      }
-
-      .form-container h2 {
-        font-size: 18px;
-        margin-top: 15px;
-      }
-
-      .form-container input,
-      .form-container select {
-        padding: 8px;
-        font-size: 14px;
-      }
-
-      .form-container input[type="submit"] {
-        padding: 10px;
-        font-size: 15px;
-      }
-
-      .form-container p {
-        font-size: 12px;
-      }
+        flex-direction: column;
+        border-radius: 0;
     }
+
+    .side-img {
+        display: none;
+    }
+}
+.toggle-eye{
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  display: none;
+}
+
+.toggle-eye i{
+  font-size: 18px;     /* size like image */
+  color: black;
+  font-weight: 400;    /* thin stroke */
+}
+
+
+/* Remove default browser password icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}
+
+input[type="password"] {
+  appearance: none;
+  -moz-appearance: textfield;
+}
+
+
   </style>
 </head>
+<body>
 
-<body class="signup-body">
-  <div class="signup-container">
-    <div class="side-img"></div>
+<div class="signup-container">
+  <div class="side-img"></div>
+  <div class="form-container">
+    <h2>HOSPITAL SIGNUP</h2>
+    <form id="signupForm">
 
-    <div class="form-container">
-      <h2>HOSPITAL SIGNUP</h2>
+      <!-- Full Name -->
+      <div class="input-group">
+        <input type="text" id="fullname" name="fullname" placeholder=" " required
+               pattern="[A-Za-z\s]+"
+               title="only letters and spaces are allowed">
+        <label>Full Name</label>
+      </div>
 
-      <!-- ✅ Django-compatible form -->
-      <form method="POST" action="{% url 'signup' %}" onsubmit="return validateform()">
-        {% csrf_token %}
-        <label for="fullname">Full Name</label>
-        <input type="text" id="fullname" name="fullname" placeholder="Enter your name">
+      <!-- Email -->
+      <div class="input-group">
+        <input type="email" id="email" name="email" placeholder=" " required
+               title="Enter a valid email address (example: name@gmail.com)">
+        <label>Email</label>
+      </div>
 
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="Enter your email" required>
-
-        <label for="role">Role</label>
-        <select id="role" name="role" required>
-          <option value="">-- Select Role --</option>
+      <!-- Role -->
+      <div class="input-group">
+        <select id="role" name="role" required title="Select your role">
+          <option value="" disabled selected hidden></option>
           <option value="doctor">Doctor</option>
           <option value="patient">Patient</option>
         </select>
+        <label>Role</label>
+      </div>
+      <div class="input-group" style="position:relative;">
+  <input type="password" id="password" placeholder=" " name="password" required
+         pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}"
+         title="At least 8 characters, 1 letter, 1 number & 1 special character">
+  <label>Password</label>
 
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password"
-          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
-          title="Must contain at least one number, one uppercase, one lowercase, and at least 8 characters"
-          placeholder="Create password" required>
+  <span class="toggle-eye" id="togglePassword">
+  <i class="fa-regular fa-eye"></i>
+</span>
 
-        <label for="confirm_password">Confirm Password</label>
-        <input type="password" id="confirm_password" name="confirm_password"
-          placeholder="Re-enter password"
-          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-          title="Must contain at least one number, one uppercase, one lowercase, and at least 8 characters"
-          required>
-        
-        <input type="submit" value="Sign Up">
+</div>
+      <div class="input-group" style="position:relative;">
+  <input type="password" id="confirmPassword" placeholder=" " name="confirm_password" required
+         title="Re-enter the same password">
+  <label>Confirm Password</label>
 
-        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
-      </form>
-    </div>
+<span class="toggle-eye" id="toggleConfirm">
+  <i class="fa-regular fa-eye"></i>
+</span>
+</div>
+
+      <input type="submit" value="Sign Up">
+
+      <div class="signIn-link">
+        Already have an account? <a href="{% url 'login' %}">Sign In</a>
+      </div>
+    </form>
   </div>
+</div>
+<script>
+const password = document.getElementById("password");
+const confirmPassword = document.getElementById("confirmPassword");
 
-  <script>
-  function validateform() {
-    let x = document.getElementById("fullname").value;
-    if (x == "") {
-      alert("Name must be filled out");
-      return false;
+const togglePassword = document.getElementById("togglePassword");
+const toggleConfirm = document.getElementById("toggleConfirm");
+
+function handleEye(input, eye){
+  const icon = eye.querySelector("i");
+
+  /* Show eye when typing */
+  input.addEventListener("input", ()=>{
+    if(input.value.length > 0){
+      eye.style.display = "block";
+    }else{
+      eye.style.display = "none";
+      input.type = "password";
+
+      icon.classList.remove("fa-eye-slash");
+      icon.classList.add("fa-eye");
     }
-    let p1 = document.getElementById("password").value;
-    let p2 = document.getElementById("confirm_password").value;
-    if (p1 != p2) {
-      alert("Password and Confirm Password are not the same");
-      return false;
+  });
+
+  /* Toggle click */
+  eye.addEventListener("click", ()=>{
+    if(input.type === "password"){
+      input.type = "text";
+
+      icon.classList.remove("fa-eye");
+      icon.classList.add("fa-eye-slash");
+
+    }else{
+      input.type = "password";
+
+      icon.classList.remove("fa-eye-slash");
+      icon.classList.add("fa-eye");
     }
-  }
-  </script>
+  });
+}
+
+handleEye(password, togglePassword);
+handleEye(confirmPassword, toggleConfirm);
+</script>
+
+
+
+
+
 </body>
 </html>

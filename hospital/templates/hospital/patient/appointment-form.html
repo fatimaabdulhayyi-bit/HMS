@@ -4,52 +4,180 @@
 {% block title %}Book Appointment{% endblock %}
 
 {% block content %}
-<section class="appointment-card">
-    <header>Book Appointment Details</header>
-    <form action="{% url 'appointment_form' %}" method="post">
+
+<style>
+  
+/* Full page container centered */
+.page-wrapper {
+    display: flex;
+    justify-content: center;  /* horizontal center */
+    align-items: center;      /* vertical center */
+    padding: 40px 20px;            /* equal padding all around */
+    min-height: 100vh;
+    background: #f5f7fa;
+}
+/* Card styling */
+.appointment-card {
+    width: 100%;
+    max-width: 900px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin:0 auto
+}
+
+/* Card heading */
+.appointment-card h2.card-heading {
+  background: #1976d2;
+    color: #fff;
+    text-align: center;
+    font-weight: 700; /* bold */
+    padding: 20px 0;  /* slightly taller heading */
+    margin: 0;
+    font-size: 20px;
+}
+
+/* Card body */
+.appointment-card .card-body {
+    padding: 16px;  /* uniform padding inside card */
+}
+
+/* Form spacing */
+.patient-form .row {
+    --bs-gutter-x: 12px;
+    --bs-gutter-y: 8px;
+}
+
+.patient-form .row > div {
+    margin-bottom: 6px;
+}
+
+/* Labels */
+.patient-form .form-label {
+    margin-bottom: 4px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #444;
+}
+
+/* Inputs & select */
+.patient-form .form-control,
+.patient-form .form-select {
+    height: 38px;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+/* Submit button */
+.btn-submit {
+    background: #1976d2;
+    color: #fff;
+    padding: 10px 36px;
+    border-radius: 50px;
+    border: none;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-submit:hover {
+    background: #125aa3;
+}
+
+.btn-submit:active {
+    background: #0b5ed7;
+}
+
+/* Button wrapper */
+.patient-form .text-center {
+    margin-top: 20px !important;
+    margin-bottom: 4px !important;
+}
+</style>
+
+<div class="page-wrapper">
+
+  <div class="appointment-card">
+
+    <!-- Heading -->
+    <h2 class="card-heading">Book Appointment</h2>
+
+    <!-- Card Body -->
+    <div class="card-body">
+      <form method="POST" class="patient-form">
         {% csrf_token %}
-        <div class="row">
-            <div class="col">
-                <input type="text" name="name" placeholder="Your Name" required>
-            </div>
-            <div class="col">
-                <input type="email" name="email" placeholder="Your Email" required>
-            </div>
-        </div>
 
         <div class="row">
-            <div class="col">
-                <input type="tel" name="phone" placeholder="Your Phone" required>
-            </div>
-            <div class="col">
-                <input type="datetime-local" name="date" required>
-            </div>
+          <div class="col-md-6">
+            <label class="form-label">Full Name</label>
+            <input type="text" name="fullname" class="form-control" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Age</label>
+            <input type="number" name="age" class="form-control" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Gender</label>
+            <select name="gender" class="form-select" required>
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+        <div class="col-md-6">
+  <label class="form-label">Contact</label>
+  <input type="text" name="contact" class="form-control" required>
+</div>
+
+<div class="col-md-6">
+  <label class="form-label">Appointment Date</label>
+  <input type="date" name="appointment_date" class="form-control" required>
+</div>
+
+<div class="col-md-6">
+  <label class="form-label">Appointment Time</label>
+  <input type="time" name="appointment_time" class="form-control" required>
+</div>
+
+
+          <div class="col-md-6">
+            <label class="form-label">Department</label>
+            <select name="department" class="form-select" required>
+              <option value="">Select Department</option>
+              <option>Cardiology</option>
+              <option>Dental</option>
+              <option>Neurology</option>
+              <option>Dermatology</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Doctor</label>
+            <select name="doctor" class="form-select" required>
+              <option value="">Select Doctor</option>
+              <option>Dr. Ali</option>
+              <option>Dr. Ahmed</option>
+              <option>Dr. Sara</option>
+            </select>
+          </div>
         </div>
 
-        <div class="row">
-            <div class="col">
-                <select name="department" required>
-                    <option value="">Select Department</option>
-                    <option>Cardiology</option>
-                    <option>Neurology</option>
-                    <option>Orthopedics</option>
-                </select>
-            </div>
-            <div class="col">
-                <select name="doctor" required>
-                    <option value="">Select Doctor</option>
-                    <option>Fatima Abdul Hayyi</option>
-                    <option>Dr. Ahmed</option>
-                    <option>Dr. Sara</option>
-                </select>
-            </div>
+        <!-- Submit Button -->
+        <div class="text-center">
+          <button type="submit" class="btn-submit">Book Appointment</button>
         </div>
 
-        <textarea name="message" rows="4" placeholder="Message (Optional)"></textarea>
+      </form>
+    </div>
 
-        <div class="form-submit">
-            <input type="submit" value="Book">
-        </div>
-    </form>
-</section>
+  </div>
+
+</div>
+
 {% endblock %}

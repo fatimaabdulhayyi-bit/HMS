@@ -2,7 +2,6 @@ body {
     font-family: Arial, sans-serif;
     background: #f4f7fc;
 }
-
 .profile-card {
     background: white;
     border-radius: 15px;
@@ -10,12 +9,10 @@ body {
     box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     transition: transform 0.3s, box-shadow 0.3s;
 }
-
 .profile-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 15px 30px rgba(0,0,0,0.15);
 }
-
 .profile-icon {
     font-size: 50px;
     color: #1e90ff;
@@ -369,4 +366,3 @@ tbody td{
     min-height: 100px;
 }
 /* doctorschedule */
-

@@ -4,7 +4,145 @@
 {% block title %}Bills{% endblock %}
 
 {% block content %}
+
+<!-- ============================= -->
+<!-- INTERNAL CSS -->
+<!-- ============================= -->
+<style>
+
+/* CARD */
+.appointments-card {
+    background: transparent;
+    border-radius: 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    padding: 25px;
+}
+
+/* HEADER */
+.appointments-top h3 {
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+/* TABLE WRAPPER */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* TABLE */
+.table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+}
+
+/* HEAD */
+.table-wrapper thead {
+    background: #f5f7fa;
+}
+
+.table-wrapper th {
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+/* BODY */
+.table-wrapper td {
+    padding: 14px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+/* STATUS BADGES */
+.status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* BUTTONS */
+.table-wrapper .btn-sm {
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.table-wrapper .btn-primary {
+    background: #1976d2;
+    border: none;
+}
+
+.table-wrapper .btn-primary:hover {
+    background: #125aa3;
+}
+
+.table-wrapper .btn-success {
+    background: #4caf50;
+    border: none;
+}
+
+.table-wrapper .btn-success:hover {
+    background: #3d8b40;
+}
+
+</style>
+
+<!-- ============================= -->
+<!-- PAGE CONTENT -->
+<!-- ============================= -->
+
 <section class="appointments-section">
-   
+<div class="patient-dashboard">
+
+  <!-- HEADING OUTSIDE CARD -->
+  <div class="px-4 pt-4 mb-3">
+    <h3>My Bills</h3>
+  </div>
+
+  <!-- BILLS TABLE CARD -->
+  <div class="appointments-card">
+
+    <div class="table-wrapper">
+      <table>
+
+        <thead>
+          <tr>
+            <th>Bill #</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <!-- EMPTY STATE ROW -->
+          <tr>
+            <td colspan="5" style="text-align:center; color:#888;">
+              No bills available.
+            </td>
+          </tr>
+        </tbody>
+
+      </table>
+    </div>
+
+  </div>
+
+</div>
 </section>
+
 {% endblock %}
