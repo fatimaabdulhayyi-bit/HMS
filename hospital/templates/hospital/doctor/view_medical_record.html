@@ -1,100 +1,156 @@
 {% extends 'hospital/doctor/base_doctor.html' %}
 
-{% block title %}View Medical Record{% endblock %}
+{% block title %}Patient Medical Record{% endblock %}
 {% block content %}
 
-<div class="container my-5">
+<div class="container-fluid px-4 my-4">
 
-  <div class="card medical-card">
-    <div class="card-header text-center">
-      <h4>Patient Medical Record</h4>
-    </div>
+  <div class="card shadow-lg border-0 rounded-4">
 
-    <div class="card-body">
+    <!-- 🔵 Blue Header Section -->
+    <div class="card-header bg-primary text-white rounded-top-4 py-4">
 
-      <!-- Patient Info -->
-      <div class="row mb-4">
-        <div class="col-md-6">
-          <strong>Patient Name:</strong> {{ appointment.patient.name }}
-        </div>
-        <div class="col-md-6">
-          <strong>Appointment Date:</strong> {{ appointment.date }}
-        </div>
-        <div class="col-md-6 mt-2">
-          <strong>Token No:</strong> {{ appointment.token_number }}
-        </div>
+  <div class="d-flex justify-content-between align-items-center">
+
+    <!-- LEFT SIDE HEADING -->
+    <h3 class="fw-bold mb-0">
+      Patient Medical Record
+    </h3>
+
+    <!-- RIGHT SIDE BUTTON -->
+    <a href="{% url 'add_medical_record' %}"
+       class="btn btn-light text-primary fw-semibold shadow-sm">
+      <i class="fas fa-plus me-1"></i> Add Medical Record
+    </a>
+
+  </div>
+
+</div>
+
+    <!-- Body -->
+    <div class="card-body p-4">
+
+      <!-- Patient Info Section -->
+<h5 class="text-primary fw-bold mb-4">Patient Information</h5>
+
+<div class="row mb-4">
+
+  <div class="col-md-4 mb-3">
+    <label class="form-label fw-bold">Patient Name</label>
+    <input type="text"
+           class="form-control rounded-3 shadow-sm"
+           value="{{ appointment.patient.name }}"
+           readonly>
+  </div>
+
+  <div class="col-md-4 mb-3">
+    <label class="form-label fw-bold">Age</label>
+    <input type="text"
+           class="form-control rounded-3 shadow-sm"
+           value="{{ appointment.patient.age }}"
+           readonly>
+  </div>
+
+  <div class="col-md-4 mb-3">
+    <label class="form-label fw-bold">Consultation Date</label>
+    <input type="text"
+           class="form-control rounded-3 shadow-sm"
+           value="{{ appointment.date }}"
+           readonly>
+  </div>
+
+</div>
+
+
+      <!-- Symptoms -->
+      <div class="mb-4">
+        <label class="form-label fw-bold text-primary fs-5">Symptoms</label>
+        <textarea class="form-control rounded-4 shadow-sm" rows="3" readonly>
+{{ medical_record.symptoms }}
+        </textarea>
       </div>
 
-      <hr>
 
-      <!-- Medical Info -->
-      <div class="row g-3">
-
-        <div class="col-12">
-          <label class="form-label">Symptoms</label>
-          <textarea class="form-control" readonly>
-{{ medical_record.symptoms }}
-          </textarea>
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Diagnosis</label>
+      <!-- Diagnosis + Tests -->
+      <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-bold text-primary fs-5">Diagnosis</label>
           <input type="text"
-                 class="form-control"
+                 class="form-control rounded-4 shadow-sm"
                  value="{{ medical_record.diagnosis }}"
                  readonly>
         </div>
 
-        <div class="col-md-6">
-          <label class="form-label">Recommended Tests</label>
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-bold text-primary fs-5">
+            Recommended Tests
+          </label>
           <input type="text"
-                 class="form-control"
-                 value="{{ medical_record.tests }}"
+                 class="form-control rounded-4 shadow-sm"
+                 value="{{ medical_record.tests|default:'None' }}"
                  readonly>
         </div>
-
-        
-        <div class="col-12">
-  <label class="form-label fw-semibold">Prescribed Medicines</label>
-
-  <!-- Medicines Table -->
-  <table class="table table-bordered table-sm">
-    <thead class="table-light">
-      <tr>
-        <th>#</th>
-        <th>Medicine</th>
-        <th>Dosage / Instructions</th>
-      </tr>
-    </thead>
-    <tbody id="medicines-table-body">
-      {% for med in medical_record.medicines_list %}
-      <tr>
-        <td>{{ forloop.counter }}</td>
-        <td>{{ med.name }}</td>
-        <td>{{ med.dosage }}</td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="3" class="text-center text-muted">No medicines prescribed yet.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <!-- Add Medicine Button -->
-  <div class="mt-2">
-    <button type="button" class="btn btn-primary btn-sm" id="add-medicine-btn">
-      Add Medicine
-    </button>
-  </div>
-</div>
-
-<!-- Optional: Modal or JS for adding new medicine dynamically -->
-
-
       </div>
 
+<!-- Prescribed Medicines Section -->
+<div class="mt-5">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold text-primary mb-0">
+      Prescribed Medicines
+    </h4>
+
+    <!-- Add Medicine Button -->
+    
+  </div>
+
+  {% if medical_record.medicines_list %}
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle shadow-sm">
+
+      <thead class="table-primary text-center">
+        <tr>
+          <th style="width:10%;">#</th>
+          <th style="width:45%;">Medicine Name</th>
+          <th style="width:45%;">Dosage</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for med in medical_record.medicines_list %}
+        <tr>
+          <td class="text-center">{{ forloop.counter }}</td>
+          <td>{{ med.name }}</td>
+          <td>{{ med.dosage }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+
+  {% else %}
+  <div class="text-center py-4 bg-light rounded-4 shadow-sm">
+    <p class="text-muted mb-0">
+      No medicines prescribed for this visit.
+    </p>
+  </div>
+  {% endif %}
+
+</div>
+      
     </div>
+
+
+    <!-- Footer -->
+    <div class="card-footer bg-white text-center py-3 border-0">
+  <a href="{% url 'doctor_dashboard' %}"
+     class="btn btn-primary px-4 shadow-sm rounded-pill">
+     Cancel
+  </a>
+</div>
+
+
   </div>
 
 </div>
