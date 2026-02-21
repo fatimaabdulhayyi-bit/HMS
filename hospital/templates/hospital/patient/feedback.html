@@ -1,3 +1,4 @@
+
 {% extends 'hospital/patient/base_patient.html' %}
 {% load static %}
 
@@ -5,33 +6,28 @@
 
 {% block content %}
 
-
-
-<div class="page-wrapper">
+<div class="feedback-wrapper">
 
     <!-- Top heading -->
-    <div class="page-header">
+    <div class="feedback-header">
         <h2>Patient Feedback</h2>
-        <a href="#" class="back-btn">Back</a>
+        <a href="#" class="feedback-back-btn">Back</a>
     </div>
 
     <form method="post">
         {% csrf_token %}
-
         <!-- Centered Description -->
-        <div class="form-center">
+        <div class="feedback-form-center">
             <div class="mb-4">
-                {% comment %} <label class="form-label">Description</label> {% endcomment %}
                 <textarea 
                     name="description" 
-                    class="form-control"
-                    placeholder="Enter your feedback..."></textarea>
+                    class="feedback-textarea form-control"
+                    placeholder="Enter your feedback..." required></textarea>
             </div>
         </div>
-
         <!-- Centered & Lower Button -->
-        <div class="submit-wrapper">
-            <button type="submit" class="submit-btn">
+        <div class="feedback-submit-wrapper">
+            <button type="submit" class="feedback-submit-btn">
                Submit Feedback
             </button>
         </div>
