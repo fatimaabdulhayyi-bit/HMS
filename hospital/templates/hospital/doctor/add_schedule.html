@@ -1,0 +1,85 @@
+{% extends 'hospital/doctor/base_doctor.html' %}
+{% load static %}
+{% block title %}Add Schedule{% endblock %}
+
+{% block content %}
+
+<div class="container d-flex justify-content-center mt-5" style="min-height: 100vh;">
+  <div class="col-lg-8 col-md-10">
+
+    <div class="card shadow-lg rounded-4">
+
+      <!-- Header -->
+      <div class="card-header bg-primary text-white rounded-top-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="mb-0">Add Schedule</h4>
+            <small>Set Doctor Availability</small>
+          </div>
+
+          <a href="{% url 'doctor_schedule' %}" 
+             class="btn btn-light btn-sm fw-semibold">
+            Back
+          </a>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="card-body p-4">
+
+        <form method="POST">
+          {% csrf_token %}
+
+          <!-- Day -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Select Day</label>
+            <select name="day" class="form-select" required>
+              <option value="">Choose Day</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+              <option value="Sunday">Sunday</option>
+            </select>
+          </div>
+
+          <!-- Start Time -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Start Time</label>
+            <input type="time" name="start_time" class="form-control" required>
+          </div>
+
+          <!-- End Time -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">End Time</label>
+            <input type="time" name="end_time" class="form-control" required>
+          </div>
+
+          <!-- Availability -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Availability</label>
+            <select name="is_available" class="form-select">
+              <option value="True">Available</option>
+              <option value="False">Not Available</option>
+            </select>
+          </div>
+
+          <!-- Submit -->
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary px-4">
+              Save Schedule
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

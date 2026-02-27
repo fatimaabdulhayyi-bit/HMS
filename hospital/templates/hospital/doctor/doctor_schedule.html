@@ -9,25 +9,27 @@
 
     <div class="card shadow-lg rounded-4">
 
-      <!-- Header with Edit Button -->
+      <!-- Header -->
       <div class="card-header bg-primary text-white rounded-top-4">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+
           <div>
             <h4 class="mb-0">Doctor Schedule</h4>
             <small>From – To Availability</small>
           </div>
 
-          <!-- EDIT BUTTON (MAIN) -->
-          <a href="{% url 'edit_schedule' %}" 
+          <!-- ADD BUTTON -->
+          <a href="{% url 'add_schedule' %}" 
              class="btn btn-light btn-sm fw-semibold">
-            Edit Schedule
+            + Add Schedule
           </a>
+
         </div>
       </div>
 
       <!-- Body -->
       <div class="card-body table-responsive p-4">
-        <table class="table table-bordered text-center align-middle ">
+        <table class="table table-bordered text-center align-middle">
 
           <thead class="table-light">
             <tr>
@@ -35,10 +37,28 @@
               <th>From</th>
               <th>To</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
+            
           </thead>
 
           <tbody>
+            <tr>
+  <td class="fw-semibold">Monday</td>
+  <td>09:00 AM</td>
+  <td>02:00 PM</td>
+  <td>
+    <span class="badges px-3 py-2">
+      Available
+    </span>
+  </td>
+  <td>
+    <a href="{% url 'add_schedule' %}" 
+                   class="btn btn-sm btn-primary">
+                   Edit
+                </a>
+  </td>
+</tr>
             {% for s in schedules %}
             <tr>
               <td class="fw-semibold">{{ s.day }}</td>
@@ -47,15 +67,28 @@
 
               <td>
                 {% if s.is_available %}
-                  <span class="badge bg-success px-3 py-2">Available</span>
+                  <span class="badge bg-success px-3 py-2">
+                    Available
+                  </span>
                 {% else %}
-                  <span class="badge bg-danger px-3 py-2">Not Available</span>
+                  <span class="badge bg-danger px-3 py-2">
+                    Not Available
+                  </span>
                 {% endif %}
               </td>
+
+              <!-- EDIT BUTTON -->
+              <td>
+                <a href="{% url 'add_schedule' s.id %}" 
+                   class="btn btn-sm btn-outline-primary">
+                   Edit
+                </a>
+              </td>
             </tr>
+
             {% empty %}
             <tr>
-              <td colspan="4" class="text-muted">
+              <td colspan="5" class="text-muted py-4">
                 No schedule added yet
               </td>
             </tr>

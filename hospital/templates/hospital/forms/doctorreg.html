@@ -52,6 +52,47 @@
         flex-direction: column;
     }
 }
+/* responsive form */
+/* ====== PERFECT CENTER FIX ====== */
+
+
+/* Container full width fix */
+.container {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Form container responsive center */
+.form-container {
+    width: 100%;
+    max-width: 900px;
+    margin: auto;
+}
+
+/* Large Screens (Laptop/Desktop) */
+@media (min-width: 1200px) {
+    .form-container {
+        max-width: 850px;
+    }
+}
+
+/* Medium Screens (Tablet) */
+@media (max-width: 992px) {
+    .form-container {
+        max-width: 95%;
+    }
+}
+
+/* Small Screens (Mobile) */
+@media (max-width: 576px) {
+    .form-container {
+        padding: 20px !important;
+    }
+
+    .submit {
+        width: 60%;
+    }
+}
 
 </style>
 
