@@ -1,10 +1,7 @@
 /* Full page container centered */
+
 .page-wrapper {
-    display: flex;
-    justify-content: center;  /* horizontal center */
-    align-items: center;      /* vertical center */
-    padding: 40px 20px;            /* equal padding all around */
-    min-height: 100vh;
+    padding: 5px 20px 10px;   /* top | left-right | bottom */
     background: #f5f7fa;
 }
 /* Card styling */
@@ -239,94 +236,54 @@
     border-radius: 14px;
     color: #721c24;
 }
-/* ===== Patient Bills Page ===== */
+/* ===== Bills Section ===== */
+.bills-section {
+    padding: 15px 20px;
+}
 
-/* CARD */
-.appointments-card {
-    background: transparent;
+/* ===== Main Container ===== */
+.bills-container {
+    background: #ffffff;   /* White background */
     border-radius: 18px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.08);
     padding: 25px;
 }
 
-/* HEADER */
-.appointments-top h3 {
-    font-weight: 600;
+/* ===== Heading ===== */
+.bills-header h3 {
+    font-weight: 700;   /* Bold */
     margin-bottom: 20px;
 }
 
-/* TABLE WRAPPER */
+/* ===== Table ===== */
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
 }
 
-/* TABLE */
 .table-wrapper table {
     width: 100%;
     border-collapse: collapse;
-    background: transparent;
 }
 
-/* TABLE HEAD */
+/* ===== Table Head (BLUE) ===== */
 .table-wrapper thead {
-    background: #f5f7fa;
+    background: #1976d2;
 }
 
 .table-wrapper th {
     padding: 14px 16px;
     font-size: 14px;
-    font-weight: 600;
-    color: #444;
+    font-weight: 700;     /* Bold */
+    color: #ffffff;       /* White text */
     text-align: left;
-    border-bottom: 1px solid #eee;
 }
 
-/* TABLE BODY */
+/* ===== Table Body ===== */
 .table-wrapper td {
     padding: 14px 16px;
     font-size: 14px;
     border-bottom: 1px solid #eee;
-}
-
-/* STATUS BADGES */
-.status {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-block;
-}
-
-.status.pending {
-    background: #fff3cd;
-    color: #856404;
-}
-
-/* BUTTONS */
-.table-wrapper .btn-sm {
-    font-size: 13px;
-    padding: 4px 12px;
-    border-radius: 8px;
-    text-decoration: none;
-}
-
-.table-wrapper .btn-primary {
-    background: #1976d2;
-    border: none;
-}
-
-.table-wrapper .btn-primary:hover {
-    background: #125aa3;
-}
-
-.table-wrapper .btn-success {
-    background: #4caf50;
-    border: none;
-}
-
-.table-wrapper .btn-success:hover {
-    background: #3d8b40;
 }
 /* =============================
    Profile Page Styles
