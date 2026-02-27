@@ -131,8 +131,8 @@ def doctor_dashboard(request):
 def my_appointments(request):
     return render(request, 'hospital/doctor/my_appointments.html')
 
-def edit_schedule(request):
-    return render(request, 'hospital/doctor/edit_schedule.html')
+def add_schedule(request):
+    return render(request, 'hospital/doctor/add_schedule.html')
 def profiledoc(request):
     return render(request, 'hospital/doctor/profiledoc.html')
 def view_medical_record(request):

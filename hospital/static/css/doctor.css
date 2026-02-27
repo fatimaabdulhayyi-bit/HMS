@@ -356,7 +356,7 @@ tbody td{
 }
 
 .medical-card .card-header {
-    background: linear-gradient(90deg, #007bff, #00c6ff);
+    background:linear-gradient(180deg,#2f8df3,#0d63c7);
     color: #fff;
     font-weight: 600;
 }
