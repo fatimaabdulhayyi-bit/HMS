@@ -29,46 +29,64 @@
 </head>
 <body class="index-page">
   <header id="header" class="header sticky-top">
-    <div class="branding d-flex align-items-center">
-      <div class="container position-relative d-flex align-items-center justify-content-between">
-        <a href="" class="logo d-flex align-items-center me-auto">
-          <!-- Uncomment the line below if you also wish to use an image logo -->
-          <!-- <img src="assets/img/logo.png" alt=""> -->
-         <img src="{% static 'images/logo.png' %}" alt="image">
-        </a>  
-        <nav id="navmenu" class="navmenu"> 
-          <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>      
-          <ul>
-            <li><a href="#hero" class="active">Home<br></a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#services">Services</a></li>
-            <li><a href="#departments">Departments</a></li>
-            <li><a href="#doctors">Doctors</a></li>
-             <!-- ✅ Fixed Dropdown -->
+  <div class="branding">
+    <div class="container d-flex align-items-center justify-content-between">
+
+      <!-- Logo -->
+      <a href="#" class="logo d-flex align-items-center">
+        <img src="{% static 'images/logo.png' %}" alt="Logo">
+      </a>
+
+      <!-- Navigation -->
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="#hero" class="active">Home</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#departments">Departments</a></li>
+          <li><a href="#doctors">Doctors</a></li>
+
           <li class="dropdown">
-            <a href="#" class="toggle-dropdown"><span>More</span> <i class="bi bi-chevron-down"></i></a>
+            <a href="#" class="toggle-dropdown">
+              <span>More</span> <i class="bi bi-chevron-down"></i>
+            </a>
             <ul>
               <li><a href="#faq">FAQ</a></li>
               <li><a href="#testimonials">Testimonials</a></li>
-              {% comment %} <li><a href="#gallery">Gallery</a></li> {% endcomment %}
             </ul>
           </li>
-            <li><a href="#contact">Contact</a></li>
-            {% comment %} <li><a href="#">Find Doctor</a></li>
-            <li><a href="{% url 'signup' %}">Book Appointment</a></li> {% endcomment %}
-          </ul>          
-        </nav>
-        {% comment %} <a class="cta-btn d-none d-sm-block" href="{% url 'doctor_recommendations' %}" style="background-color: #007bff; border-color: #007bff;">Find Doctor</a> {% endcomment %}
+
+          <li><a href="#contact">Contact</a></li>
+
+          <!-- Mobile/Tablet CTA Buttons inside navbar -->
+          <li class="mobile-cta d-xl-none">
+            <a class="cta-btn" href="#">Find Doctor</a>
+          </li>
+          <li class="mobile-cta d-xl-none">
+            <a class="cta-btn" href="{% url 'signup' %}">Book Appointment</a>
+          </li>
+          <li class="mobile-cta d-xl-none">
+            <a class="cta-btn" href="{% url 'signup' %}">Sign Up</a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Desktop CTA Buttons (after navbar) -->
+      <div class="header-buttons d-none d-xl-flex">
         <a class="cta-btn" href="#">Find Doctor</a>
         <a class="cta-btn" href="{% url 'signup' %}">Book Appointment</a>
         <a class="cta-btn" href="{% url 'signup' %}">Sign Up</a>
-     {% comment %} <div class="d-flex align-items-center gap-0"> 
-    <a class="cta-btn d-none d-sm-block" href="#">Find Doctor</a>
-    <a class="cta-btn d-none d-sm-block" href="#appointment">Make an Appointment</a>
-    <a class="cta-btn d-none d-sm-block" href="{% url 'signup' %}">Sign Up</a> 
-</div> {% endcomment %}
       </div>
+
+      <!-- Mobile Toggle -->
+      <div class="mobile-right d-flex align-items-center d-xl-none gap-2">
+        <div class="mobile-nav-toggle">
+          <i class="bi bi-list"></i>
+        </div>
+      </div>
+
     </div>
+  </div>
 </header>
 
   <main class="main">
