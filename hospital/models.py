@@ -17,6 +17,7 @@ class UserAccountManager(BaseUserManager):
         """
         user = self.create_user(email=email, fullname=fullname, role='admin', password=password)
         user.is_admin = True
+        user.is_superadmin=True
         user.is_approved = True
         user.save(using=self._db)
         return user
@@ -34,6 +35,7 @@ class UserAccount(AbstractBaseUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='patient')
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    is_superadmin = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)  # Doctor approval flag
 
     objects = UserAccountManager()
@@ -50,10 +52,10 @@ class UserAccount(AbstractBaseUser):
     # Permissions for admin
     @property
     def is_staff(self):
-        return self.is_admin
+        return self.is_superadmin
 
     def has_perm(self, perm, obj=None):
-        return self.is_admin
+        return self.is_superadmin
 
     def has_module_perms(self, app_label):
-        return self.is_admin
+        return self.is_superadmin

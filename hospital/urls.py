@@ -40,4 +40,5 @@ urlpatterns = [
     path('doctor_schedule', views.doctor_schedule, name='doctor_schedule'),
     path('add_medical_record', views.add_medical_record, name='add_medical_record'),
     path('doctor_recommendation/', views.doctor_recommendation, name='doctor_recommendation'),
+    path('logout/', views.logout_view, name='logout'),
 ]
