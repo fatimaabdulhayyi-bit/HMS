@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from .models import UserAccount
+from .models import UserAccount, Patients
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login as auth_login, logout
 
@@ -81,6 +81,28 @@ def login(request):
     return render(request, 'hospital/forms/login.html')
 
 def patientreg(request):
+    if request.method == 'POST':
+        # Form se data uthana
+        guardian_name = request.POST.get('guardian_name')
+        dob = request.POST.get('dob')
+        gender = request.POST.get('gender')
+        cnic = request.POST.get('cnic')
+        phone = request.POST.get('phone')
+        blood_group = request.POST.get('blood_group')
+        address = request.POST.get('address')
+
+        # Database mein save karna
+        Patients.objects.create(
+            user=request.user, # Ab ye error nahi dega kyunki user login ho chuka hai
+            guardian_name=guardian_name,
+            dob=dob,
+            gender=gender,
+            cnic=cnic,
+            phone=phone,
+            blood_group=blood_group,
+            address=address
+        )
+        return redirect('patient_dashboard')
     return render(request, 'hospital/forms/patientreg.html')
 
 def doctorreg(request):
@@ -210,20 +232,3 @@ def show_users(request):
     """
 
     return HttpResponse(html)
-
-
-
-
-
-
-def patient_bills(request):
-    # Get the logged-in patient
-    patient = request.user.patient  # Assuming OneToOneField from User to Patient model
-
-    # Fetch bills only for this patient
-    bills = bill_list.objects.filter(patient=patient).order_by('-created_at')
-
-    context = {
-        'bills': bills
-    }
-    return render(request, 'hospital/patient/bills.html', context)
