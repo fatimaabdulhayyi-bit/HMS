@@ -60,7 +60,7 @@
 
           <!-- Mobile/Tablet CTA Buttons inside navbar -->
           <li class="mobile-cta d-xl-none">
-            <a class="cta-btn" href="#">Find Doctor</a>
+            <a class="cta-btn" href="{% url 'doctor_recommendation' %}">Find Doctor</a>
           </li>
           <li class="mobile-cta d-xl-none">
             <a class="cta-btn" href="{% url 'signup' %}">Book Appointment</a>
@@ -73,7 +73,7 @@
 
       <!-- Desktop CTA Buttons (after navbar) -->
       <div class="header-buttons d-none d-xl-flex">
-        <a class="cta-btn" href="#">Find Doctor</a>
+        <a class="cta-btn" href="{% url 'doctor_recommendation' %}">Find Doctor</a>
         <a class="cta-btn" href="{% url 'signup' %}">Book Appointment</a>
         <a class="cta-btn" href="{% url 'signup' %}">Sign Up</a>
       </div>

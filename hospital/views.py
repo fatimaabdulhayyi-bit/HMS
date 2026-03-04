@@ -163,9 +163,8 @@ def medical_records(request):
 def profile(request):
     return render(request, 'hospital/patient/profile.html')
 
-
-
-
+def doctor_recommendation(request):
+    return render(request, 'hospital/doctor_recommendation.html')
 # ========================= SHOW ALL USERS (DATABASE READ) =========================
 def show_users(request):
     users = UserAccount.objects.all()
