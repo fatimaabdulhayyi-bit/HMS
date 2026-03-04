@@ -45,6 +45,14 @@
             <li><a href="{% url 'bill' %}" class="nav-link"><i class="fa fa-credit-card me-2"></i>Bill</a></li>
             <li><a href="{% url 'medical_records' %}" class="nav-link"><i class="fa fa-file-medical me-2"></i>Medical Records</a></li>
             <li><a href="{% url 'feedback' %}" class="nav-link"><i class="fa fa-comment-dots me-2"></i>Feedback</a></li>
+            <li class="nav-item d-lg-none mt-2">
+    <li class="nav-item d-lg-none mt-2">
+    <a class="nav-link btn btn-primary text-center" 
+       href="{% url 'doctor_recommendation' %}">
+        <i class="fa fa-user-md me-1"></i> Find Doctor
+    </a>
+</li>
+</li>
           </ul>
         </div>
       </aside>
@@ -59,16 +67,26 @@
             </button>
             <img src="{% static 'images/logo.png' %}" alt="logo" class="logo">
           </div>
+          
 
           <!-- Right side: bell + logout -->
           <div class="topbar-right d-flex align-items-center gap-2">
      <button class="btn btn-light" id="notificationBtn">
       <i class="fa fa-bell fs-5"></i>
   </button>
+  
+<button type="button"
+        class="btn btn-primary d-none d-lg-inline-flex align-items-center gap-1"
+        onclick="window.location.href='{% url 'doctor_recommendation' %}'">
+    <i class="fa fa-user-md"></i>
+    Find Doctor
+</button>
     <button class="btn btn-danger ">
       <i class="fa fa-sign-out-alt me-1"></i> Logout
     </button>
+    
   </div>
+  
         </header>
 
         {% block content %}{% endblock %}
