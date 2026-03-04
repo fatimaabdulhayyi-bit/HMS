@@ -59,3 +59,29 @@ class UserAccount(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return self.is_superadmin
+    
+class Patients(models.Model):
+    # 'user' field connects this to UserAccount table (One-to-One)
+    user = models.OneToOneField(UserAccount, on_delete=models.CASCADE, related_name='patient_profile')
+    
+    guardian_name = models.CharField(max_length=100)
+    dob = models.DateField()
+    gender = models.CharField(max_length=10)
+    phone = models.CharField(max_length=15)
+    cnic = models.CharField(max_length=20, unique=True)
+    address = models.TextField()
+    blood_group = models.CharField(max_length=5)
+    
+    PATIENT_TYPES = [
+        ('OPD', 'OPD'),
+        ('IPD', 'IPD'),
+    ]
+    patient_type = models.CharField(max_length=10, choices=PATIENT_TYPES, default='OPD')
+    status = models.CharField(max_length=10, default='Active')
+
+    class Meta:
+        db_table = 'Patients'
+        verbose_name_plural = "Patients"
+
+    def __str__(self):
+        return f"{self.user.fullname} | {self.patient_type}"
