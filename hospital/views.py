@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect
 from .models import UserAccount
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout
 
 def signup(request):
     if request.method == "POST":
@@ -23,7 +23,7 @@ def signup(request):
         if user_exists:
             if user_exists.role == 'patient':
                 # Patient already exists → redirect to patient registration (profile completion)
-                return redirect('patientreg')
+                return redirect('login')
             else:
                 return render(request, 'hospital/forms/sign_up.html', {'error': 'User with this email already exists.'})
 
@@ -34,6 +34,8 @@ def signup(request):
             role=role,
             password=password
         )
+        
+        auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
         if role == 'doctor':
             user.is_approved = False
@@ -63,7 +65,11 @@ def login(request):
             
             auth_login(request, user)  # Login the user
             
-            if user.role == 'admin':
+            if user.is_superadmin:
+                return redirect('/admin/')
+
+            # 2. Frontend Admin (Normal Admin)
+            elif user.role == 'admin' and user.is_admin:
                 return redirect('admin_dashboard')
             elif user.role == 'doctor':
                 return redirect('doctor_dashboard')
@@ -165,6 +171,10 @@ def profile(request):
 
 def doctor_recommendation(request):
     return render(request, 'hospital/doctor_recommendation.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login') 
 # ========================= SHOW ALL USERS (DATABASE READ) =========================
 def show_users(request):
     users = UserAccount.objects.all()
