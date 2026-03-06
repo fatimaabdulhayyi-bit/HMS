@@ -197,32 +197,36 @@
 /* ============================= */
 /* TABLE ACTION BUTTONS */
 /* ============================= */
-
 .btn-edit {
-    background: #4caf50;
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 6px;
+    background-color: #e3f2fd;
+    /* Light Blue */
+    color: #0d6efd;
+    padding: 6px 16px;
+    border-radius: 8px;
     text-decoration: none;
-    font-size: 14px;
-    margin-right: 6px;
+    font-weight: 500;
+    transition: 0.3s;
 }
 
 .btn-edit:hover {
-    background: #3d8b40;
+    background-color: #0d6efd;
+    color: white;
 }
 
 .btn-delete {
-    background: #f44336;
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 6px;
+    background-color: #ffebee;
+    /* Light Red */
+    color: #f44336;
+    padding: 6px 16px;
+    border-radius: 8px;
     text-decoration: none;
-    font-size: 14px;
+    font-weight: 500;
+    transition: 0.3s;
 }
 
 .btn-delete:hover {
-    background: #c62828;
+    background-color: #f44336;
+    color: white;
 }
 
 /* BACK BUTTON */

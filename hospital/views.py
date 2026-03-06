@@ -1,7 +1,8 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 from .models import UserAccount, Patients
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login as auth_login, logout
+from django.contrib import messages
 
 def signup(request):
     if request.method == "POST":
@@ -136,10 +137,106 @@ def emergency(request):
     return render(request, 'hospital/admin/emergency.html')
 
 def patients(request):
-    return render(request, 'hospital/admin/patients.html')
+    # Database se saray patients ka data unke user account ke sath mangwana
+    # select_related use karne se performance behtar hoti hai
+    patients = Patients.objects.all().select_related('user')
+    
+    context = {
+        'patients': patients
+    }
+    return render(request, 'hospital/admin/patients.html', context)
 
 def add_patient(request):
+    if request.method == "POST":
+        fullname = request.POST.get('fullname')
+        guardian_name = request.POST.get('guardian_name') 
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        dob = request.POST.get('dob')
+        gender = request.POST.get('gender')
+        patient_type = request.POST.get('patient_type')
+        blood_group = request.POST.get('blood_group') # <--- Ab ye value pakrein
+        cnic = request.POST.get('cnic')
+        address = request.POST.get('address')
+        status = request.POST.get('status')
+
+        try:
+            # 1. User banayein
+            new_user = UserAccount.objects.create_user(
+                email=email,
+                fullname=fullname,
+                role='patient',
+                password="Patient@123" 
+            )
+            
+            # 2. Patient Profile banayein
+            Patients.objects.create(
+                user=new_user,
+                guardian_name=guardian_name,
+                dob=dob,
+                gender=gender,
+                phone=phone,
+                cnic=cnic,
+                address=address,
+                patient_type=patient_type,
+                blood_group=blood_group, # <--- Model mein save karein
+                status=status
+            )
+            return redirect('patients') 
+
+        except Exception as e:
+            return render(request, 'hospital/admin/add_patient.html', {'error': e})
     return render(request, 'hospital/admin/add_patient.html')
+
+def delete_patient(request, pk):
+    # 1. Patient ko dhoondna
+    patient = get_object_or_404(Patients, id=pk)
+    
+    try:
+        # 2. UserAccount ko delete karna (CASCADE ki wajah se profile khud hi udd jayegi)
+        user = patient.user
+        user.delete() 
+        
+        messages.success(request, "Patient and their account deleted successfully.")
+    except Exception as e:
+        messages.error(request, f"Error: {e}")
+        
+    return redirect('patients')
+
+def update_patient(request, pk):
+    # 1. Pehle patient ka record database se nikalein (ID ke zariye)
+    patient = get_object_or_404(Patients, id=pk)
+    user = patient.user  # Patient se juda hua user account
+    if request.method == "POST":
+        # 2. Form se naya data pakrein
+
+        user.fullname = request.POST.get('fullname')
+        user.email = request.POST.get('email')
+        patient.guardian_name = request.POST.get('guardian_name')
+        patient.phone = request.POST.get('phone')
+        patient.dob = request.POST.get('dob')
+        patient.gender = request.POST.get('gender')
+        patient.blood_group = request.POST.get('blood_group')
+        patient.patient_type = request.POST.get('patient_type')
+        patient.cnic = request.POST.get('cnic')
+        patient.address = request.POST.get('address')
+        patient.status = request.POST.get('status')
+        try:
+            # 3. Dono tables ko save karein
+
+            user.save()
+            patient.save()
+            messages.success(request, "Patient record updated successfully!")
+            return redirect('patients')
+        except Exception as e:
+            messages.error(request, f"Error updating record: {e}")
+    # 4. GET request par purana data form mein bharna
+
+    context = {
+        'patient': patient,
+    }
+    return render(request, 'hospital/admin/update_patient.html', context)
+
 
 def IPD(request):
     return render(request, 'hospital/admin/IPD.html')

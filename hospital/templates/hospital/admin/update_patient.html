@@ -1,0 +1,111 @@
+{% extends 'hospital/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Edit Patient{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 px-4 pt-4">
+  <h2 class="page-title">Edit Patient: {{ patient.user.fullname }}</h2>
+  <a href="{% url 'patients' %}" class="btn-back">Back</a>
+</div>
+
+<div class="doctor-form-wrapper">
+
+  <form method="POST" class="doctor-form">
+    {% csrf_token %}
+
+    <div class="row g-4">
+
+      <div class="col-md-6">
+        <label class="form-label">Full Name</label>
+        <input type="text" name="fullname" class="form-control" value="{{ patient.user.fullname }}" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Father/Husband Name</label>
+        <input type="text" name="guardian_name" class="form-control" value="{{ patient.guardian_name }}" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" value="{{ patient.user.email }}" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Phone</label>
+        <input type="text" name="phone" class="form-control" value="{{ patient.phone }}">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Date of Birth</label>
+        <input type="date" name="dob" class="form-control" value="{{ patient.dob|date:'Y-m-d' }}" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Gender</label>
+        <select name="gender" class="form-select">
+          <option value="Male" {% if patient.gender == 'Male' %}selected{% endif %}>Male</option>
+          <option value="Female" {% if patient.gender == 'Female' %}selected{% endif %}>Female</option>
+          <option value="Other" {% if patient.gender == 'Other' %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Patient Type</label>
+        <select name="patient_type" class="form-select" required>
+          <option value="OPD" {% if patient.patient_type == 'OPD' %}selected{% endif %}>OPD</option>
+          <option value="IPD" {% if patient.patient_type == 'IPD' %}selected{% endif %}>IPD</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">CNIC</label>
+        <input type="text" name="cnic" class="form-control" value="{{ patient.cnic }}">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Blood Group</label>
+        <select name="blood_group" class="form-select" required>
+            <option value="A+" {% if patient.blood_group == 'A+' %}selected{% endif %}>A+</option>
+            <option value="A-" {% if patient.blood_group == 'A-' %}selected{% endif %}>A-</option>
+            <option value="B+" {% if patient.blood_group == 'B+' %}selected{% endif %}>B+</option>
+            <option value="B-" {% if patient.blood_group == 'B-' %}selected{% endif %}>B-</option>
+            <option value="O+" {% if patient.blood_group == 'O+' %}selected{% endif %}>O+</option>
+            <option value="O-" {% if patient.blood_group == 'O-' %}selected{% endif %}>O-</option>
+            <option value="AB+" {% if patient.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+            <option value="AB-" {% if patient.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Address</label>
+        <textarea name="address" class="form-control" rows="2">{{ patient.address }}</textarea>
+      </div>
+
+    </div>
+
+    <div class="mt-4">
+      <label class="form-label">Status</label>
+      <div class="d-flex gap-4">
+        <label class="radio-label">
+          <input type="radio" name="status" value="Active" {% if patient.status == 'Active' %}checked{% endif %}> Active
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="status" value="Inactive" {% if patient.status == 'Inactive' %}checked{% endif %}> Inactive
+        </label>
+      </div>
+    </div>
+
+    <div class="text-center mt-5">
+      <button type="submit" class="btn-submit">
+        Update Patient
+      </button>
+      <a href="{% url 'patients' %}" class="btn-submit text-decoration-none">Cancel</a>
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}
