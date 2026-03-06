@@ -37,13 +37,13 @@
 
               <td>
                 {% if dept.status %}
-                  <span class="badge bg-success">Active</span>
+                  Active
                 {% else %}
-                  <span class="badge bg-danger">Inactive</span>
+                 Inactive
                 {% endif %}
               </td>
 
-              <td class="text-center">
+              <td class="text-center d-flex justify-content-center" style="gap:5px;">
                 <a href="{% url 'update_department' dept.id %}" class="btn-edit">
                   Edit
                 </a>
