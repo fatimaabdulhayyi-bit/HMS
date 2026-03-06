@@ -48,7 +48,15 @@ def signup(request):
     return render(request, 'hospital/forms/sign_up.html')
 
 def index(request):
-    return render(request, 'hospital/index.html')
+    active_depts = Departments.objects.filter(status=True)
+    total_patients = Patients.objects.count()
+    total_departments = Departments.objects.count()
+    context = {
+        'total_patients': total_patients,
+        'total_departments': total_departments,
+        'departments': active_depts
+    }
+    return render(request, 'hospital/index.html', context)
    
 def login(request):
     if request.method == 'POST':
@@ -105,7 +113,8 @@ def patientreg(request):
     return render(request, 'hospital/forms/patientreg.html')
 
 def doctorreg(request):
-    return render(request, 'hospital/forms/doctorreg.html')
+    depts = Departments.objects.filter(status=True)
+    return render(request, 'hospital/forms/doctorreg.html', {'departments': depts})
 
 def department(request):
      # Database se saray patients ka data unke user account ke sath mangwana

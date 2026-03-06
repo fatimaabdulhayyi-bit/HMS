@@ -173,15 +173,12 @@
                 
                 <div class="col-md-6">
                     <label class="form-label">Department</label>
-                    <select class="form-select" required>
-                        <option value="">Select department</option>
-                        <option>Physicians</option>
-                        <option>Cardiology</option>
-                        <option>Neurology</option>
-                        <option>Dentistry</option>
-                        <option>Dermatology</option>
-                        <option>Orthopaedic</option>
-                    </select>
+    <select name="dept" class="form-select">
+        <option value="">Select</option>
+        {% for d in departments %}
+            <option value="{{ d.id }}">{{ d.name }}</option>
+        {% endfor %}
+    </select>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Medical License</label>

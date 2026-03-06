@@ -208,14 +208,14 @@
           <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
 <i class="fa-solid fa-bed-pulse"></i>
             <div class="stats-item">
-              <span data-purecounter-start="0" data-purecounter-end="18" data-purecounter-duration="1" class="purecounter"></span>
+              <span data-purecounter-start="0" data-purecounter-end="{{ total_patients }}" data-purecounter-duration="1" class="purecounter"></span>
               <p>Patients</p>
             </div>
           </div><!-- End Stats Item -->
           <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
             <i class="fa-solid fa-stethoscope"></i>
             <div class="stats-item">
-              <span data-purecounter-start="0" data-purecounter-end="12" data-purecounter-duration="1" class="purecounter"></span>
+              <span data-purecounter-start="0" data-purecounter-end="{{ total_departments }}" data-purecounter-duration="1" class="purecounter"></span>
               <p>Departments</p>
             </div>
           </div><!-- End Stats Item -->
@@ -232,7 +232,7 @@
     </section><!-- /Stats Section -->
 
     <!-- Services Section -->
-    <section id="services" class="services section" style="background: url(assets/img/bg-testimonial.png) no-repeat center center/cover; ">
+    <section id="services" class="services section" style="background: url('{% static 'images/bg-testimonial.png' %}') no-repeat center center/cover; ">
 
       <!-- Section Title -->
       <div class="container section-title fade-up">
@@ -350,104 +350,50 @@
     </div>
   </div>
 </section> {% endcomment %}
-    <!-- Departments Section -->
     <section id="departments" class="departments section">
-      <!-- Section Title -->
-           <div class="container section-title fade-up">
-      {% comment %} <div class="container section-title" data-aos="fade-up"> {% endcomment %}
-        <h2>Departments</h2>
-  <p>We provide specialized medical care through our dedicated departments to ensure the best treatment for every patient.</p>
-        </div><!-- End Section Title -->
-      {% comment %} <div class="container" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
-      <div class="container fade-up" data-delay="100">
-        <div class="row">
-          <div class="col-lg-3">
-            <ul class="nav nav-tabs flex-column">
-              <li class="nav-item">
-                <a class="nav-link active show" data-bs-toggle="tab" href="#departments-tab-1">Cardiology</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-2">Neurology</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-3">Dentistry</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-4">Dermatology</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-5">Orthopaedic</a>
-              </li>
-            </ul>
-          </div>
-          <div class="col-lg-9 mt-4 mt-lg-0">
-            <div class="tab-content">
-              <div class="tab-pane active show" id="departments-tab-1">
-                <div class="row">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>Cardiology</h3>
-                    <p class="fst-italic">Advanced heart care with modern diagnostic and treatment facilities.</p>
-                    <p> Our Cardiology department provides complete heart care services including ECG, echocardiography, angiography, angioplasty, and bypass surgery. We manage conditions such as hypertension, arrhythmia, heart failure, and congenital heart diseases with expert cardiologists and modern technology.</p>
-                  </div>
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="{% static 'images/departments_1.jpg' %}" alt="" class="img-fluid">
-                  </div>
-                </div>
+  <div class="container section-title fade-up">
+    <h2>Departments</h2>
+    <p>We provide specialized medical care through our dedicated departments to ensure the best treatment for every patient.</p>
+  </div>
+
+  <div class="container fade-up" data-delay="100">
+    <div class="row">
+      
+      <div class="col-lg-3">
+        <ul class="nav nav-tabs flex-column">
+          {% for dept in departments %}
+          <li class="nav-item">
+            <a class="nav-link {% if forloop.first %}active show{% endif %}" 
+               data-bs-toggle="tab" 
+               href="#dept-tab-{{ dept.id }}">
+               {{ dept.name }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="col-lg-9 mt-4 mt-lg-0">
+        <div class="tab-content">
+          {% for dept in departments %}
+          <div class="tab-pane {% if forloop.first %}active show{% endif %}" id="dept-tab-{{ dept.id }}">
+            <div class="row">
+              <div class="col-lg-8 details order-2 order-lg-1">
+                <h3>{{ dept.name }}</h3>
+                <p>{{ dept.description|default:"Specialized medical services are provided in this department." }}</p>
               </div>
-              <div class="tab-pane" id="departments-tab-2">
-                <div class="row">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>Neurology</h3>
-                    <p class="fst-italic">  Specialized care for brain, spine, and nervous system disorders.</p>
-                   <p>The Neurology department treats a wide range of neurological conditions including stroke, epilepsy, migraine, multiple sclerosis, Parkinson’s disease, and neuropathies. With advanced neuroimaging, EEG, and rehabilitation services, we ensure accurate diagnosis and effective treatment plans for patients.</p>                  </div>
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="{% static 'images/departments_2.jpg' %}" alt="" class="img-fluid">
-                  </div>
-                </div>
-              </div>
-              <div class="tab-pane" id="departments-tab-3">
-                <div class="row">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                     <h3>Dentistry</h3>
-                <p class="fst-italic">Providing comprehensive dental care with modern techniques and advanced equipment.</p>
-                <p>Our dentistry department offers preventive, restorative, and cosmetic dental services. From regular check-ups and cleaning to advanced procedures like root canal treatment, implants, and orthodontics, we ensure complete oral health care.</p>
-              </div>
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="{% static 'images/departments_3.jpg' %}" alt="" class="img-fluid">
-                  </div>
-                </div>
-              </div>
-              <div class="tab-pane" id="departments-tab-4">
-                <div class="row">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                     <h3>Dermatology</h3>
-                <p class="fst-italic">Expert skin, hair, and nail care for patients of all ages.</p>
-                <p>Our dermatology department provides treatments for common and complex skin disorders, cosmetic dermatology, acne care, skin allergies, and laser-based therapies. We combine expertise with technology for the best results.</p>
-              </div>
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="{% static 'images/departments_4.jpg' %}" alt="" class="img-fluid">
-                  </div>
-                </div>
-              </div>
-              <div class="tab-pane" id="departments-tab-5">
-                <div class="row">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                     <h3>Orthopaedic Surgery</h3>
-                <p class="fst-italic">Specialized care for bones, joints, muscles, and ligaments.</p>
-                <p>Our orthopaedic department deals with fractures, joint replacement, spine surgery, sports injuries, and rehabilitation. With modern surgical techniques and physiotherapy support, we ensure faster recovery and better mobility.</p>
-              </div>
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="{% static 'images/departments_5.jpg' %}" alt="" class="img-fluid">
-                  </div>
-                </div>
+              <div class="col-lg-4 text-center order-1 order-lg-2">
+                <img src="{% static 'images/blur-hospital.jpg' %}" class="img-fluid">
               </div>
             </div>
           </div>
+          {% endfor %}
         </div>
-
       </div>
 
-    </section><!-- /Departments Section -->
+    </div>
+  </div>
+</section>
 
     <!-- Doctors Section -->
     <section id="doctors" class="doctors section">
