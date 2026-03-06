@@ -1,6 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import UserAccount, Patients
-from django.http import HttpResponse
+from .models import UserAccount, Patients, Departments
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
 
@@ -48,10 +47,9 @@ def signup(request):
 
     return render(request, 'hospital/forms/sign_up.html')
 
-
 def index(request):
     return render(request, 'hospital/index.html')
-
+   
 def login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -110,16 +108,56 @@ def doctorreg(request):
     return render(request, 'hospital/forms/doctorreg.html')
 
 def department(request):
-    return render(request, 'hospital/admin/department.html')
+     # Database se saray patients ka data unke user account ke sath mangwana
+    # select_related use karne se performance behtar hoti hai
+    departments = Departments.objects.all()
+    
+    context = {
+        'departments': departments
+    }
+    return render(request, 'hospital/admin/department.html', context)
 
 def add_department(request):
+    if request.method == "POST":
+        name = request.POST.get('department_name')
+        desc = request.POST.get('description')
+        status_val = request.POST.get('status')
+        
+        # Status ko boolean mein convert karna
+        status = True if status_val == "Active" else False
+        
+        Departments.objects.create(name=name, description=desc, status=status)
+        return redirect('department')
     return render(request, 'hospital/admin/add_department.html')
 
-def admin_dashboard(request):
-    return render(request, 'hospital/admin/admin_dashboard.html')
+def update_department(request, pk):
+    dept = get_object_or_404(Departments, id=pk)
+    
+    if request.method == "POST":
+        dept.name = request.POST.get('department_name')
+        dept.description = request.POST.get('description')
+        dept.status = True if request.POST.get('status') == "Active" else False
+        dept.save()
+        messages.success(request, "Department updated!")
+        return redirect('department')
+        
+    return render(request, 'hospital/admin/update_department.html', {'dept': dept})
 
-def ambulances(request):
-    return render(request, 'hospital/admin/ambulances.html')
+def delete_department(request, pk):
+    dept = get_object_or_404(Departments, id=pk)
+    dept.delete()
+    messages.success(request, "Department deleted!")
+    return redirect('department')
+
+def admin_dashboard(request):
+    total_patients = Patients.objects.count()
+    total_departments = Departments.objects.count()
+
+    context = {
+        'total_patients': total_patients,
+        'total_departments': total_departments,
+    }
+    return render(request, 'hospital/admin/admin_dashboard.html', context)
 
 def manage_appointments(request):
     return render(request, 'hospital/admin/manage_appointments.html')
@@ -132,9 +170,6 @@ def bill_list(request):
 
 def doctors(request):
     return render(request, 'hospital/admin/doctors.html')
-
-def emergency(request):
-    return render(request, 'hospital/admin/emergency.html')
 
 def patients(request):
     # Database se saray patients ka data unke user account ke sath mangwana
@@ -294,38 +329,3 @@ def doctor_recommendation(request):
 def logout_view(request):
     logout(request)
     return redirect('login') 
-# ========================= SHOW ALL USERS (DATABASE READ) =========================
-def show_users(request):
-    users = UserAccount.objects.all()
-
-    html = """
-    <html>
-    <head><title>All Users</title></head>
-    <body>
-        <h2>Registered Users</h2>
-        <table border="1" cellpadding="8" cellspacing="0">
-            <tr>
-                <th>ID</th>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Role</th>
-            </tr>
-    """
-
-    for user in users:
-        html += f"""
-            <tr>
-                <td>{user.id}</td>
-                <td>{user.fullname}</td>
-                <td>{user.email}</td>
-                <td>{user.role}</td>
-            </tr>
-        """
-
-    html += """
-        </table>
-    </body>
-    </html>
-    """
-
-    return HttpResponse(html)

@@ -85,3 +85,16 @@ class Patients(models.Model):
 
     def __str__(self):
         return f"{self.user.fullname} | {self.patient_type}"
+
+from django.db import models
+
+class Departments(models.Model):
+    name = models.CharField(max_length=50)
+    description = models.TextField(max_length=100, blank=True, null=True)
+    status = models.BooleanField(default=True) # Active=True, Inactive=False
+
+    class Meta:
+        db_table = 'Departments'
+
+    def __str__(self):
+        return f"{self.name} | {self.description}"
