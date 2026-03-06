@@ -22,9 +22,9 @@
         <thead>
           <tr>
             <th>Name</th>
-            <th>Username</th>
             <th>Email</th>
             <th>DOB</th>
+            <th>Blood Group</th>
             <th>Phone</th>
             <th>Category</th>
             <th class="text-center">Action</th>
@@ -33,26 +33,26 @@
 
         <tbody>
           {% if patients %}
-            {% for patient in patients %}
-            <tr>
-              <td>{{ patient.full_name }}</td>
-              <td>{{ patient.user.username }}</td>
-              <td>{{ patient.user.email }}</td>
-              <td>{{ patient.dob }}</td>
-              <td>{{ patient.phone }}</td>
-              <td>{{ patient.category }}</td>
-              <td class="text-center">
-                <a href="{% url 'update_patient' patient.id %}" class="btn-edit">
-                  Edit
-                </a>
-                <a href="{% url 'delete_patient' patient.id %}"
-                   class="btn-delete"
-                   onclick="return confirm('Are you sure you want to delete this patient?')">
-                  Delete
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
+    {% for patient in patients %}
+    <tr>
+      <td>{{ patient.user.fullname }}</td> 
+      <td>{{ patient.user.email }}</td>
+      <td>{{ patient.dob }}</td>
+      <td>{{ patient.blood_group }}</td>
+      <td>{{ patient.phone }}</td>
+      
+      <td>{{ patient.patient_type }}</td>
+      
+      <td class="text-center">
+        <a href="{% url 'update_patient' patient.id %}" class="btn-edit">Edit</a>
+        <a href="{% url 'delete_patient' patient.id %}" 
+   class="btn-delete" 
+   onclick="return confirm('WARNING: This will permanently delete the patient and their login account. Are you sure?')">
+   Delete
+</a>
+      </td>
+    </tr>
+    {% endfor %}
           {% else %}
             <tr>
               <td colspan="7" class="text-center text-muted">
@@ -68,6 +68,3 @@
 </div>
 
 {% endblock %}
-
-
-
