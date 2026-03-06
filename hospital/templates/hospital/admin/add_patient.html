@@ -20,30 +20,35 @@
     <!-- PERSONAL INFO -->
     <div class="row g-4">
 
-      <div class="col-md-6">
-        <label class="form-label">Full Name</label>
-        <input type="text" name="fullname" class="form-control" required>
-      </div>
+     <!-- Full Name Field -->
+<div class="col-md-6">
+  <label class="form-label">Full Name</label>
+  <input type="text" name="fullname" id="fullname" class="form-control" required>
+  <div id="fullname-error" class="text-danger mt-1" style="display:none;"></div>
+</div>
 
+      <!-- Father/Husband Name Field -->
       <div class="col-md-6">
         <label class="form-label">Father/Husband Name</label>
         <input type="text" name="guardian_name" class="form-control" required>
+        <!-- Error div will be added dynamically by JS -->
       </div>
-
       <div class="col-md-6">
         <label class="form-label">Email</label>
         <input type="email" name="email" class="form-control">
       </div>
 
       <div class="col-md-6">
-        <label class="form-label">Phone</label>
-        <input type="text" name="phone" class="form-control">
-      </div>
+  <label class="form-label">Phone</label>
+  <input type="text" name="phone" id="phone" class="form-control" placeholder="03XXXXXXXXX or +923XXXXXXXXX">
+  <div id="phone-error" class="text-danger mt-1" style="display:none;"></div>
+</div>
 
       <div class="col-md-6">
-        <label class="form-label">Date of Birth</label>
-        <input type="date" name="dob" class="form-control" required>
-      </div>
+  <label class="form-label">Date of Birth</label>
+  <input type="date" name="dob" id="dob" class="form-control" required>
+  <div id="dob-error" class="text-danger mt-1" style="display:none;"></div>
+</div>
 
       <div class="col-md-6">
         <label class="form-label">Gender</label>
@@ -65,10 +70,11 @@
         </select>
       </div>
 
-      <div class="col-md-6">
-        <label class="form-label">CNIC</label>
-        <input type="text" name="cnic" class="form-control">
-      </div>
+     <div class="col-md-6">
+  <label class="form-label">CNIC</label>
+  <input type="text" name="cnic" id="cnic" class="form-control" placeholder="12345-1234567-1">
+  <div id="cnic-error" class="text-danger mt-1" style="display:none;"></div>
+</div>
       
       <div class="col-md-6">
         <label class="form-label">Blood Group</label>
@@ -88,7 +94,6 @@
         <label class="form-label">Address</label>
         <textarea name="address" class="form-control" rows="2"></textarea>
       </div>
-
     </div>
 
     <!-- STATUS -->
@@ -114,5 +119,112 @@
   </form>
 
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.doctor-form');
 
+    // Full Name
+    const fullname = document.getElementById('fullname');
+    const fullnameError = document.getElementById('fullname-error');
+
+    // Guardian Name
+    const guardian = document.querySelector('input[name="guardian_name"]');
+    const guardianError = document.createElement('div');
+    guardianError.className = 'text-danger mt-1';
+    guardianError.style.display = 'none';
+    guardian.parentNode.appendChild(guardianError);
+
+    // DOB
+    const dob = document.getElementById('dob');
+    const dobError = document.getElementById('dob-error');
+    const today = new Date().toISOString().split('T')[0];
+    dob.setAttribute('max', today);
+
+    // CNIC
+    const cnic = document.getElementById('cnic');
+    const cnicError = document.getElementById('cnic-error');
+    cnic.addEventListener('input', function() {
+        // Limit to 15 characters including dashes: 5-7-1
+        if(cnic.value.length > 15){
+            cnic.value = cnic.value.slice(0,15);
+        }
+    });
+
+    // Phone
+    const phone = document.getElementById('phone');
+    const phoneError = document.getElementById('phone-error');
+    phone.addEventListener('input', function() {
+        if(phone.value.startsWith('+92')){
+            if(phone.value.length > 13) phone.value = phone.value.slice(0,13);
+        } else if(phone.value.startsWith('03')){
+            if(phone.value.length > 11) phone.value = phone.value.slice(0,11);
+        } else {
+            // Prevent typing more than max possible
+            if(phone.value.length > 13) phone.value = phone.value.slice(0,13);
+        }
+    });
+
+    form.addEventListener('submit', function(e) {
+        let valid = true;
+
+        // Reset errors
+        fullnameError.style.display = 'none';
+        fullnameError.innerText = '';
+        guardianError.style.display = 'none';
+        guardianError.innerText = '';
+        dobError.style.display = 'none';
+        dobError.innerText = '';
+        cnicError.style.display = 'none';
+        cnicError.innerText = '';
+        phoneError.style.display = 'none';
+        phoneError.innerText = '';
+
+        const nameRegex = /^[A-Za-z ]+$/;
+
+        // Full Name
+        const fullnameValue = fullname.value.trim();
+        if(fullnameValue.length < 2 || !nameRegex.test(fullnameValue)){
+            fullnameError.innerText = 'Only letters and spaces are allowed and at least 2 characters.';
+            fullnameError.style.display = 'block';
+            valid = false;
+        }
+
+        // Guardian Name
+        const guardianValue = guardian.value.trim();
+        if(guardianValue.length < 2 || !nameRegex.test(guardianValue)){
+            guardianError.innerText = 'Only letters and spaces are allowed and at least 2 characters.';
+            guardianError.style.display = 'block';
+            valid = false;
+        }
+
+        // DOB
+        if(dob.value > today){
+            dobError.innerText = "Future date not allowed. Please select today or earlier.";
+            dobError.style.display = 'block';
+            valid = false;
+        }
+
+        // CNIC
+        const cnicRegex = /^\d{5}-\d{7}-\d{1}$/;
+        if(cnic.value.trim() !== '' && !cnicRegex.test(cnic.value.trim())){
+            cnicError.innerText = "Invalid CNIC format. Use 12345-1234567-1.";
+            cnicError.style.display = 'block';
+            valid = false;
+        }
+
+        // Phone Validation (Pakistan Mobile)
+        const phoneValue = phone.value.trim();
+        const phoneRegex = /^(03\d{9}|\+923\d{9})$/; // 03XXXXXXXXX or +923XXXXXXXXX
+        if(phoneValue !== '' && !phoneRegex.test(phoneValue)){
+            phoneError.innerText = "Invalid  mobile number. Must start with 03 and have 11 digits or +923XXXXXXXXX.";
+            phoneError.style.display = 'block';
+            valid = false;
+        }
+
+        if(!valid){
+            e.preventDefault();
+        }
+    });
+});
+</script>
 {% endblock %}
