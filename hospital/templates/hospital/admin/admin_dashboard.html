@@ -90,20 +90,24 @@
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Department</th>
+                <th>License</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {% if pending_doctors %}
-                {% for doctor in pending_doctors %}
+                {% for doctors in pending_doctors %}
                 <tr>
-                  <td>{{ doctor.full_name }}</td>
+                  <td>{{ doctors.user.fullname }}</td>
+                  <td>{{ doctors.department.name }}</td>
+                  <td>{{ doctors.license_number}}</td>
                   <td class="d-flex gap-2">
-                    <form method="post" action="{% url 'approve_doctor' doctor.id %}">
+                    <form method="post" action="{% url 'approve_doctor' doctors.id %}">
                       {% csrf_token %}
                       <button class="btn-accept">Accept</button>
                     </form>
-                    <form method="post" action="{% url 'reject_doctor' doctor.id %}">
+                    <form method="post" action="{% url 'reject_doctor' doctors.id %}">
                       {% csrf_token %}
                       <button class="btn-reject">Reject</button>
                     </form>

@@ -86,7 +86,6 @@ class Patients(models.Model):
     def __str__(self):
         return f"{self.user.fullname} | {self.patient_type}"
 
-from django.db import models
 
 class Departments(models.Model):
     name = models.CharField(max_length=50)
@@ -98,3 +97,30 @@ class Departments(models.Model):
 
     def __str__(self):
         return f"{self.name} | {self.description}"
+
+class Doctors(models.Model):
+
+    user = models.OneToOneField(UserAccount, on_delete=models.CASCADE)
+
+    father_name = models.CharField(max_length=100)
+    dob = models.DateField()
+    gender = models.CharField(max_length=10)
+    cnic = models.CharField(max_length=20)
+    phone = models.CharField(max_length=15)
+    address = models.TextField()
+
+    department = models.ForeignKey(Departments, on_delete=models.SET_NULL, null=True)
+
+    license_number = models.CharField(max_length=100)
+    qualification = models.CharField(max_length=100)
+    experience = models.IntegerField()
+    is_approved = models.BooleanField(default=False)  # Doctor approval flag
+
+
+    class Meta:
+        db_table = "Doctors"
+        verbose_name_plural = "Doctors"
+
+
+    def __str__(self):
+        return self.user.fullname

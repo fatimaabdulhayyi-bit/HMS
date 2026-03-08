@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import UserAccount, Patients, Departments
+from .models import UserAccount, Patients, Departments, Doctors
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
 
@@ -113,7 +113,43 @@ def patientreg(request):
     return render(request, 'hospital/forms/patientreg.html')
 
 def doctorreg(request):
+
     depts = Departments.objects.filter(status=True)
+
+    if request.method == "POST":
+
+        father_name = request.POST.get('father_name')
+        dob = request.POST.get('dob')
+        gender = request.POST.get('gender')
+        cnic = request.POST.get('cnic')
+        phone = request.POST.get('phone')
+        address = request.POST.get('address')
+
+        dept_id = request.POST.get('dept')
+        license_number = request.POST.get('license')
+        qualification = request.POST.get('qualification')
+        experience = request.POST.get('experience')
+
+        department = Departments.objects.get(id=dept_id)
+
+        Doctors.objects.create(
+            user=request.user,
+            father_name=father_name,
+            dob=dob,
+            gender=gender,
+            cnic=cnic,
+            phone=phone,
+            address=address,
+            department=department,
+            license_number=license_number,
+            qualification=qualification,
+            experience=experience
+        )
+        logout(request)
+        messages.success(request, "Registration submitted successfully. Please wait for admin approval.")
+
+        return redirect('login')
+
     return render(request, 'hospital/forms/doctorreg.html', {'departments': depts})
 
 def department(request):
@@ -161,12 +197,37 @@ def delete_department(request, pk):
 def admin_dashboard(request):
     total_patients = Patients.objects.count()
     total_departments = Departments.objects.count()
-
+    pending_doctors = Doctors.objects.filter(is_approved=False)
+ 
     context = {
+        
         'total_patients': total_patients,
         'total_departments': total_departments,
+        'pending_doctors': pending_doctors
     }
     return render(request, 'hospital/admin/admin_dashboard.html', context)
+
+def approve_doctor(request, doctor_id):
+
+    doctor = get_object_or_404(Doctors, id=doctor_id)
+
+    doctor.is_approved = True
+    doctor.save()
+    
+    user = doctor.user
+    user.is_approved = True
+    user.save()
+
+    return redirect('admin_dashboard')
+
+def reject_doctor(request, doctor_id):
+
+    doctor = get_object_or_404(Doctors, id=doctor_id)
+    user = doctor.user
+
+    doctor.delete()
+    user.delete()    # Delete user account
+    return redirect('admin_dashboard')
 
 def manage_appointments(request):
     return render(request, 'hospital/admin/manage_appointments.html')

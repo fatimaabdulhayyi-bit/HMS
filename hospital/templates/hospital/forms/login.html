@@ -185,6 +185,13 @@ input[type="password"] {
 
     <div class="form-container">
       <h2>HOSPITAL LOGIN</h2>
+      {% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
        <form method="POST" action="{% url 'login' %}"  id="loginForm">
           {% csrf_token %}
         <!-- Email -->
