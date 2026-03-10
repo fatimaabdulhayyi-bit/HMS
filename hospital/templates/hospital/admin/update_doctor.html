@@ -1,73 +1,63 @@
 {% extends 'hospital/admin/base_admin.html' %}
 {% load static %}
 
-{% block title %}Add Doctor{% endblock %}
+{% block title %}Update Doctor{% endblock %}
 
 {% block content %}
 
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-success text-center">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
-<!-- PAGE HEADER -->
 <div class="d-flex justify-content-between align-items-center mb-4 px-4 pt-4">
-  <h2 class="page-title">Add Doctor</h2>
+  <h2 class="page-title">Update Doctor: {{ doctor.user.fullname }}</h2>
   <a href="{% url 'doctors' %}" class="btn-back">Back</a>
 </div>
 
-<!-- FORM WRAPPER (CENTERED) -->
 <div class="doctor-form-wrapper">
 
- <form method="POST" class="doctor-form">
+  <form method="POST" class="doctor-form">
     {% csrf_token %}
 
     <div class="row g-4">
       <div class="col-md-6">
         <label class="form-label">Full Name</label>
-        <input type="text" name="fullname" class="form-control" required>
+        <input type="text" class="form-control" value="{{ doctor.user.fullname }}" readonly>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Father Name</label>
-        <input type="text" name="father_name" class="form-control" required>
+        <input type="text" name="father_name" class="form-control" value="{{ doctor.father_name }}" required>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Email</label>
-        <input type="email" name="email" class="form-control" required>
+        <input type="email" class="form-control" value="{{ doctor.user.email }}" readonly>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Phone</label>
-        <input type="text" name="phone" class="form-control">
+        <input type="text" name="phone" class="form-control" value="{{ doctor.phone }}">
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Date of Birth</label>
-        <input type="date" name="dob" class="form-control" required>
+        <input type="date" name="dob" class="form-control" value="{{ doctor.dob|date:'Y-m-d' }}" required>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Gender</label>
         <select name="gender" class="form-select">
-          <option value="">Select</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
+          <option value="Male" {% if doctor.gender == "Male" %}selected{% endif %}>Male</option>
+          <option value="Female" {% if doctor.gender == "Female" %}selected{% endif %}>Female</option>
+          <option value="Other" {% if doctor.gender == "Other" %}selected{% endif %}>Other</option>
         </select>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">CNIC</label>
-        <input type="text" name="cnic" class="form-control">
+        <input type="text" name="cnic" class="form-control" value="{{ doctor.cnic }}">
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Address</label>
-        <textarea name="address" class="form-control" rows="2"></textarea>
+        <textarea name="address" class="form-control" rows="2">{{ doctor.address }}</textarea>
       </div>
     </div>
 
@@ -76,26 +66,25 @@
       <div class="col-md-6">
         <label class="form-label">Department</label>
         <select name="dept" class="form-select">
-          <option value="">Select</option>
           {% for d in departments %}
-            <option value="{{ d.id }}">{{ d.name }}</option>
+            <option value="{{ d.id }}" {% if doctor.department.id == d.id %}selected{% endif %}>{{ d.name }}</option>
           {% endfor %}
         </select>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Qualification</label>
-        <input type="text" name="qualification" class="form-control">
+        <input type="text" name="qualification" class="form-control" value="{{ doctor.qualification }}">
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Experience (Years)</label>
-        <input type="number" name="experience" class="form-control">
+        <input type="number" name="experience" class="form-control" value="{{ doctor.experience }}">
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Medical License</label>
-        <input type="text" name="license_number" class="form-control">
+        <input type="text" name="license_number" class="form-control" value="{{ doctor.license_number }}">
       </div>
     </div>
 
@@ -103,18 +92,17 @@
       <label class="form-label">Status</label>
       <div class="d-flex gap-4">
         <label class="radio-label">
-          <input type="radio" name="is_approved" value="True" checked> Active
+          <input type="radio" name="is_approved" value="True" {% if doctor.is_approved %}checked{% endif %}> Active
         </label>
         <label class="radio-label">
-          <input type="radio" name="is_approved" value="False"> Inactive
+          <input type="radio" name="is_approved" value="False" {% if not doctor.is_approved %}checked{% endif %}> Inactive
         </label>
       </div>
     </div>
 
     <div class="text-center mt-5">
-      <button type="submit" class="btn-submit">Create Doctor</button>
+      <button type="submit" class="btn-submit">Update Doctor</button>
     </div>
-</form>
+  </form>
 </div>
-
 {% endblock %}

@@ -198,10 +198,11 @@ def admin_dashboard(request):
     total_patients = Patients.objects.count()
     total_departments = Departments.objects.count()
     pending_doctors = Doctors.objects.filter(is_approved=False)
- 
+    total_doctors = Doctors.objects.count()
     context = {
         
         'total_patients': total_patients,
+        'total_doctors' : total_doctors,
         'total_departments': total_departments,
         'pending_doctors': pending_doctors
     }
@@ -239,7 +240,116 @@ def bill_list(request):
     return render(request, 'hospital/admin/bill_list.html')
 
 def doctors(request):
-    return render(request, 'hospital/admin/doctors.html')
+    all_doctors = Doctors.objects.filter(is_approved=True) 
+    return render(request, 'hospital/admin/doctors.html', {'doctors': all_doctors})
+
+def add_doctor(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        fullname = request.POST.get('fullname')
+        password = "Doctor@123"  # Standard password for new accounts
+
+        try:
+            # 1. Check karein ke user pehle se exist toh nahi karta
+            if UserAccount.objects.filter(email=email).exists():
+                messages.error(request, "This email is already registered.")
+                return redirect('add_doctor')
+
+            # 2. UserAccount create karein 
+            # (Sirf wahi fields pass karein jo UserAccount model mein hain)
+            user = UserAccount.objects.create_user(
+                email=email, 
+                password=password, 
+                fullname=fullname, 
+                role='doctor'
+            )
+
+            # 3. Department fetch karein
+            dept_id = request.POST.get('dept')
+            dept_obj = Departments.objects.get(id=dept_id) if dept_id else None
+
+            # 4. Doctors Profile create karein
+            # String 'True' ko boolean True mein convert karna zaroori hai
+            status_check = request.POST.get('is_approved') == 'True'
+
+            Doctors.objects.create(
+                user=user,
+                father_name=request.POST.get('father_name'),
+                dob=request.POST.get('dob'),
+                gender=request.POST.get('gender'),
+                cnic=request.POST.get('cnic'),
+                phone=request.POST.get('phone'),
+                address=request.POST.get('address'),
+                department=dept_obj,
+                license_number=request.POST.get('license_number'),
+                qualification=request.POST.get('qualification'),
+                experience=request.POST.get('experience'),
+                is_approved=status_check
+            )
+            
+            messages.success(request, f"Doctor {fullname} created successfully!")
+            return redirect('doctors')
+            
+        except Exception as e:
+            # Agar koi error aaye toh console/terminal mein print hoga
+            print(f"Error creating doctor: {e}") 
+            messages.error(request, f"Registration failed: {e}")
+
+    depts = Departments.objects.filter(status=True)
+    return render(request, 'hospital/admin/add_doctor.html', {'departments': depts})
+
+def update_doctor(request, pk):
+    doctor = get_object_or_404(Doctors, id=pk)
+    depts = Departments.objects.filter(status=True)
+
+    if request.method == "POST":
+        try:
+            # Updating Profile Fields
+            doctor.father_name = request.POST.get('father_name')
+            doctor.dob = request.POST.get('dob')
+            doctor.gender = request.POST.get('gender')
+            doctor.cnic = request.POST.get('cnic')
+            doctor.phone = request.POST.get('phone')
+            doctor.address = request.POST.get('address')
+            
+            # Professional details
+            dept_id = request.POST.get('dept')
+            if dept_id:
+                doctor.department = Departments.objects.get(id=dept_id)
+            
+            doctor.qualification = request.POST.get('qualification')
+            doctor.experience = request.POST.get('experience')
+            doctor.license_number = request.POST.get('license_number')
+            
+            # Status update
+            doctor.is_approved = request.POST.get('is_approved') == 'True'
+
+            doctor.save()
+            messages.success(request, f"Dr. {doctor.user.fullname}'s details updated.")
+            return redirect('doctors')
+
+        except Exception as e:
+            messages.error(request, f"Update failed: {e}")
+            return redirect('update_doctor')
+
+
+    return render(request, 'hospital/admin/update_doctor.html', {
+        'doctor': doctor, 
+        'departments': depts
+    })
+def delete_doctor(request, pk):
+    doctor = get_object_or_404(Doctors, id=pk)
+    
+    try:
+        # 2. UserAccount ko delete karna (CASCADE ki wajah se profile khud hi udd jayegi)
+        user = doctor.user
+        user.delete() 
+        
+        messages.success(request, "Doctor and their account deleted successfully.")
+    except Exception as e:
+        messages.error(request, f"Error: {e}")
+        
+    return redirect('doctors')
 
 def patients(request):
     # Database se saray patients ka data unke user account ke sath mangwana
@@ -348,9 +458,6 @@ def IPD(request):
 
 def add_IPrecord(request):
     return render(request, 'hospital/admin/add_IP-record.html')
-
-def add_doctor(request):
-    return render(request, 'hospital/admin/add_doctor.html')
 
 def add_appointment(request):
     return render(request, 'hospital/admin/add_appointment.html')
