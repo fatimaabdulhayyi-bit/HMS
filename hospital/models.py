@@ -124,3 +124,12 @@ class Doctors(models.Model):
 
     def __str__(self):
         return self.user.fullname
+    
+class PatientFeedback(models.Model):
+    # Kaunsa patient feedback de raha hai (Login user)
+    patient = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def _str_(self):
+        return f"{self.patient.fullname} | {self.description}"

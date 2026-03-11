@@ -1,0 +1,92 @@
+{% extends 'hospital/patient/base_patient.html' %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+
+<section class="appointments-section profile-page">
+  <div class="profile-page-wrapper">
+    <div class="profile-container">
+
+      <div class="profile-header">
+        <h3>Edit {{ patient.user.fullname }} Profile</h3>
+
+        <div class="profile-img-wrapper">
+          {% if patient.profile_image %}
+            <img src="{{ patient.profile_image.url }}" class="docprofile-img">
+          {% else %}
+            <div class="profile-img mb-2"><i class="fa fa-user fa-2x"></i></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="profile-card">
+          <div class="profile-card-header">
+            <h5><i class="fa fa-user"></i> Edit Information</h5>
+            <button type="submit" class="btn btn-danger btn-sm rounded-1">
+             Cancel
+            </button>
+          </div>
+
+          <div class="profile-info">
+            <div class="info-row">
+                <span>Full Name</span>
+                <p>{{ patient.user.fullname }}</p> 
+            </div>
+            
+            <div class="info-row">
+                <span>Father Name</span>
+                <input type="text" name="guardian_name" class="form-control form-control-sm" value="{{ patient.guardian_name }}">
+            </div>
+
+            <div class="info-row">
+                <span>Date of Birth</span>
+                <input type="date" name="dob" class="form-control form-control-sm" value="{{ patient.dob|date:'Y-m-d' }}">
+            </div>
+
+            <div class="info-row">
+                <span>Gender</span>
+                <select name="gender" class="form-select form-select-sm">
+                    <option value="Male" {% if patient.gender == "Male" %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if patient.gender == "Female" %}selected{% endif %}>Female</option>
+                </select>
+            </div>
+
+            <div class="info-row">
+                <span>Email</span>
+                <p>{{ patient.user.email }}</p>
+            </div>
+
+            <div class="info-row">
+                <span>CNIC</span>
+                <input type="text" name="cnic" class="form-control form-control-sm" value="{{ patient.cnic }}">
+            </div>
+
+            <div class="info-row">
+                <span>Contact</span>
+                <input type="text" name="phone" class="form-control form-control-sm" value="{{ patient.phone }}">
+            </div>
+
+            <div class="info-row">
+                <span>Address</span>
+                <input type="text" name="address" class="form-control form-control-sm" value="{{ patient.address }}">
+            </div>
+
+            <div class="info-row">
+                <span>Blood Group</span>
+                <input type="text" name="blood_group" class="form-control form-control-sm" value="{{ patient.blood_group }}">
+            </div>
+          </div>
+         <button type="submit" class="btn btn-success btn-sm rounded-1" style="margin-top:20px;">
+                 Save Changes
+            </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,4 +1,3 @@
-
 {% extends 'hospital/patient/base_patient.html' %}
 {% load static %}
 
@@ -12,7 +11,7 @@
 
       <!-- PROFILE HEADER -->
       <div class="profile-header">
-        <h3>{{ patient.full_name }} Patient Profile</h3>
+        <h3>{{ patient.user.fullname }} Patient Profile</h3>
 
         <div class="profile-img-wrapper">
           {% if patient.profile_image %}
@@ -35,29 +34,31 @@
       <div class="profile-card">
         <div class="profile-card-header">
           <h5><i class="fa fa-user"></i> Patient Information</h5>
-          <a href="#" class="btn-edit border border-1 border-success rounded-1"><i class="fa fa-edit"></i> Edit</a>
+          <a href="{% url 'edit_profile' %}" class="btn-edit border border-1 border-success rounded-1">
+<i class="fa fa-edit"></i> Edit
+</a>
         </div>
 
         <div class="profile-info">
           <div class="info-row">
               <span>Full Name</span>
-              <p>{{ patient.full_name }}</p>
+              <p>{{ patient.user.fullname }}</p>
           </div>
           <div class="info-row">
               <span>Father Name</span>
-              <p>{{ patient.father_name }}</p>
+            <p>{{ patient.guardian_name }}</p>
           </div>
           <div class="info-row">
               <span>Date of Birth</span>
-              <p>{{ patient.date_of_birth }}</p>
+              <p>{{ patient.dob }}</p>
           </div>
           <div class="info-row">
               <span>Gender</span>
-              <p>{{ patient.gender }}</p>
+            <p>{{ patient.gender }}</p>
           </div>
           <div class="info-row">
               <span>Email</span>
-              <p>{{ patient.email }}</p>
+           <p>{{ patient.user.email }}</p>
           </div>
           <div class="info-row">
               <span>CNIC</span>
@@ -65,15 +66,15 @@
           </div>
           <div class="info-row">
               <span>Contact</span>
-              <p>{{ patient.phone }}</p>
+             <p>{{ patient.phone }}</p>
           </div>
           <div class="info-row">
               <span>Address</span>
-              <p>{{ patient.address }}</p>
+           <p>{{ patient.address }}</p>
           </div>
           <div class="info-row">
               <span>Blood Group</span>
-              <p>{{ patient.blood_group }}</p>
+             <p>{{ patient.blood_group }}</p>
           </div>
         </div>
 

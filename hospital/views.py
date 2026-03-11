@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import UserAccount, Patients, Departments, Doctors
+from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
 
@@ -492,13 +492,49 @@ def bill(request):
     return render(request, 'hospital/patient/bill.html')
 
 def feedback(request):
+    if request.method == "POST":
+        description = request.POST.get('description')
+        
+        try:
+            # Feedback ko save karna
+            PatientFeedback.objects.create(
+                patient=request.user, # Logged-in patient
+                description=description
+            )
+            
+        except Exception as e:
+            messages.error(request, f"Something went wrong: {e}")
     return render(request, 'hospital/patient/feedback.html')
 
 def medical_records(request):
     return render(request, 'hospital/patient/medical_records.html')
 
 def profile(request):
-    return render(request, 'hospital/patient/profile.html')
+    patient = Patients.objects.filter(user=request.user).select_related('user').first()
+    context = {
+        'patient': patient
+    }
+    return render(request, 'hospital/patient/profile.html', context)
+
+def edit_profile(request):
+    # Logged-in patient ka data nikalna
+    patient = get_object_or_404(Patients, user=request.user)
+
+    if request.method == "POST":
+        # Data update logic
+        patient.guardian_name = request.POST.get('guardian_name')
+        patient.dob = request.POST.get('dob')
+        patient.gender = request.POST.get('gender')
+        patient.cnic = request.POST.get('cnic')
+        patient.phone = request.POST.get('phone')
+        patient.address = request.POST.get('address')
+        patient.blood_group = request.POST.get('blood_group')
+        
+        patient.save()
+        messages.success(request, "Profile updated successfully!")
+        return redirect('profile') # Wapas main profile par bhej dega
+
+    return render(request, 'hospital/patient/edit_profile.html', {'patient': patient})
 
 def doctor_recommendation(request):
     return render(request, 'hospital/doctor_recommendation.html')
@@ -506,3 +542,4 @@ def doctor_recommendation(request):
 def logout_view(request):
     logout(request)
     return redirect('login') 
+
