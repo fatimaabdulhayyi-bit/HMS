@@ -1,0 +1,194 @@
+{% extends 'hospital/doctor/base_doctor.html' %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+
+<div class="profile-page-wrapper">
+  <div class="profile-container">
+
+    <div class="profile-header">
+      <h3>Edit Dr. {{ doctor.user.fullname }} Profile</h3>
+      <div class="profile-img-wrapper">
+        {% if doctor.profile_image %}
+          <img src="{{ doctor.profile_image.url }}" class="docprofile-img">
+        {% else %}
+          <div class="profile-img mb-2"><i class="fa fa-user fa-2x"></i></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <form method="post" id="doctorForm">
+      {% csrf_token %}
+      <div class="profile-card">
+        <div class="profile-card-header">
+          <h5><i class="fa fa-user-md"></i> Edit Doctor Information</h5>
+          <a href="{% url 'profiledoc' %}" class="btn btn-danger btn-sm rounded-1">
+            Cancel
+          </a>
+        </div>
+
+        <div class="profile-info">
+          <div class="info-row">
+              <span>Full Name</span>
+              <p>{{ doctor.user.fullname }}</p>
+          </div>
+
+          <div class="info-row">
+              <span>Father Name</span>
+              <input type="text" name="father_name" class="form-control form-control-sm" value="{{ doctor.father_name }}">
+              <small id="guardianError" style="color:red;"></small>
+          </div>
+
+          <div class="info-row">
+              <span>Date of Birth</span>
+              <input type="date" name="dob" id="dob" class="form-control form-control-sm" value="{{ doctor.dob|date:'Y-m-d' }}">
+              <small id="dobError" style="color:red;"></small>
+          </div>
+
+          <div class="info-row">
+              <span>Gender</span>
+              <select name="gender" class="form-select form-select-sm">
+                  <option value="Male" {% if doctor.gender == "Male" %}selected{% endif %}>Male</option>
+                  <option value="Female" {% if doctor.gender == "Female" %}selected{% endif %}>Female</option>
+              </select>
+          </div>
+
+          <div class="info-row">
+              <span>Email</span>
+              <p>{{ doctor.user.email }}</p>
+          </div>
+
+          <div class="info-row">
+              <span>CNIC</span>
+              <input type="text" name="cnic" id="cnic" maxlength="15" placeholder="35202-1234567-1" class="form-control form-control-sm" value="{{ doctor.cnic }}">
+              <small id="cnicError" style="color:red;"></small>
+          </div>
+
+          <div class="info-row">
+              <span>Contact</span>
+              <input type="text" name="phone" id="phone" maxlength="11" placeholder="03XXXXXXXXX" class="form-control form-control-sm" value="{{ doctor.phone }}">
+              <small id="phoneError" style="color:red;"></small>
+            </div>
+
+          <div class="info-row">
+              <span>Address</span>
+              <input type="text" name="address" class="form-control form-control-sm" value="{{ doctor.address }}">
+          </div>
+
+          <div class="info-row">
+              <span>Medical License</span>
+              <input type="text" name="license_number" class="form-control form-control-sm" value="{{ doctor.license_number }}">
+          </div>
+
+          <div class="info-row">
+              <span>Qualification</span>
+              <input type="text" name="qualification" class="form-control form-control-sm" value="{{ doctor.qualification }}">
+          </div>
+
+          <div class="info-row">
+              <span>Experience (Years)</span>
+              <input type="number" name="experience" class="form-control form-control-sm" value="{{ doctor.experience }}">
+          </div>
+
+          <div class="info-row">
+              <span>Department</span>
+              <select name="dept" class="form-select form-select-sm">
+                  {% for d in departments %}
+                      <option value="{{ d.id }}" {% if doctor.department.id == d.id %}selected{% endif %}>
+                          {{ d.name }}
+                      </option>
+                  {% endfor %}
+              </select>
+          </div>
+        </div>
+
+        <div class="p-3">
+            <button type="submit" class="btn btn-success btn-sm rounded-1">
+                 Save Changes
+            </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+// Today date set for DOB max
+let today = new Date().toISOString().split("T")[0];
+document.getElementById("dob").setAttribute("max", today);
+
+// Guardian Name Validation
+document.getElementById("doctorForm").addEventListener("submit", function(e){
+    var name = document.getElementById("father_name").value.trim();
+    var error = document.getElementById("guardianError");
+    var pattern = /^[A-Za-z\s]{2,}$/;
+
+    if(!pattern.test(name)){
+        error.innerText = "Only letters and spaces are allowed and name must be at least 2 characters.";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+});
+
+// DOB Validation
+document.getElementById("doctorForm").addEventListener("submit", function(e){
+    let dob = document.getElementById("dob").value;
+    let error = document.getElementById("dobError");
+    let selectedDate = new Date(dob);
+    let currentDate = new Date();
+
+    if(selectedDate > currentDate){
+        error.innerText = "Future date is not allowed.";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+});
+
+// CNIC Validation + Max Length Enforcement
+const cnicInput = document.getElementById("cnic");
+cnicInput.addEventListener("input", function(){
+    // Limit total length to 15 characters (XXXXX-XXXXXXX-X)
+    if(this.value.length > 15){
+        this.value = this.value.slice(0,15);
+    }
+});
+document.getElementById("doctorForm").addEventListener("submit", function(e){
+    let cnic = cnicInput.value.trim();
+    let error = document.getElementById("cnicError");
+    let pattern = /^\d{5}-\d{7}-\d{1}$/;
+    if(!pattern.test(cnic)){
+        error.innerText = "CNIC must be in format XXXXX-XXXXXXX-X";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+});
+
+// Phone Validation + Max Length Enforcement
+const phoneInput = document.getElementById("phone");
+phoneInput.addEventListener("input", function(){
+    if(this.value.startsWith("+92")){
+        if(this.value.length > 13) this.value = this.value.slice(0,13); // +923XXXXXXXXX
+    } else if(this.value.startsWith("03")){
+        if(this.value.length > 11) this.value = this.value.slice(0,11); // 03XXXXXXXXX
+    } else {
+        // Prevent typing beyond max possible
+        if(this.value.length > 13) this.value = this.value.slice(0,13);
+    }
+});
+document.getElementById("doctorForm").addEventListener("submit", function(e){
+    let phone = phoneInput.value.trim();
+    let error = document.getElementById("phoneError");
+    let pattern = /^03[0-9]{9}$|^\+923[0-9]{9}$/;
+    if(!pattern.test(phone)){
+        error.innerText = "Enter valid mobile number (11 digits starting with 03 or +923XXXXXXXXX).";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+});
+</script>
+{% endblock %}

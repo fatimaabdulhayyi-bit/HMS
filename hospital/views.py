@@ -470,8 +470,47 @@ def my_appointments(request):
 
 def add_schedule(request):
     return render(request, 'hospital/doctor/add_schedule.html')
+
 def profiledoc(request):
-    return render(request, 'hospital/doctor/profiledoc.html')
+
+    doctor = Doctors.objects.filter(user=request.user).select_related('user').first()
+
+    context = {
+        'doctor': doctor
+    }
+
+    return render(request, 'hospital/doctor/profiledoc.html', context)
+
+def edit_docprofile(request):
+    doctor = get_object_or_404(Doctors, user=request.user)
+    all_departments = Departments.objects.all()
+
+    if request.method == "POST":
+        doctor.father_name = request.POST.get('father_name')
+        doctor.dob = request.POST.get('dob')
+        doctor.gender = request.POST.get('gender')
+        doctor.cnic = request.POST.get('cnic')
+        doctor.phone = request.POST.get('phone')
+        doctor.address = request.POST.get('address')
+        
+        dept_id = request.POST.get('dept')
+        if dept_id:
+            doctor.department = Departments.objects.get(id=dept_id)
+            
+        doctor.qualification = request.POST.get('qualification')
+        doctor.experience = request.POST.get('experience')
+        doctor.license_number = request.POST.get('license_number')
+        
+        doctor.save()
+        messages.success(request, "Profile updated successfully!")
+        return redirect('profiledoc')
+
+    context = {
+        'doctor': doctor,
+        'departments': all_departments
+    }
+    return render(request, 'hospital/doctor/edit_docprofile.html', context)
+
 def view_medical_record(request):
     return render(request, 'hospital/doctor/view_medical_record.html' )
 def doctor_schedule(request):
