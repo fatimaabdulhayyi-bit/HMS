@@ -20,8 +20,7 @@
           {% endif %}
         </div>
       </div>
-
-      <form method="post">
+<form method="post" id="editProfileForm">
         {% csrf_token %}
         <div class="profile-card">
           <div class="profile-card-header">
@@ -39,12 +38,16 @@
             
             <div class="info-row">
                 <span>Father Name</span>
-                <input type="text" name="guardian_name" class="form-control form-control-sm" value="{{ patient.guardian_name }}">
+<input type="text" id="guardian_name" name="guardian_name" 
+class="form-control form-control-sm" value="{{ patient.guardian_name }}">
+<small id="guardianError" style="color:red;"></small>
             </div>
 
             <div class="info-row">
                 <span>Date of Birth</span>
-                <input type="date" name="dob" class="form-control form-control-sm" value="{{ patient.dob|date:'Y-m-d' }}">
+<input type="date" id="dob" name="dob" 
+class="form-control form-control-sm" value="{{ patient.dob|date:'Y-m-d' }}">
+<small id="dobError" style="color:red;"></small>
             </div>
 
             <div class="info-row">
@@ -62,12 +65,16 @@
 
             <div class="info-row">
                 <span>CNIC</span>
-                <input type="text" name="cnic" class="form-control form-control-sm" value="{{ patient.cnic }}">
+<input type="text" id="cnic" name="cnic" 
+class="form-control form-control-sm" value="{{ patient.cnic }}">
+<small id="cnicError" style="color:red;"></small>
             </div>
 
             <div class="info-row">
                 <span>Contact</span>
-                <input type="text" name="phone" class="form-control form-control-sm" value="{{ patient.phone }}">
+<input type="text" id="phone" name="phone" 
+class="form-control form-control-sm" value="{{ patient.phone }}">
+<small id="phoneError" style="color:red;"></small>
             </div>
 
             <div class="info-row">
@@ -88,5 +95,105 @@
     </div>
   </div>
 </section>
+<script>
 
+// Today date set for DOB max
+let today = new Date().toISOString().split("T")[0];
+document.getElementById("dob").setAttribute("max", today);
+
+
+// Guardian Name Validation
+document.getElementById("editProfileForm").addEventListener("submit", function(e){
+
+    var name = document.getElementById("guardian_name").value.trim();
+    var error = document.getElementById("guardianError");
+    var pattern = /^[A-Za-z\s]{2,}$/;
+
+    if(!pattern.test(name)){
+        error.innerText = "Only letters and spaces allowed.";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+
+});
+
+
+// DOB Validation
+document.getElementById("editProfileForm").addEventListener("submit", function(e){
+
+    let dob = document.getElementById("dob").value;
+    let error = document.getElementById("dobError");
+
+    let selectedDate = new Date(dob);
+    let currentDate = new Date();
+
+    if(selectedDate > currentDate){
+        error.innerText = "Future date not allowed.";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+
+});
+
+
+// CNIC Validation
+const cnicInput = document.getElementById("cnic");
+
+cnicInput.addEventListener("input", function(){
+    if(this.value.length > 15){
+        this.value = this.value.slice(0,15);
+    }
+});
+
+document.getElementById("editProfileForm").addEventListener("submit", function(e){
+
+    let cnic = cnicInput.value.trim();
+    let error = document.getElementById("cnicError");
+
+    let pattern = /^\d{5}-\d{7}-\d{1}$/;
+
+    if(!pattern.test(cnic)){
+        error.innerText = "CNIC format XXXXX-XXXXXXX-X";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+
+});
+
+
+// Phone Validation
+const phoneInput = document.getElementById("phone");
+
+phoneInput.addEventListener("input", function(){
+
+    if(this.value.startsWith("+92")){
+        if(this.value.length > 13) this.value = this.value.slice(0,13);
+
+    } else if(this.value.startsWith("03")){
+        if(this.value.length > 11) this.value = this.value.slice(0,11);
+
+    } else {
+        if(this.value.length > 13) this.value = this.value.slice(0,13);
+    }
+
+});
+
+document.getElementById("editProfileForm").addEventListener("submit", function(e){
+
+    let phone = phoneInput.value.trim();
+    let error = document.getElementById("phoneError");
+
+    let pattern = /^03[0-9]{9}$|^\+923[0-9]{9}$/;
+
+    if(!pattern.test(phone)){
+        error.innerText = "Enter valid mobile number (03XXXXXXXXX)";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+});
+</script>
 {% endblock %}

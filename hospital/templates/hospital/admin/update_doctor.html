@@ -12,7 +12,7 @@
 
 <div class="doctor-form-wrapper">
 
-  <form method="POST" class="doctor-form">
+  <form method="POST" class="doctor-form" id="updateDoctorForm">
     {% csrf_token %}
 
     <div class="row g-4">
@@ -23,7 +23,8 @@
 
       <div class="col-md-6">
         <label class="form-label">Father Name</label>
-        <input type="text" name="father_name" class="form-control" value="{{ doctor.father_name }}" required>
+<input type="text" id="guardian_name" name="father_name" class="form-control" value="{{ doctor.father_name }}" required>
+<small id="guardianError" style="color:red;"></small>
       </div>
 
       <div class="col-md-6">
@@ -32,13 +33,15 @@
       </div>
 
       <div class="col-md-6">
-        <label class="form-label">Phone</label>
-        <input type="text" name="phone" class="form-control" value="{{ doctor.phone }}">
+       <label class="form-label">Phone</label>
+<input type="text" id="phone" name="phone" class="form-control" value="{{ doctor.phone }}">
+<small id="phoneError" style="color:red;"></small>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Date of Birth</label>
-        <input type="date" name="dob" class="form-control" value="{{ doctor.dob|date:'Y-m-d' }}" required>
+<input type="date" id="dob" name="dob" class="form-control" value="{{ doctor.dob|date:'Y-m-d' }}" required>
+<small id="dobError" style="color:red;"></small>
       </div>
 
       <div class="col-md-6">
@@ -51,8 +54,9 @@
       </div>
 
       <div class="col-md-6">
-        <label class="form-label">CNIC</label>
-        <input type="text" name="cnic" class="form-control" value="{{ doctor.cnic }}">
+       <label class="form-label">CNIC</label>
+<input type="text" id="cnic" name="cnic" class="form-control" value="{{ doctor.cnic }}">
+<small id="cnicError" style="color:red;"></small>
       </div>
 
       <div class="col-md-6">
@@ -105,4 +109,107 @@
     </div>
   </form>
 </div>
+<script>
+
+// Today date set for DOB max
+let today = new Date().toISOString().split("T")[0];
+document.getElementById("dob").setAttribute("max", today);
+
+
+// FATHER NAME VALIDATION
+document.getElementById("updateDoctorForm").addEventListener("submit", function(e){
+
+    let name = document.getElementById("guardian_name").value.trim();
+    let error = document.getElementById("guardianError");
+    let pattern = /^[A-Za-z\s]{2,}$/;
+
+    if(!pattern.test(name)){
+        error.innerText = "Only letters and spaces allowed.";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+
+});
+
+
+// DOB VALIDATION
+document.getElementById("updateDoctorForm").addEventListener("submit", function(e){
+
+    let dob = document.getElementById("dob").value;
+    let error = document.getElementById("dobError");
+
+    let selectedDate = new Date(dob);
+    let currentDate = new Date();
+
+    if(selectedDate > currentDate){
+        error.innerText = "Future date not allowed.";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+
+});
+
+
+// CNIC VALIDATION
+const cnicInput = document.getElementById("cnic");
+
+cnicInput.addEventListener("input", function(){
+    if(this.value.length > 15){
+        this.value = this.value.slice(0,15);
+    }
+});
+
+document.getElementById("updateDoctorForm").addEventListener("submit", function(e){
+
+    let cnic = cnicInput.value.trim();
+    let error = document.getElementById("cnicError");
+
+    let pattern = /^\d{5}-\d{7}-\d{1}$/;
+
+    if(!pattern.test(cnic)){
+        error.innerText = "CNIC format XXXXX-XXXXXXX-X";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+
+});
+
+
+// PHONE VALIDATION
+const phoneInput = document.getElementById("phone");
+
+phoneInput.addEventListener("input", function(){
+
+    if(this.value.startsWith("+92")){
+        if(this.value.length > 13) this.value = this.value.slice(0,13);
+
+    } else if(this.value.startsWith("03")){
+        if(this.value.length > 11) this.value = this.value.slice(0,11);
+
+    } else {
+        if(this.value.length > 13) this.value = this.value.slice(0,13);
+    }
+
+});
+
+document.getElementById("updateDoctorForm").addEventListener("submit", function(e){
+
+    let phone = phoneInput.value.trim();
+    let error = document.getElementById("phoneError");
+
+    let pattern = /^03[0-9]{9}$|^\+923[0-9]{9}$/;
+
+    if(!pattern.test(phone)){
+        error.innerText = "Enter valid mobile number (03XXXXXXXXX)";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+
+});
+
+</script>
 {% endblock %}
