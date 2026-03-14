@@ -1,0 +1,93 @@
+{% extends 'hospital/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}IPD Records{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-4 py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">In-Patients Records</h1>
+    <a href="{% url 'add_IP-record' %}" class="btn-add">
+      <i class="fa fa-plus"></i> Add Record
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="list-card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Patient Name</th>
+            <th>Doctor</th>
+            <th>Room</th>
+            <th>Bed</th>
+            <th>Admission Date</th>
+            <th>Status</th>
+            <th class="text-center">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% if ipd_records %}
+            {% for ipd in ipd_records %}
+            <tr>
+              <td><strong>{{ ipd.patient.user.fullname }}</strong></td>
+              <td>Dr. {{ ipd.doctor.user.fullname }}</td>
+              <td>{{ ipd.room_no }}</td>
+              <td>{{ ipd.bed_no }}</td>
+              <td>{{ ipd.admission_date }}</td>
+             <td>
+  {% if ipd.is_discharged %}
+    <span class="badge" style="background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; padding: 5px 12px; border-radius: 50px;">
+       <i class="fa fa-check-circle me-1"></i> Discharged
+    </span>
+  {% else %}
+    <span class="badge" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 5px 12px; border-radius: 50px;">
+       <i class="fa fa-clock me-1"></i> Admitted
+    </span>
+  {% endif %}
+</td>
+              <td class="text-center">
+                <a href="{% url 'update_In_Patient' ipd.id %}" class="btn-edit me-2">
+                  Edit
+                </a>
+                
+                {% if not ipd.is_discharged %}
+                  <a href="{% url 'discharge_patient' ipd.id %}" class="btn-delete"
+                     onclick="return confirm('Are you sure you want to discharge this patient?')">
+                    Discharge
+                  </a>
+                {% else %}
+<span class="badge" style="background-color: #e0f2f1; color: #00796b; border: 1px solid #b2dfdb; padding: 5px 12px; border-radius: 50px; font-size: 13px;">
+    <i class="fa fa-check-double me-1"></i> Completed
+</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                No IPD records found
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

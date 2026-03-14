@@ -5,102 +5,148 @@
 
 {% block content %}
 
-<!-- PAGE HEADER -->
 <div class="d-flex justify-content-between align-items-center mb-4 px-4 pt-4">
   <h2 class="page-title">Add In-Patient</h2>
-  <a href="{% url 'IPD' %}" class="btn-back">Back</a>
+  <a href="{% url 'In_Patient' %}" class="btn-back"><i class="fa fa-arrow-left"></i> Back</a>
 </div>
 
-<!-- FORM WRAPPER -->
 <div class="doctor-form-wrapper">
-
-  <form method="POST" class="doctor-form">
+  <form method="POST" class="doctor-form" id="ipdForm">
     {% csrf_token %}
 
-    <!-- IPD INFO -->
     <div class="row g-4">
-
-      <!-- PATIENT -->
       <div class="col-md-6">
         <label class="form-label">Select Patient</label>
         <select name="patient" class="form-select" required>
           <option value="">Select</option>
           {% for patient in patients %}
-            <option value="{{ patient.id }}">
-              {{ patient.full_name }}
-            </option>
+            <option value="{{ patient.id }}">{{ patient.user.fullname }}</option>
           {% endfor %}
         </select>
       </div>
 
-      <!-- DOCTOR -->
       <div class="col-md-6">
         <label class="form-label">Assign Doctor</label>
         <select name="doctor" class="form-select" required>
           <option value="">Select</option>
           {% for doctor in doctors %}
-            <option value="{{ doctor.id }}">
-              {{ doctor.full_name }}
-            </option>
+            <option value="{{ doctor.id }}">Dr. {{ doctor.user.fullname }}</option>
           {% endfor %}
         </select>
       </div>
 
-      <!-- ROOM -->
       <div class="col-md-6">
         <label class="form-label">Room No</label>
-        <input type="text" name="room_no" class="form-control" required>
+        <input type="text" id="room_no" name="room_no" class="form-control" required>
+        <small id="roomError" style="color:red;"></small>
       </div>
 
-      <!-- BED -->
       <div class="col-md-6">
         <label class="form-label">Bed No</label>
-        <input type="text" name="bed_no" class="form-control" required>
+        <input type="text" id="bed_no" name="bed_no" class="form-control" required>
+        <small id="bedError" style="color:red;"></small>
       </div>
 
-      <!-- ADMISSION DATE -->
       <div class="col-md-6">
         <label class="form-label">Admission Date</label>
-        <input type="date" name="admission_date" class="form-control" required>
+        <input type="date" id="admission_date" name="admission_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+        <small id="dateError" style="color:red;"></small>
       </div>
       
       <div class="col-md-6">
-  <label class="form-label">Admission Time</label>
-  <input type="time" name="admission_time" class="form-control" required>
-</div>
-
-      <!-- DIAGNOSIS -->
-      <div class="col-md-12">
-        <label class="form-label">Diagnosis</label>
-        <textarea name="diagnosis" class="form-control" rows="2" required></textarea>
+        <label class="form-label">Admission Time</label>
+        <input type="time" name="admission_time" class="form-control" value="{% now 'H:i' %}" required>
       </div>
 
+      <div class="col-md-12">
+        <label class="form-label">Diagnosis</label>
+        <textarea id="diagnosis" name="diagnosis" class="form-control" rows="2" required></textarea>
+        <small id="diagnosisError" style="color:red;"></small>
+      </div>
     </div>
 
-    <!-- STATUS (RADIO) -->
     <div class="mt-4">
       <label class="form-label">Status</label>
       <div class="d-flex gap-4">
         <label class="radio-label">
-          <input type="radio" name="status" value="Admitted" checked>
-          Admitted
+          <input type="radio" name="status" value="Admitted" checked> Admitted
         </label>
         <label class="radio-label">
-          <input type="radio" name="status" value="Discharged">
-          Discharged
+          <input type="radio" name="status" value="Discharged"> Discharged
         </label>
       </div>
     </div>
 
-    <!-- SUBMIT -->
     <div class="text-center mt-5">
-      <button type="submit" class="btn-submit">
-        Save In-Patient Record
-      </button>
+      <button type="submit" class="btn-submit" id="submitBtn">Save In-Patient Record</button>
     </div>
-
   </form>
-
 </div>
+
+<script>
+// 1. Browser level par future dates disable karne ke liye (Calendar limit)
+let todayStr = new Date().toISOString().split("T")[0];
+document.getElementById("admission_date").setAttribute("max", todayStr);
+
+// 2. Submit ke waqt validation check
+document.getElementById("ipdForm").addEventListener("submit", function(e){
+    let inputDateVal = document.getElementById("admission_date").value;
+    let error = document.getElementById("dateError");
+    
+    // Aaj ki date (Time zero kar ke)
+    let today = new Date();
+    today.setHours(0, 0, 0, 0); 
+
+    // User ki select ki hui date (Time zero kar ke)
+    let selectedDate = new Date(inputDateVal);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    // Agar selected date aaj se bari (future) hai
+    if(selectedDate > today){
+        error.innerText = "Future date is not allowed.";
+        e.preventDefault(); // Form submit hone se rok dega
+    } else {
+        error.innerText = ""; // Error clear kar dega
+    }
+
+    // 2. Diagnosis Length Validation
+    let diag = document.getElementById("diagnosis").value.trim();
+    let diagError = document.getElementById("diagnosisError");
+    if (diag.length < 10) {
+        diagError.innerText = "Please provide more detail (at least 10 characters).";
+        e.preventDefault();
+    } else {
+        diagError.innerText = "";
+    }
+
+    // 3. Room & Bed Format (No special characters)
+    let room = document.getElementById("room_no").value;
+    let bed = document.getElementById("bed_no").value;
+    let pattern = /^[a-zA-Z0-9\s-]+$/;
+
+    if (!pattern.test(room)) {
+        document.getElementById("roomError").innerText = "Invalid Room format.";
+        e.preventDefault();
+    } else {
+        document.getElementById("roomError").innerText = "";
+    }
+
+    if (!pattern.test(bed)) {
+        document.getElementById("bedError").innerText = "Invalid Bed format.";
+        e.preventDefault();
+    } else {
+        document.getElementById("bedError").innerText = "";
+    }
+});
+
+// Double Submission Prevention
+document.getElementById("ipdForm").addEventListener("submit", function() {
+    if (!event.defaultPrevented) {
+        const btn = document.getElementById("submitBtn");
+        btn.disabled = true;
+        btn.innerText = "Processing...";
+    }
+});
+</script>
 
 {% endblock %}

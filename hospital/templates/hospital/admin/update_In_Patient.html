@@ -1,0 +1,152 @@
+{% extends 'hospital/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Update In-Patient{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 px-4 pt-4">
+  <h2 class="page-title">Update In-Patient Record</h2>
+  <a href="{% url 'In_Patient' %}" class="btn-back">Cancel</a>
+</div>
+
+<div class="doctor-form-wrapper">
+  <form method="POST" class="doctor-form" id="updateIpdForm">
+    {% csrf_token %}
+
+    <div class="row g-4">
+      <div class="col-md-6">
+        <label class="form-label">Patient</label>
+        <select name="patient" class="form-select" required>
+          {% for p in patients %}
+            <option value="{{ p.id }}" {% if p.id == record.patient.id %}selected{% endif %}>
+              {{ p.user.fullname }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Doctor</label>
+        <select name="doctor" class="form-select" required>
+          {% for d in doctors %}
+            <option value="{{ d.id }}" {% if d.id == record.doctor.id %}selected{% endif %}>
+              Dr. {{ d.user.fullname }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Room No</label>
+        <input type="text" id="room_no" name="room_no" class="form-control" value="{{ record.room_no }}" required>
+        <small id="roomError" style="color:red;"></small>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Bed No</label>
+        <input type="text" id="bed_no" name="bed_no" class="form-control" value="{{ record.bed_no }}" required>
+        <small id="bedError" style="color:red;"></small>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Admission Date</label>
+        <input type="date" id="admission_date" name="admission_date" class="form-control" value="{{ record.admission_date|date:'Y-m-d' }}" required>
+        <small id="dateError" style="color:red;"></small>
+      </div>
+      
+      <div class="col-md-6">
+        <label class="form-label">Admission Time</label>
+        <input type="time" name="admission_time" class="form-control" value="{{ record.admission_time|time:'H:i' }}" required>
+      </div>
+
+      <div class="col-md-12">
+        <label class="form-label">Diagnosis</label>
+        <textarea id="diagnosis" name="diagnosis" class="form-control" rows="2" required>{{ record.diagnosis }}</textarea>
+        <small id="diagnosisError" style="color:red;"></small>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <label class="form-label">Current Status</label>
+      <div class="d-flex gap-4">
+        <label class="radio-label">
+          <input type="radio" name="status" value="Admitted" {% if not record.is_discharged %}checked{% endif %}> Admitted
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="status" value="Discharged" {% if record.is_discharged %}checked{% endif %}> Discharged
+        </label>
+      </div>
+    </div>
+
+    <div class="text-center mt-5">
+      <button type="submit" class="btn-submit" id="updateBtn">Update Record</button>
+    </div>
+  </form>
+</div>
+
+<script>
+// 1. Browser calendar limit (Max today)
+let todayStr = new Date().toISOString().split("T")[0];
+document.getElementById("admission_date").setAttribute("max", todayStr);
+
+document.getElementById("updateIpdForm").addEventListener("submit", function(e){
+    let isValid = true;
+
+    // --- DATE VALIDATION ---
+    let inputDateVal = document.getElementById("admission_date").value;
+    let dateError = document.getElementById("dateError");
+    let today = new Date();
+    today.setHours(0, 0, 0, 0); 
+    let selectedDate = new Date(inputDateVal);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if(selectedDate > today){
+        dateError.innerText = "Future date is not allowed.";
+        isValid = false;
+    } else {
+        dateError.innerText = "";
+    }
+
+    // --- DIAGNOSIS VALIDATION ---
+    let diag = document.getElementById("diagnosis").value.trim();
+    let diagError = document.getElementById("diagnosisError");
+    if(diag.length < 5){
+        diagError.innerText = "Please enter a valid diagnosis (min 5 characters).";
+        isValid = false;
+    } else {
+        diagError.innerText = "";
+    }
+
+    // --- ROOM/BED FORMAT VALIDATION ---
+    let pattern = /^[a-zA-Z0-9\s-]+$/;
+    let room = document.getElementById("room_no").value;
+    let bed = document.getElementById("bed_no").value;
+
+    if(!pattern.test(room)){
+        document.getElementById("roomError").innerText = "Special characters not allowed.";
+        isValid = false;
+    } else {
+        document.getElementById("roomError").innerText = "";
+    }
+
+    if(!pattern.test(bed)){
+        document.getElementById("bedError").innerText = "Special characters not allowed.";
+        isValid = false;
+    } else {
+        document.getElementById("bedError").innerText = "";
+    }
+
+    // Agar koi validation fail hui to form submit nahi hoga
+    if(!isValid){
+        e.preventDefault();
+    } else {
+        // Double submission prevention
+        const btn = document.getElementById("updateBtn");
+        btn.disabled = true;
+        btn.innerText = "Updating...";
+    }
+});
+</script>
+
+{% endblock %}

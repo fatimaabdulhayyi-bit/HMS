@@ -35,13 +35,13 @@
 
     <!-- IPD -->
    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
-      <a href="{% url 'IPD' %}" class="dashboard-card">
+      <a href="{% url 'In_Patient' %}" class="dashboard-card">
         <div class="card-icon">
           <i class="fa fa-bed me-2"></i>
         </div>
         <div class="card-content">
           <h3>In-Patients</h3>
-          <p>0</p>
+          <p>{{ total_InPatients }}</p>
         </div>
       </a>
     </div>

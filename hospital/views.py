@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback
+from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
 
@@ -199,12 +199,15 @@ def admin_dashboard(request):
     total_departments = Departments.objects.count()
     pending_doctors = Doctors.objects.filter(is_approved=False)
     total_doctors = Doctors.objects.count()
+    
+    active_InPatients_count = InPatient.objects.filter(is_discharged=False).count()
+    
     context = {
-        
         'total_patients': total_patients,
         'total_doctors' : total_doctors,
         'total_departments': total_departments,
-        'pending_doctors': pending_doctors
+        'pending_doctors': pending_doctors,
+        'total_InPatients': active_InPatients_count 
     }
     return render(request, 'hospital/admin/admin_dashboard.html', context)
 
@@ -452,12 +455,81 @@ def update_patient(request, pk):
     }
     return render(request, 'hospital/admin/update_patient.html', context)
 
+def In_Patient(request):
+    # 'ipd_records' variable name use kiya hai jo template mein loop ho raha hai
+    records = InPatient.objects.all().order_by('-admission_date')
+    return render(request, 'hospital/admin/In_patient.html', {'ipd_records': records})
 
-def IPD(request):
-    return render(request, 'hospital/admin/IPD.html')
-
+# 2. Add IPD Record
 def add_IPrecord(request):
-    return render(request, 'hospital/admin/add_IP-record.html')
+    if request.method == "POST":
+        p_id = request.POST.get('patient')
+        d_id = request.POST.get('doctor')
+        r_no = request.POST.get('room_no')
+        b_no = request.POST.get('bed_no')
+
+        if InPatient.objects.filter(room_no=r_no, bed_no=b_no, is_discharged=False).exists():
+            messages.error(request, f"Room {r_no}, Bed {b_no} is already occupied!")
+        else:
+            InPatient.objects.create(
+                patient_id=p_id,
+                doctor_id=d_id,
+                room_no=r_no,
+                bed_no=b_no,
+                admission_date=request.POST.get('admission_date'),
+                admission_time=request.POST.get('admission_time'),
+                diagnosis=request.POST.get('diagnosis'),
+                is_discharged=(request.POST.get('status') == 'Discharged')
+            )
+            messages.success(request, "IPD Record added successfully!")
+            return redirect('In_Patient') 
+
+    context = {
+        'patients': Patients.objects.all(),
+        'doctors': Doctors.objects.all()
+    }
+    return render(request, 'hospital/admin/add_IP-record.html', context)
+
+# 3. Update IPD Record
+def update_In_Patient(request, pk):
+    record = get_object_or_404(InPatient, pk=pk)
+    
+    if request.method == "POST":
+        r_no = request.POST.get('room_no')
+        b_no = request.POST.get('bed_no')
+
+        occupied = InPatient.objects.filter(room_no=r_no, bed_no=b_no, is_discharged=False).exclude(pk=pk).exists()
+
+        if occupied:
+            messages.error(request, f"Bed {b_no} is already occupied by someone else!")
+        else:
+            record.patient_id = request.POST.get('patient')
+            record.doctor_id = request.POST.get('doctor')
+            record.room_no = r_no
+            record.bed_no = b_no
+            record.admission_date = request.POST.get('admission_date')
+            record.admission_time = request.POST.get('admission_time')
+            record.diagnosis = request.POST.get('diagnosis')
+            record.is_discharged = (request.POST.get('status') == 'Discharged')
+            record.save()
+            
+            messages.success(request, "Record updated successfully!")
+            return redirect('In_Patient')
+
+    context = {
+        'record': record,
+        'patients': Patients.objects.all(),
+        'doctors': Doctors.objects.all(),
+    }
+    return render(request, 'hospital/admin/update_In_Patient.html', context)
+
+# 4. Discharge Patient
+def discharge_patient(request, pk):
+    record = get_object_or_404(InPatient, pk=pk)
+    record.is_discharged = True
+    record.save()
+    messages.success(request, f"{record.patient.user.fullname} has been discharged.")
+    return redirect('In_Patient')
 
 def add_appointment(request):
     return render(request, 'hospital/admin/add_appointment.html')

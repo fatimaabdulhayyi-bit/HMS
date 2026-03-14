@@ -133,3 +133,21 @@ class PatientFeedback(models.Model):
 
     def _str_(self):
         return f"{self.patient.fullname} | {self.description}"
+
+class InPatient(models.Model):
+    patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
+    room_no = models.CharField(max_length=50)
+    bed_no = models.CharField(max_length=50)
+    admission_date = models.DateField()
+    admission_time = models.TimeField()
+    diagnosis = models.TextField()
+    is_discharged = models.BooleanField(default=False)
+    
+    # Meta class taake data sorted rahay
+    class Meta:
+        db_table = "In-Patietns"
+        verbose_name_plural = "In-Patietns"
+
+    def __str__(self):
+        return f"{self.patient.user.fullname} | Room: {self.room_no} | ADM_Date: {self.admission_date}"
