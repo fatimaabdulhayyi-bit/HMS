@@ -114,16 +114,31 @@ class Doctors(models.Model):
     license_number = models.CharField(max_length=100)
     qualification = models.CharField(max_length=100)
     experience = models.IntegerField()
-    is_approved = models.BooleanField(default=False)  # Doctor approval flag
-
+    is_approved = models.BooleanField(default=False)
 
     class Meta:
         db_table = "Doctors"
         verbose_name_plural = "Doctors"
 
-
     def __str__(self):
         return self.user.fullname
+
+
+class DoctorSchedule(models.Model):
+
+    doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
+
+    day = models.CharField(max_length=20)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    is_available = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "DoctorSchedule"
+
+    def __str__(self):
+        return f"{self.doctor} - {self.day}"
     
 class PatientFeedback(models.Model):
     # Kaunsa patient feedback de raha hai (Login user)

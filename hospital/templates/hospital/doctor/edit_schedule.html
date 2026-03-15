@@ -1,0 +1,62 @@
+{% extends 'hospital/doctor/base_doctor.html' %}
+{% block title %}Edit Schedule{% endblock %}
+
+{% block content %}
+
+<div class="container d-flex justify-content-center mt-5">
+<div class="col-lg-8">
+
+<div class="card shadow">
+
+<div class="card-header text-white" style="background:#1976d2;">
+<h4>Edit Schedule</h4>
+</div>
+
+<div class="card-body">
+
+<form method="POST">
+{% csrf_token %}
+
+<div class="mb-3">
+<label>Day</label>
+<select name="day" class="form-select">
+
+<option {% if schedule.day == "Monday" %}selected{% endif %}>Monday</option>
+<option {% if schedule.day == "Tuesday" %}selected{% endif %}>Tuesday</option>
+<option {% if schedule.day == "Wednesday" %}selected{% endif %}>Wednesday</option>
+<option {% if schedule.day == "Thursday" %}selected{% endif %}>Thursday</option>
+<option {% if schedule.day == "Friday" %}selected{% endif %}>Friday</option>
+<option {% if schedule.day == "Saturday" %}selected{% endif %}>Saturday</option>
+<option {% if schedule.day == "Sunday" %}selected{% endif %}>Sunday</option>
+
+</select>
+</div>
+
+<div class="mb-3">
+<label>Start Time</label>
+<input type="time" name="start_time" value="{{schedule.start_time}}" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>End Time</label>
+<input type="time" name="end_time" value="{{schedule.end_time}}" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Availability</label>
+<select name="is_available" class="form-select">
+<option value="True" {% if schedule.is_available %}selected{% endif %}>Available</option>
+<option value="False" {% if not schedule.is_available %}selected{% endif %}>Not Available</option>
+</select>
+</div>
+
+<button class="btn btn-primary">Update Schedule</button>
+
+</form>
+
+</div>
+</div>
+</div>
+</div>
+
+{% endblock %}

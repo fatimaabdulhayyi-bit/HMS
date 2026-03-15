@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient
+from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient, DoctorSchedule
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
 
@@ -353,6 +353,91 @@ def delete_doctor(request, pk):
         messages.error(request, f"Error: {e}")
         
     return redirect('doctors')
+# doctor schedule fn
+def doctor_schedule(request):
+
+    doctor = Doctors.objects.get(user=request.user)
+
+    schedules = DoctorSchedule.objects.filter(doctor=doctor)
+
+    context = {
+        'schedules': schedules
+    }
+
+    return render(request, 'hospital/doctor/doctor_schedule.html', context)
+# add schedule fn
+def add_schedule(request):
+
+    doctor = Doctors.objects.get(user=request.user)
+
+    if request.method == "POST":
+
+        day = request.POST.get('day')
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+
+        is_available = request.POST.get('is_available') == "True"
+
+        DoctorSchedule.objects.create(
+            doctor=doctor,
+            day=day,
+            start_time=start_time,
+            end_time=end_time,
+            is_available=is_available
+        )
+
+        messages.success(request, "Schedule added successfully!")
+
+        return redirect('doctor_schedule')
+
+    return render(request, 'hospital/doctor/add_schedule.html')
+
+# edit schedule
+def edit_schedule(request, id):
+
+    schedule = get_object_or_404(DoctorSchedule, id=id)
+
+    if request.method == "POST":
+
+        schedule.day = request.POST.get('day')
+        schedule.start_time = request.POST.get('start_time')
+        schedule.end_time = request.POST.get('end_time')
+
+        schedule.is_available = request.POST.get('is_available') == "True"
+
+        schedule.save()
+
+        messages.success(request, "Schedule updated successfully!")
+
+        return redirect('doctor_schedule')
+
+    context = {
+        'schedule': schedule
+    }
+
+    return render(request, 'hospital/doctor/edit_schedule.html', context)
+def delete_schedule(request, pk):
+    schedule = get_object_or_404(DoctorSchedule, id=pk)
+    
+    # Check karein ke sirf wahi doctor delete kar sakay jis ka schedule hai
+    # (Security ke liye achi practice hai)
+    doctor = get_object_or_404(Doctors, user=request.user)
+    
+    if schedule.doctor == doctor:
+        schedule.delete()
+        messages.success(request, "Schedule deleted successfully!")
+    else:
+        messages.error(request, "Aap ye schedule delete nahi kar saktay.")
+        
+    return redirect('doctor_schedule')
+def delete_schedule(request, id):
+
+    schedule = DoctorSchedule.objects.get(id=id)
+    schedule.delete()
+
+    messages.success(request, "Schedule deleted successfully")
+
+    return redirect('doctor_schedule')
 
 def patients(request):
     # Database se saray patients ka data unke user account ke sath mangwana
@@ -540,9 +625,6 @@ def doctor_dashboard(request):
 def my_appointments(request):
     return render(request, 'hospital/doctor/my_appointments.html')
 
-def add_schedule(request):
-    return render(request, 'hospital/doctor/add_schedule.html')
-
 def profiledoc(request):
 
     doctor = Doctors.objects.filter(user=request.user).select_related('user').first()
@@ -585,8 +667,7 @@ def edit_docprofile(request):
 
 def view_medical_record(request):
     return render(request, 'hospital/doctor/view_medical_record.html' )
-def doctor_schedule(request):
-    return render(request, 'hospital/doctor/doctor_schedule.html' )
+
 def add_medical_record(request):
     return render(request, 'hospital/doctor/add_medical_record.html' )
 
