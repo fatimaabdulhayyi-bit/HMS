@@ -375,7 +375,6 @@ def add_schedule(request):
         day = request.POST.get('day')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
-
         is_available = request.POST.get('is_available') == "True"
 
         DoctorSchedule.objects.create(
@@ -388,7 +387,7 @@ def add_schedule(request):
 
         messages.success(request, "Schedule added successfully!")
 
-        return redirect('doctor_schedule')
+        return redirect('doctor_schedule')   
 
     return render(request, 'hospital/doctor/add_schedule.html')
 
@@ -402,14 +401,13 @@ def edit_schedule(request, id):
         schedule.day = request.POST.get('day')
         schedule.start_time = request.POST.get('start_time')
         schedule.end_time = request.POST.get('end_time')
-
         schedule.is_available = request.POST.get('is_available') == "True"
 
         schedule.save()
 
         messages.success(request, "Schedule updated successfully!")
 
-        return redirect('doctor_schedule')
+        return redirect('doctor_schedule')   
 
     context = {
         'schedule': schedule
@@ -438,6 +436,7 @@ def delete_schedule(request, id):
     messages.success(request, "Schedule deleted successfully")
 
     return redirect('doctor_schedule')
+
 
 def patients(request):
     # Database se saray patients ka data unke user account ke sath mangwana

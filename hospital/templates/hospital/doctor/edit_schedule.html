@@ -1,62 +1,105 @@
 {% extends 'hospital/doctor/base_doctor.html' %}
+{% load static %}
 {% block title %}Edit Schedule{% endblock %}
 
 {% block content %}
 
-<div class="container d-flex justify-content-center mt-5">
-<div class="col-lg-8">
+<div class="container d-flex justify-content-center mt-5" style="min-height: 100vh;">
+  <div class="col-lg-8 col-md-10">
 
-<div class="card shadow">
+    <div class="card shadow-lg rounded-4">
 
-<div class="card-header text-white" style="background:#1976d2;">
-<h4>Edit Schedule</h4>
+      <div class="card-header text-white rounded-top-4" style="background-color:#1976d2;">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="mb-0">Edit Schedule</h4>
+            <small>Update Doctor Availability</small>
+            
+          </div>
+
+          <a href="{% url 'doctor_schedule' %}" class="btn btn-light btn-sm fw-semibold">
+            Cancel
+          </a>
+        </div>
+      </div>
+
+      <div class="card-body p-4">
+
+        <form method="POST" id="scheduleForm">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Select Day</label>
+            <select name="day" class="form-select" required>
+              <option value="Monday" {% if schedule.day == "Monday" %}selected{% endif %}>Monday</option>
+              <option value="Tuesday" {% if schedule.day == "Tuesday" %}selected{% endif %}>Tuesday</option>
+              <option value="Wednesday" {% if schedule.day == "Wednesday" %}selected{% endif %}>Wednesday</option>
+              <option value="Thursday" {% if schedule.day == "Thursday" %}selected{% endif %}>Thursday</option>
+              <option value="Friday" {% if schedule.day == "Friday" %}selected{% endif %}>Friday</option>
+              <option value="Saturday" {% if schedule.day == "Saturday" %}selected{% endif %}>Saturday</option>
+              <option value="Sunday" {% if schedule.day == "Sunday" %}selected{% endif %}>Sunday</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Start Time</label>
+            <input type="time" name="start_time" id="start_time" value="{{ schedule.start_time|time:'H:i' }}" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">End Time</label>
+            <input type="time" name="end_time" id="end_time" value="{{ schedule.end_time|time:'H:i' }}" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Availability</label>
+            <select name="is_available" class="form-select">
+              <option value="True" {% if schedule.is_available %}selected{% endif %}>Available</option>
+              <option value="False" {% if not schedule.is_available %}selected{% endif %}>Not Available</option>
+            </select>
+          </div>
+
+          <div class="text-end border-top pt-3 mt-4">
+            <button type="submit" class="btn px-4 shadow-sm" style="background-color:#1976d2; color: white;">
+              Update Schedule
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
 </div>
 
-<div class="card-body">
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    const form = document.getElementById("scheduleForm");
 
-<form method="POST">
-{% csrf_token %}
+    form.addEventListener("submit", function(e){
+        let startTime = document.getElementById("start_time").value;
+        let endTime = document.getElementById("end_time").value;
 
-<div class="mb-3">
-<label>Day</label>
-<select name="day" class="form-select">
+        if(!startTime || !endTime){
+            alert("Please select both start time and end time");
+            e.preventDefault();
+            return;
+        }
 
-<option {% if schedule.day == "Monday" %}selected{% endif %}>Monday</option>
-<option {% if schedule.day == "Tuesday" %}selected{% endif %}>Tuesday</option>
-<option {% if schedule.day == "Wednesday" %}selected{% endif %}>Wednesday</option>
-<option {% if schedule.day == "Thursday" %}selected{% endif %}>Thursday</option>
-<option {% if schedule.day == "Friday" %}selected{% endif %}>Friday</option>
-<option {% if schedule.day == "Saturday" %}selected{% endif %}>Saturday</option>
-<option {% if schedule.day == "Sunday" %}selected{% endif %}>Sunday</option>
+        let startParts = startTime.split(":");
+        let endParts = endTime.split(":");
 
-</select>
-</div>
+        let startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+        let endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
 
-<div class="mb-3">
-<label>Start Time</label>
-<input type="time" name="start_time" value="{{schedule.start_time}}" class="form-control">
-</div>
-
-<div class="mb-3">
-<label>End Time</label>
-<input type="time" name="end_time" value="{{schedule.end_time}}" class="form-control">
-</div>
-
-<div class="mb-3">
-<label>Availability</label>
-<select name="is_available" class="form-select">
-<option value="True" {% if schedule.is_available %}selected{% endif %}>Available</option>
-<option value="False" {% if not schedule.is_available %}selected{% endif %}>Not Available</option>
-</select>
-</div>
-
-<button class="btn btn-primary">Update Schedule</button>
-
-</form>
-
-</div>
-</div>
-</div>
-</div>
+        if(endMinutes <= startMinutes){
+            alert("Error: End time must be later than start time!");
+            e.preventDefault();
+        }
+    });
+});
+</script>
 
 {% endblock %}

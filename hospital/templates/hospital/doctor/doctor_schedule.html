@@ -3,7 +3,11 @@
 {% block title %}Doctor Schedule{% endblock %}
 
 {% block content %}
-
+{% for message in messages %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
 <div class="container d-flex justify-content-center mt-5" style="min-height: 100vh;">
   <div class="col-lg-8 col-md-10">
 

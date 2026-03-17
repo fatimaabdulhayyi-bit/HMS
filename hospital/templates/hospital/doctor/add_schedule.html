@@ -1,36 +1,31 @@
 {% extends 'hospital/doctor/base_doctor.html' %}
-{% load static %}
 {% block title %}Add Schedule{% endblock %}
 
 {% block content %}
-
 <div class="container d-flex justify-content-center mt-5" style="min-height: 100vh;">
   <div class="col-lg-8 col-md-10">
 
-    <div class="card shadow-lg rounded-4">
+    <div class="card shadow-lg rounded-4 border-0">
 
-      <!-- Header -->
-      <div class="card-header text-white rounded-top-4" style="background-color:#1976d2;">
+      <div class="card-header text-white rounded-top-4 border-0" style="background-color:#1976d2;">
         <div class="d-flex justify-content-between align-items-center">
           <div>
             <h4 class="mb-0">Add Schedule</h4>
             <small>Set Doctor Availability</small>
+            
+        
           </div>
 
-          <a href="{% url 'doctor_schedule' %}" 
-             class="btn btn-light btn-sm fw-semibold">
+          <a href="{% url 'doctor_schedule' %}" class="btn btn-light btn-sm fw-semibold shadow-sm">
             Back
           </a>
         </div>
       </div>
 
-      <!-- Body -->
       <div class="card-body p-4">
-
-        <form method="POST">
+        <form method="POST" id="scheduleForm">
           {% csrf_token %}
 
-          <!-- Day -->
           <div class="mb-3">
             <label class="form-label fw-semibold">Select Day</label>
             <select name="day" class="form-select" required>
@@ -45,19 +40,16 @@
             </select>
           </div>
 
-          <!-- Start Time -->
           <div class="mb-3">
             <label class="form-label fw-semibold">Start Time</label>
-            <input type="time" name="start_time" class="form-control" required>
+            <input type="time" name="start_time" id="start_time" class="form-control" required>
           </div>
 
-          <!-- End Time -->
           <div class="mb-3">
             <label class="form-label fw-semibold">End Time</label>
-            <input type="time" name="end_time" class="form-control" required>
+            <input type="time" name="end_time" id="end_time" class="form-control" required>
           </div>
 
-          <!-- Availability -->
           <div class="mb-3">
             <label class="form-label fw-semibold">Availability</label>
             <select name="is_available" class="form-select">
@@ -66,20 +58,47 @@
             </select>
           </div>
 
-          <!-- Submit -->
-          <div class="text-end">
-            <button type="submit" class="btn px-4" style="background-color:#1976d2; color: white;"   >
+          <div class="text-end border-top pt-3 mt-4">
+            <button type="submit" class="btn px-5 shadow-sm" style="background-color:#1976d2; color: white;">
               Save Schedule
             </button>
           </div>
 
         </form>
-
       </div>
 
     </div>
-
   </div>
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    const form = document.getElementById("scheduleForm");
+
+    form.addEventListener("submit", function(e){
+        // In fields ki IDs HTML mein add kardi hain
+        let startTime = document.getElementById("start_time").value;
+        let endTime = document.getElementById("end_time").value;
+
+        if(!startTime || !endTime){
+            alert("Please select both start time and end time");
+            e.preventDefault();
+            return;
+        }
+
+        // Time processing
+        let startParts = startTime.split(":");
+        let endParts = endTime.split(":");
+
+        let startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+        let endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+
+        // Validation check
+        if(endMinutes <= startMinutes){
+            alert("End time must be greater than start time!");
+            e.preventDefault();
+        }
+    });
+});
+</script>
 {% endblock %}
