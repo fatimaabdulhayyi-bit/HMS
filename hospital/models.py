@@ -166,3 +166,36 @@ class InPatient(models.Model):
 
     def __str__(self):
         return f"{self.patient.user.fullname} | Room: {self.room_no} | ADM_Date: {self.admission_date}"
+    
+class Appointment(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Serving', 'Serving'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    ]
+
+    patient_user = models.ForeignKey(UserAccount, on_delete=models.CASCADE) # Jo login hai
+    fullname = models.CharField(max_length=100) # Form se aane wala naam
+    age = models.IntegerField()
+    gender = models.CharField(max_length=10)
+    contact = models.CharField(max_length=15)
+    
+    # Relationships with your existing models
+    department = models.ForeignKey(Departments, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
+    
+    appointment_date = models.DateField()
+    appointment_time = models.TimeField()
+    
+    # Token System fields
+    token = models.PositiveIntegerField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'Appointments'
+        unique_together = ['doctor', 'appointment_date', 'token']
+
+    def __str__(self):
+        return f"Token {self.token} | {self.fullname} | {self.doctor.user.fullname}"

@@ -1,34 +1,66 @@
 
 {% extends 'hospital/patient/base_patient.html' %}
 {% load static %}
+
 {% block title %}My Appointments{% endblock %}
+
 {% block content %}
+{% for message in messages %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
 <section class="appointments-page">
   <div class="patient-dashboard">
-    <!-- TOKEN STATUS CARD -->
+    
     <div class="token-card">
-      <div class="token-header">Token Status</div>
-      <div class="token-body">
-        <p class="current-label">Current Token</p>
+  <div class="token-header">Token Status</div>
+  <div class="token-body">
+    {% if latest_active %}
+        <p class="current-label">Current Serving</p>
+        
         <div class="token-circle">
-          <span class="token-text">Token:</span>
-          <div id="tokenNumber" class="token-number">08</div>
-          <span class="now-serving">Now Serving...</span>
-        </div>
-        <!-- YOUR TOKEN AND WAIT TIME -->
-        <div class="token-details">
-          <p class="your-token">Your Token: <strong>#12</strong></p>
-          <div class="progress-bar">
-            <div id="progressFill" class="progress-fill"></div>
+          <span class="token-text">Serving:</span>
+          <div id="tokenNumber" class="token-number">
+              {{ latest_active.current_serving|default:"0" }}
           </div>
-          <p class="wait-time">Estimated Wait: 10 minutes</p>
         </div>
-      </div>
-    </div>
-    <!-- APPOINTMENTS TABLE -->
+
+        <div class="token-details">
+            <p class="your-token">Your Token: <strong>#{{ latest_active.token }}</strong></p>
+            
+            <div class="progress-bar">
+                {% if latest_active.current_serving > 0 %}
+                    <div id="progressFill" class="progress-fill" 
+                         style="width: {% widthratio latest_active.current_serving latest_active.token 100 %}%">
+                    </div>
+                {% else %}
+                    <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+                {% endif %}
+            </div>
+            
+            <p class="wait-time">
+                {% if latest_active.status == 'Pending' %}
+                  Estimated Wait: <strong>{{ latest_active.wait_time }} minutes</strong>
+                {% elif latest_active.status == 'Serving' %}
+                  <span style="color: #28a745; font-weight: bold;">It's your turn! Please proceed.</span>
+                {% endif %}
+            </p>
+        </div>
+    {% else %}
+        <div class="text-center py-4">
+            <div style="font-size: 40px; color: #dee2e6; margin-bottom: 10px;">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <p class="text-muted">No active appointments</p>
+        </div>
+    {% endif %}
+  </div>
+</div>
+
     <div class="appointments-card">
       <div class="appointments-top">
-        <h3>My Appointments</h3>
+        <h3>My Appointments History</h3>
       </div>
       <div class="table-wrapper">
         <table class="table">
@@ -38,29 +70,45 @@
               <th>Department</th>
               <th>Date</th>
               <th>Time</th>
+              <th>Token</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {% for appt in patient_appointments %}
             <tr>
-              <td>{{ appt.doctor_name }}</td>
-              <td>{{ appt.department }}</td>
-              <td>{{ appt.date }}</td>
-              <td>{{ appt.time }}</td>
+              <td>{{ appt.doctor.user.fullname }}</td>
+              <td>{{ appt.department.name }}</td>
+              <td>{{ appt.appointment_date }}</td>
+              <td>{{ appt.appointment_time }}</td>
+              <td><span class="token-badge">#{{ appt.token }}</span></td>
               <td>
                 {% if appt.status == 'Pending' %}
                   <span class="status pending">Pending</span>
+                {% elif appt.status == 'Serving' %}
+                  <span class="status serving" style="background: #ffc107; color: #000; padding: 4px 8px; border-radius: 4px;">Serving</span>
                 {% elif appt.status == 'Completed' %}
                   <span class="status completed">Completed</span>
                 {% elif appt.status == 'Cancelled' %}
                   <span class="status cancelled">Cancelled</span>
                 {% endif %}
               </td>
+              <td>
+          {% if appt.status == 'Pending' %}
+            <a href="{% url 'cancel_appointment' appt.id %}" 
+               class="btn btn-sm btn-outline-danger" 
+               onclick="return confirm('Are you sure you want to cancel this appointment?')">
+               <i class="fas fa-times"></i> Cancel
+            </a>
+          {% else %}
+            <span class="text-muted">-</span>
+          {% endif %}
+        </td>
             </tr>
             {% empty %}
             <tr>
-              <td colspan="5" class="text-center text-muted">No appointments found.</td>
+              <td colspan="6" class="text-center text-muted">No appointments found.</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -69,4 +117,11 @@
     </div>
   </div>
 </section>
+
+<script>
+  setTimeout(function(){
+      location.reload();
+  }, 30000); 
+</script>
+
 {% endblock %}

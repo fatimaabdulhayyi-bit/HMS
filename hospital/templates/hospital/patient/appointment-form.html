@@ -3,6 +3,11 @@
 {% load static %}
 {% block title %}Book Appointment{% endblock %}
 {% block content %}
+{% for message in messages %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
 <div class="page-wrapper">
   <div class="appointment-card">
     <!-- Heading -->
@@ -14,25 +19,36 @@
         <div class="row">
           <div class="col-md-6">
             <label class="form-label">Full Name</label>
-            <input type="text" name="fullname" class="form-control" required>
+            <input type="text" name="fullname" class="form-control" value="{{ request.user.fullname }}" readonly>
           </div>
           <div class="col-md-6">
             <label class="form-label">Age</label>
-            <input type="number" name="age" class="form-control" required>
-          </div>
+            <input type="number" name="age" class="form-control" value="{{ calculated_age }}" readonly>
+    </div>
+          
           <div class="col-md-6">
             <label class="form-label">Gender</label>
-            <select name="gender" class="form-select" required>
-              <option value="">Select</option>
-              <option>Male</option>
-              <option>Female</option>
-              <option>Other</option>
-            </select>
+           <input type="text" name="gender" class="form-control" value="{{ patient.gender }}" readonly>
           </div>
         <div class="col-md-6">
   <label class="form-label">Contact</label>
-  <input type="text" name="contact" class="form-control" required>
+  <input type="text" name="contact" class="form-control" value="{{ patient.phone }}" readonly>
 </div>
+<div class="col-md-6">
+            <label class="form-label">Department</label>
+            <select name="department" id="id_department" class="form-select" required>
+    <option value="">Select Department</option>
+    {% for dept in departments %}
+        <option value="{{ dept.id }}">{{ dept.name }}</option>
+    {% endfor %}
+</select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Doctor</label>
+            <select name="doctor" id="id_doctor" class="form-select" required>
+    <option value="">Select Doctor</option>
+    </select>
+          </div>
 <div class="col-md-6">
   <label class="form-label">Appointment Date</label>
   <input type="date" name="appointment_date" class="form-control" required>
@@ -41,25 +57,7 @@
   <label class="form-label">Appointment Time</label>
   <input type="time" name="appointment_time" class="form-control" required>
 </div>
-          <div class="col-md-6">
-            <label class="form-label">Department</label>
-            <select name="department" class="form-select" required>
-              <option value="">Select Department</option>
-              <option>Cardiology</option>
-              <option>Dental</option>
-              <option>Neurology</option>
-              <option>Dermatology</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Doctor</label>
-            <select name="doctor" class="form-select" required>
-              <option value="">Select Doctor</option>
-              <option>Dr. Ali</option>
-              <option>Dr. Ahmed</option>
-              <option>Dr. Sara</option>
-            </select>
-          </div>
+          
         </div>
         <!-- Submit Button -->
         <div class="text-center">
@@ -69,4 +67,23 @@
     </div>
   </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $("#id_department").change(function () {
+        const url = "{% url 'ajax_load_doctors' %}";
+        const deptId = $(this).val();
+
+        $.ajax({
+            url: url,
+            data: { 'department_id': deptId },
+            success: function (data) {
+                let html_data = '<option value="">Select Doctor</option>';
+                data.forEach(function (doc) {
+                    html_data += `<option value="${doc.id}">${doc.user__fullname}</option>`;
+                });
+                $("#id_doctor").html(html_data);
+            }
+        });
+    });
+</script>
 {% endblock %}

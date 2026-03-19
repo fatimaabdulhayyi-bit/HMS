@@ -1,35 +1,31 @@
 {% extends 'hospital/doctor/base_doctor.html' %}
 {% load static %}
-{% block title %}Doctor Dashboard{% endblock %}
+{% block title %}Appointments{% endblock %}
 {% block content %}
 
 <div class="doctor-dashboard">
 
-  <!-- TOKEN STATUS CARD -->
   <div class="token-card">
     <div class="token-header">Token Status</div>
-
     <div class="token-body">
       <p class="current-label">Current Token</p>
-
       <div class="token-circle">
         <span class="token-text">Token:</span>
-        <div id="tokenNumber" class="token-number">08</div>
+        <div id="tokenNumber" class="token-number">
+          {{ current_token|stringformat:"02d"|default:"00" }}
+        </div>
         <span class="now-serving">Now Serving...</span>
       </div>
-
       <div class="token-action">
-        <button onclick="nextToken()">Next Token <i class="fa fa-chevron-right"></i></button>
+        <button onclick="handleNextToken()">Next Token <i class="fa fa-chevron-right"></i></button>
       </div>
     </div>
   </div>
 
-  <!-- APPOINTMENTS CARD -->
   <div class="appointments-card">
-
     <div class="appointments-top">
-      <h3>Today’s Appointments</h3>
-      <span>Total Appointments: {{ today_appointments|length }}</span>
+      <h3>My Appointments </h3>
+      <span>Total: {{ today_appointments|length }}</span>
     </div>
 
     <div class="tabs">
@@ -38,51 +34,123 @@
       <button class="tab-btn" onclick="showTab('checked',this)">Checked</button>
     </div>
 
-    <!-- TABLE -->
     <div class="table-wrapper">
-      <table id="today">
+      <table id="appointments-table">
         <thead>
           <tr>
             <th>Token</th>
             <th>Patient</th>
             <th>Age</th>
-            <th>Time</th>
+            <th>Time/Date</th>
             <th>Status</th>
             <th>Action</th>
           </tr>
         </thead>
-        <tbody>
+        
+        <tbody id="today-body">
           {% for appt in today_appointments %}
-          <tr>
-            <td><span class="token-badge">{{ appt.token }}</span></td>
-            <td>
-              <strong>{{ appt.patient_name }}</strong><br>
-              <small>#{{ appt.patient_id }}</small>
-            </td>
-            <td>{{ appt.age }}</td>
-            <td>{{ appt.time }}</td>
-            <td><span class="status pending">Pending</span></td>
-            <td><a href="{%url 'view_medical_record' %}" class="view-btn">View</a></td>
-          </tr>
+            {% if appt.status == 'Pending' or appt.status == 'Serving' %}
+            <tr {% if appt.status == 'Serving' %}style="background-color: #f0fdf4;"{% endif %}>
+              <td><span class="token-badge">{{ appt.token }}</span></td>
+              <td><strong>{{ appt.fullname }}</strong><br><small>#{{ appt.id }}</small></td>
+              <td>{{ appt.age }}</td>
+              <td>{{ appt.appointment_time }}</td>
+              <td>
+                {% if appt.status == 'Serving' %}
+                    <span class="status serving" style="color: green; font-weight: bold;">Serving</span>
+                {% else %}
+                    <span class="status pending">Pending</span>
+                {% endif %}
+              </td>
+              <td><a href="{% url 'view_medical_record' %}" class="view-btn">View</a></td>
+            </tr>
+            {% endif %}
+            {% empty %}
+            <tr><td colspan="6" style="text-align: center; color: #888;">No appointments for today.</td></tr>
+          {% endfor %}
+        </tbody>
+
+       <tbody id="upcoming-body" style="display: none;">
+  {% for appt in upcoming_appointments %}
+    {# Sirf Scheduled appointments dikhayein, Cancelled nahi #}
+    {% if appt.status != 'Cancelled' %}
+    <tr>
+      <td><span class="token-badge" style="background: #eee;">#</span></td>
+      <td><strong>{{ appt.fullname }}</strong></td>
+      <td>{{ appt.age }}</td>
+      <td>{{ appt.appointment_date }}<br><small>{{ appt.appointment_time }}</small></td>
+      <td><span class="status upcoming" style="color: orange;">Scheduled</span></td>
+      <td><span class="text-muted">Wait for Date</span></td>
+    </tr>
+    {% endif %}
+  {% empty %}
+    <tr><td colspan="6" style="text-align: center; color: #888;">No upcoming appointments.</td></tr>
+  {% endfor %}
+</tbody>
+
+        <tbody id="checked-body" style="display: none;">
+          {% for appt in today_appointments %}
+            {% if appt.status == 'Completed' or appt.status == 'Cancelled' %}
+            <tr>
+              <td><span class="token-badge">{{ appt.token }}</span></td>
+              <td><strong>{{ appt.fullname }}</strong><br><small>#{{ appt.id }}</small></td>
+              <td>{{ appt.age }}</td>
+              <td>{{ appt.appointment_time }}</td>
+              <td>
+                {% if appt.status == 'Completed' %}
+                    <span class="status completed" style="color: #1976d2;">Completed</span>
+                {% else %}
+                    <span class="status cancelled" style="color: red;">Cancelled</span>
+                {% endif %}
+              </td>
+              <td><span class="text-muted">History</span></td>
+            </tr>
+            {% endif %}
           {% endfor %}
         </tbody>
       </table>
     </div>
-
   </div>
 </div>
 
 <script>
-let token = 8;
-function nextToken(){
-  token++;
-  document.getElementById("tokenNumber").innerText =
-    token < 10 ? "0"+token : token;
+function showTab(tabName, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const todayBody = document.getElementById('today-body');
+    const upcomingBody = document.getElementById('upcoming-body');
+    const checkedBody = document.getElementById('checked-body');
+
+    // Default: Sab hide karein
+    todayBody.style.display = 'none';
+    upcomingBody.style.display = 'none';
+    checkedBody.style.display = 'none';
+
+    // Jo select hua usay show karein
+    if (tabName === 'today') {
+        todayBody.style.display = 'table-row-group';
+    } else if (tabName === 'upcoming') {
+        upcomingBody.style.display = 'table-row-group';
+    } else if (tabName === 'checked') {
+        checkedBody.style.display = 'table-row-group';
+    }
 }
 
-function showTab(id,btn){
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+function handleNextToken() {
+    fetch("{% url 'next_token' %}")
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("Failed to update token.");
+    });
 }
 </script>
 

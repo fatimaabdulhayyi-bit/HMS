@@ -1,7 +1,11 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient, DoctorSchedule
+from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient, DoctorSchedule, Appointment
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
+from django.http import JsonResponse
+from django.db.models import Max
+from datetime import date
+from datetime import datetime
 
 def signup(request):
     if request.method == "POST":
@@ -622,7 +626,43 @@ def doctor_dashboard(request):
     return render(request, 'hospital/doctor/doctor_dashboard.html')
 
 def my_appointments(request):
-    return render(request, 'hospital/doctor/my_appointments.html')
+    doctor = get_object_or_404(Doctors, user=request.user)
+    
+    today_all = Appointment.objects.filter(
+        doctor=doctor, 
+        appointment_date=date.today()
+    ).order_by('token')
+
+    # Upcoming appointments mein se Cancelled ko nikal dein
+    upcoming_appointments = Appointment.objects.filter(
+    doctor=doctor,
+    appointment_date__gt=date.today()
+    ).exclude(status='Cancelled').order_by('appointment_date', 'appointment_time')
+
+    current_serving_appt = today_all.filter(status='Serving').first()
+    current_token = current_serving_appt.token if current_serving_appt else "0"
+
+    context = {
+        'today_appointments': today_all, 
+        'upcoming_appointments': upcoming_appointments,
+        'current_token': current_token,
+    }
+    return render(request, 'hospital/doctor/my_appointments.html', context)
+
+def next_token(request):
+    doctor = get_object_or_404(Doctors, user=request.user)
+    Appointment.objects.filter(doctor=doctor, status='Serving', appointment_date=date.today()).update(status='Completed')
+    
+    next_patient = Appointment.objects.filter(
+        doctor=doctor, status='Pending', appointment_date=date.today()
+    ).order_by('token').first()
+    
+    if next_patient:
+        next_patient.status = 'Serving'
+        next_patient.save()
+        return JsonResponse({'success': True, 'next_token': next_patient.token})
+    
+    return JsonResponse({'success': False, 'message': 'No more pending patients.'})
 
 def profiledoc(request):
 
@@ -674,10 +714,131 @@ def patient_dashboard(request):
     return render(request, 'hospital/patient/patient_dashboard.html')
 
 def appointments(request):
-    return render(request, 'hospital/patient/appointments.html')
+    # Patient ki saari appointments (History ke liye)
+    all_appointments = Appointment.objects.filter(patient_user=request.user).order_by('-created_at')
+    
+    # Sirf wo latest appointment jo cancel nahi hui aur na hi complete hui hai
+    # Is se top card automatic update hoga
+    latest_active = all_appointments.filter(status__in=['Pending', 'Serving']).first()
+    
+    for appt in all_appointments:
+        # Check current serving token for this doctor today
+        serving_appt = Appointment.objects.filter(
+            doctor=appt.doctor, 
+            appointment_date=appt.appointment_date, 
+            status='Serving'
+        ).first()
+        
+        appt.current_serving = serving_appt.token if serving_appt else 0
+        
+        # Accurate Wait Time: Cancelled logon ko nikal kar calculation
+        if appt.status == 'Pending' and appt.token > appt.current_serving:
+            # Un logon ko ginein jo aap se pehle hain lekin cancel kar chuke hain
+            cancelled_ahead = Appointment.objects.filter(
+                doctor=appt.doctor,
+                appointment_date=appt.appointment_date,
+                status='Cancelled',
+                token__lt=appt.token,
+                token__gt=appt.current_serving
+            ).count()
+            
+            # Actual Position = (Gap) - (Cancelled)
+            actual_position = (appt.token - appt.current_serving) - cancelled_ahead
+            appt.wait_time = max(0, actual_position * 10)
+        else:
+            appt.wait_time = 0
+
+    context = {
+        'patient_appointments': all_appointments,
+        'latest_active': latest_active
+    }
+    return render(request, 'hospital/patient/appointments.html', context)
+
+def cancel_appointment(request, pk):
+    # Sirf wahi appointment nikaalna jo is user ki ho aur abhi 'Pending' ho
+    appointment = get_object_or_404(Appointment, id=pk, patient_user=request.user)
+    
+    if appointment.status == 'Pending':
+        appointment.status = 'Cancelled'
+        appointment.save()
+        messages.success(request, f"Appointment #{appointment.token} has been cancelled.")
+    else:
+        messages.error(request, "You cannot cancel an appointment that is already serving or completed.")
+        
+    return redirect('appointments')
 
 def appointment_form(request):
-    return render(request, 'hospital/patient/appointment-form.html')
+    # 1. Logged-in patient ki profile fetch karein
+    patient_profile = Patients.objects.filter(user=request.user).first()
+    
+    # Age calculate karne ka logic (agar dob mojood hai)
+    age = ""
+    if patient_profile and patient_profile.dob:
+        today = date.today()
+        dob = patient_profile.dob
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+    if request.method == "POST":
+        doc_id = request.POST.get('doctor')
+        app_date_str = request.POST.get('appointment_date')
+        app_time_str = request.POST.get('appointment_time')
+        
+        # Date validation logic
+        app_date_obj = datetime.strptime(app_date_str, '%Y-%m-%d')
+        day_name = app_date_obj.strftime('%A') 
+
+        schedule = DoctorSchedule.objects.filter(
+            doctor_id=doc_id, 
+            day=day_name, 
+            is_available=True
+        ).first()
+
+        if not schedule:
+            messages.error(request, f"Doctor is not available on {day_name}.")
+            return redirect('appointment_form')
+
+        # Time Validation
+        selected_time = datetime.strptime(app_time_str, '%H:%M').time()
+        if not (schedule.start_time <= selected_time <= schedule.end_time):
+            messages.error(request, f"Doctor is only available from {schedule.start_time} to {schedule.end_time}.")
+            return redirect('appointment_form')
+
+        # Token Generation
+        last_token = Appointment.objects.filter(
+            doctor_id=doc_id, 
+            appointment_date=app_date_str
+        ).aggregate(Max('token'))['token__max'] or 0
+        
+        new_token = last_token + 1
+        
+        # Appointment Create (Data automatically profile se le rahe hain)
+        Appointment.objects.create(
+            patient_user=request.user,
+            fullname=request.user.fullname, # User account se naam
+            age=age,                        # Calculated age
+            gender=patient_profile.gender,  # Profile se gender
+            contact=patient_profile.phone,  # Profile se phone
+            department_id=request.POST.get('department'),
+            doctor_id=doc_id,
+            appointment_date=app_date_str,
+            appointment_time=app_time_str,
+            token=new_token
+        )
+        messages.success(request, f"Appointment booked! Your Token is #{new_token}")
+        return redirect('appointments')
+
+    depts = Departments.objects.filter(status=True)
+    context = {
+        'departments': depts,
+        'patient': patient_profile,
+        'calculated_age': age
+    }
+    return render(request, 'hospital/patient/appointment-form.html', context)
+def ajax_load_doctors(request):
+    department_id = request.GET.get('department_id')
+    # Sirf approved doctors jo us department ke hain
+    doctors = Doctors.objects.filter(department_id=department_id, is_approved=True).values('id', 'user__fullname')
+    return JsonResponse(list(doctors), safe=False)
 
 def bill(request):
     return render(request, 'hospital/patient/bill.html')
