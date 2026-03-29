@@ -36,58 +36,50 @@
         </thead>
 
         <tbody>
-          {% if appointments %}
-            {% for appointment in appointments %}
-            <tr>
-              <td>
-                <span class="badge bg-primary">
-                  {{ appointment.token }}
-                </span>
-              </td>
+  {% if appointments %}
+    {% for appointment in appointments %}
+    <tr>
+      <td><span class="badge bg-primary">{{ appointment.token|default:"0" }}</span></td>
+      
+      <td>{{ appointment.fullname }}</td>
+      <td>{{ appointment.age }}</td>
+      
+      <td>Dr. {{ appointment.doctor.user.fullname }}</td>
+      <td>{{ appointment.department.name }}</td>
+      
+      <td>{{ appointment.appointment_date }}</td>
+      <td>{{ appointment.appointment_time }}</td>
 
-              <td>{{ appointment.patient.full_name }}</td>
+      <td>
+        {% if appointment.status == "Pending" %}
+          <span class="badge bg-warning text-dark">Pending</span>
+        {% elif appointment.status == "Serving" %}
+          <span class="badge bg-info">Serving</span>
+        {% elif appointment.status == "Completed" %}
+          <span class="badge bg-success">Completed</span>
+        {% elif appointment.status == "Cancelled" %}
+          <span class="badge bg-danger">Cancelled</span>
+        {% endif %}
+      </td>
 
-              <td>{{ appointment.patient.age }}</td>
-
-              <td>{{ appointment.doctor.full_name }}</td>
-
-              <td>{{ appointment.doctor.department.name }}</td>
-
-              <td>{{ appointment.date }}</td>
-
-              <td>{{ appointment.time }}</td>
-
-              <td>
-                {% if appointment.status == "Pending" %}
-                  <span class="badge bg-warning text-dark">Pending</span>
-                {% elif appointment.status == "Completed" %}
-                  <span class="badge bg-success">Completed</span>
-                {% elif appointment.status == "Cancelled" %}
-                  <span class="badge bg-danger">Cancelled</span>
-                {% endif %}
-              </td>
-
-              <td class="text-center">
-                <a href="{% url 'view_appointment' appointment.id %}" class="btn-view">
-                  View
-                </a>
-                <a href="{% url 'delete_appointment' appointment.id %}" 
-                   class="btn-delete"
-                   onclick="return confirm('Are you sure you want to cancel this appointment?')">
-                  Cancel
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-          {% else %}
-            <tr>
-              <td colspan="9" class="text-center text-muted">
-                No appointments found
-              </td>
-            </tr>
-          {% endif %}
-        </tbody>
-
+      <td class="text-center">
+        <a href="{% url 'view_appointment' appointment.id %}" class="btn-edit" title="View Details">
+           View
+        </a>
+        {% if appointment.status == "Pending" or appointment.status == "Serving" %}
+        <a href="{% url 'delete_appointment' appointment.id %}" 
+           class="btn-delete"
+           onclick="return confirm('Are you sure you want to cancel this appointment?')">
+          Cancel
+        </a>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  {% else %}
+    <tr><td colspan="9" class="text-center text-muted">No appointments found</td></tr>
+  {% endif %}
+</tbody>
       </table>
     </div>
   </div>

@@ -5,53 +5,41 @@
 
 {% block content %}
 
-<!-- PAGE HEADER -->
 <div class="d-flex justify-content-between align-items-center mb-4 px-4 pt-4">
   <h2 class="page-title">Add Appointment</h2>
   <a href="{% url 'appointments' %}" class="btn-back">Back</a>
 </div>
 
-<!-- FORM WRAPPER -->
-<div class="doctor-form-wrapper">
-
+<div class="doctor-form-wrapper px-4">
   <form method="POST" class="doctor-form">
     {% csrf_token %}
 
-    <!-- APPOINTMENT INFO -->
     <div class="row g-4">
-
       <div class="col-md-6">
         <label class="form-label">Patient Name</label>
         <select name="patient" class="form-select" required>
           <option value="">Select Patient</option>
           {% for patient in patients %}
-            <option value="{{ patient.id }}">
-              {{ patient.fullname }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Doctor Name</label>
-        <select name="doctor" class="form-select" required>
-          <option value="">Select Doctor</option>
-          {% for doctor in doctors %}
-            <option value="{{ doctor.id }}">
-              {{ doctor.user.first_name }} {{ doctor.user.last_name }}
-            </option>
+            <option value="{{ patient.id }}">{{ patient.user.fullname }}</option>
           {% endfor %}
         </select>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Department</label>
-        <select name="department" class="form-select" required>
+        <select name="department" id="id_department" class="form-select" required>
           <option value="">Select Department</option>
           {% for dept in departments %}
             <option value="{{ dept.id }}">{{ dept.name }}</option>
           {% endfor %}
         </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Doctor Name</label>
+        <select name="doctor" id="id_doctor" class="form-select" required>
+          <option value="">Select Doctor</option>
+          </select>
       </div>
 
       <div class="col-md-6">
@@ -63,33 +51,48 @@
         <label class="form-label">Appointment Time</label>
         <input type="time" name="appointment_time" class="form-control" required>
       </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Status</label>
-        <select name="status" class="form-select">
-          <option value="Pending" selected>Pending</option>
-          <option value="Approved">Approved</option>
-          <option value="Rejected">Rejected</option>
-        </select>
-      </div>
-
-      <div class="col-md-12">
-        <label class="form-label">Message</label>
-        <textarea name="message" class="form-control" rows="5"
-          placeholder="Enter patient problem / note"></textarea>
-      </div>
-
     </div>
-
-    <!-- SUBMIT -->
+ <div class="mt-4">
+      <label class="form-label">Status</label>
+      <div class="d-flex gap-4">
+        <label class="radio-label">
+          <input type="radio" name="status" value="Active" checked>pending
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="status" value="Inactive"> cancel
+        </label>
+      </div>
+    </div>
     <div class="text-center mt-5">
-      <button type="submit" class="btn-submit">
-        Create Appointment
-      </button>
+      <button type="submit" class="btn-submit">Create Appointment</button>
     </div>
-
   </form>
-
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("#id_department").change(function () {
+            const url = "{% url 'ajax_load_doctors' %}";
+            const deptId = $(this).val();
+
+            if (deptId) {
+                $.ajax({
+                    url: url,
+                    data: { 'department_id': deptId },
+                    success: function (data) {
+                        let html_data = '<option value="">Select Doctor</option>';
+                        data.forEach(function (doc) {
+                            // Make sure 'user__fullname' matches what your JsonResponse returns
+                            html_data += `<option value="${doc.id}">${doc.user__fullname}</option>`;
+                        });
+                        $("#id_doctor").html(html_data);
+                    }
+                });
+            } else {
+                $("#id_doctor").html('<option value="">Select Doctor</option>');
+            }
+        });
+    });
+</script>
 {% endblock %}

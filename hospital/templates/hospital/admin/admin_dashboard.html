@@ -54,7 +54,7 @@
         </div>
         <div class="card-content">
           <h3>Appointments</h3>
-          <p>0</p>
+          <p>{{ total_appointments }}</p>
         </div>
       </a>
     </div>
@@ -126,42 +126,42 @@
 
     <!-- APPOINTMENTS TABLE -->
     <div class="col-lg-6">
-      <div class="list-card">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h3>Appointments</h3>
-          <a href="{% url 'manage_appointments' %}" class="btn-view">View All</a>
-        </div>
-
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Patient</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Doctor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% if ongoing_appointments %}
-                {% for appointment in ongoing_appointments %}
-                <tr>
-                  <td>{{ appointment.patient_name }}</td>
-                  <td>{{ appointment.date }}</td>
-                  <td>{{ appointment.time }}</td>
-                  <td>{{ appointment.doctor }}</td>
-                </tr>
-                {% endfor %}
-              {% else %}
-                <tr>
-                  <td colspan="4" class="text-muted">No ongoing appointments</td>
-                </tr>
-              {% endif %}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  <div class="list-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3>Ongoing Appointments</h3>
+      
     </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Token</th>
+            <th>Time</th>
+            <th>Doctor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if ongoing_appointments %}
+            {% for appointment in ongoing_appointments %}
+            <tr>
+              <td>{{ appointment.fullname }}</td>
+              <td><span class="badge bg-primary">#{{ appointment.token }}</span></td>
+              <td>{{ appointment.appointment_time }}</td>
+              <td>Dr. {{ appointment.doctor.user.fullname }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" class="text-center text-muted">No ongoing appointments today</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 
   </div>

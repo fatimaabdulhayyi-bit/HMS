@@ -1,0 +1,140 @@
+{% extends 'hospital/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}View Appointment{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-4 mt-4">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold">Patient Information</h3>
+    </div>
+
+    <div class="card shadow-lg border-0 rounded-4">
+
+        <!-- Header -->
+        <div class="card-header text-white rounded-top-4"
+             style="background: linear-gradient(90deg,#1976d2,#42a5f5);">
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">Token #{{ appt.token }}</h4>
+                    <small>Appointment Information</small>
+                </div>
+
+                <span class="badge bg-light text-dark px-3 py-2">
+                    {{ appt.status }}
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+    <!-- Patient Information -->
+    <h5 class="fw-bold text-primary mb-3">Patient Information</h5>
+    <hr>
+
+    <div class="row mb-3">
+
+        <div class="col-md-6">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" value="{{ appt.fullname }}" readonly>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Guardian</label>
+            <input type="text" class="form-control" value="{{ patient.guardian_name }}" readonly>
+        </div>
+
+    </div>
+
+    <div class="row mb-3">
+
+        <div class="col-md-6">
+            <label class="form-label">Age</label>
+            <input type="text" class="form-control" value="{{ appt.age }}" readonly>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Gender</label>
+            <input type="text" class="form-control" value="{{ appt.gender }}" readonly>
+        </div>
+
+    </div>
+
+    <div class="row mb-4">
+
+        <div class="col-md-6">
+            <label class="form-label">Blood Group</label>
+            <input type="text" class="form-control" value="{{ patient.blood_group }}" readonly>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Contact</label>
+            <input type="text" class="form-control" value="{{ appt.contact }}" readonly>
+        </div>
+
+    </div>
+
+
+    <!-- Appointment Information -->
+    <h5 class="fw-bold text-primary mb-3">Appointment Information</h5>
+    <hr>
+
+    <div class="row mb-3">
+
+        <div class="col-md-6">
+            <label class="form-label">Doctor</label>
+            <input type="text" class="form-control" value="Dr. {{ appt.doctor.user.fullname }}" readonly>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Department</label>
+            <input type="text" class="form-control" value="{{ appt.department.name }}" readonly>
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-6">
+            <label class="form-label">Appointment Date</label>
+            <input type="text" class="form-control" value="{{ appt.appointment_date }}" readonly>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Appointment Time</label>
+            <input type="text" class="form-control" value="{{ appt.appointment_time }}" readonly>
+        </div>
+
+    </div>
+
+</div>
+
+        <!-- Footer -->
+        <div class="card-footer text-end bg-white">
+
+            <a href="{% url 'manage_appointments' %}" class="btn text-white"
+   style="background-color:#1976d2;">
+   Back
+</a>
+
+            {% if appt.status == 'Pending' %}
+
+            <a href="#" class="btn btn-success">
+                Approve Appointment
+            </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

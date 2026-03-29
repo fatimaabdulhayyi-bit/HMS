@@ -55,10 +55,15 @@ def index(request):
     active_depts = Departments.objects.filter(status=True)
     total_patients = Patients.objects.count()
     total_departments = Departments.objects.count()
+    total_doctors = Doctors.objects.filter(is_approved=True).count()
+    total_appointments = Appointment.objects.count()
+
     context = {
         'total_patients': total_patients,
         'total_departments': total_departments,
-        'departments': active_depts
+        'departments': active_depts,
+        'total_doctors' : total_doctors,
+        'total_appointments': total_appointments,
     }
     return render(request, 'hospital/index.html', context)
    
@@ -202,16 +207,23 @@ def admin_dashboard(request):
     total_patients = Patients.objects.count()
     total_departments = Departments.objects.count()
     pending_doctors = Doctors.objects.filter(is_approved=False)
-    total_doctors = Doctors.objects.count()
+    total_doctors = Doctors.objects.filter(is_approved=True).count()
+    total_appointments = Appointment.objects.count()
     
     active_InPatients_count = InPatient.objects.filter(is_discharged=False).count()
+    ongoing_appointments = Appointment.objects.filter(
+        appointment_date=date.today(),
+        status__in=['Pending', 'Serving']
+    ).order_by('token')[:5] # Top 5 dikhane ke liye
     
     context = {
         'total_patients': total_patients,
         'total_doctors' : total_doctors,
         'total_departments': total_departments,
         'pending_doctors': pending_doctors,
-        'total_InPatients': active_InPatients_count 
+        'total_InPatients': active_InPatients_count,
+        'total_appointments': total_appointments,
+        'ongoing_appointments': ongoing_appointments,
     }
     return render(request, 'hospital/admin/admin_dashboard.html', context)
 
@@ -238,7 +250,105 @@ def reject_doctor(request, doctor_id):
     return redirect('admin_dashboard')
 
 def manage_appointments(request):
-    return render(request, 'hospital/admin/manage_appointments.html')
+    # select_related use karne se doctor aur department ka data aik hi query mein aa jayega
+    # -appointment_date ka matlab hai ke latest appointments sab se upar aayengi
+    all_appointments = Appointment.objects.all().select_related(
+        'doctor__user', 
+        'department', 
+        'patient_user'
+    ).order_by('-appointment_date', 'token')
+
+    context = {
+        'appointments': all_appointments
+    }
+    return render(request, 'hospital/admin/manage_appointments.html', context)
+
+def add_appointment(request):
+    if request.method == "POST":
+        patient_id = request.POST.get('patient')
+        dept_id = request.POST.get('department')
+        doc_id = request.POST.get('doctor')
+        app_date = request.POST.get('appointment_date')
+        app_time = request.POST.get('appointment_time')
+        status = request.POST.get('status')
+
+        # 1. Patient ki details fetch karein (Auto-filling for Appointment model)
+        patient_obj = get_object_or_404(Patients, id=patient_id)
+        
+        # Age calculate karein (agar model mein method nahi hai toh manually)
+        today = date.today()
+        dob = patient_obj.dob
+        calculated_age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+        # 2. Token Generation (Aaj ka max token + 1)
+        last_token = Appointment.objects.filter(
+            doctor_id=doc_id, 
+            appointment_date=app_date
+        ).aggregate(Max('token'))['token__max'] or 0
+        new_token = last_token + 1
+
+        # 3. Create Appointment
+        Appointment.objects.create(
+            patient_user=patient_obj.user, # Connect to UserAccount
+            fullname=patient_obj.user.fullname,
+            age=calculated_age,
+            gender=patient_obj.gender,
+            contact=patient_obj.phone,
+            department_id=dept_id,
+            doctor_id=doc_id,
+            appointment_date=app_date,
+            appointment_time=app_time,
+            token=new_token,
+            status=status
+        )
+
+        messages.success(request, f"Appointment created! Token #{new_token} assigned.")
+        return redirect('manage_appointments') # Admin appointments list par wapas
+
+    # GET Request: Dropdowns fill karne k liye
+    context = {
+        'patients': Patients.objects.all(),
+        'departments': Departments.objects.filter(status=True),
+        'doctors': Doctors.objects.filter(is_approved=True), # Default list (AJAX isay update kar dega)
+    }
+    return render(request, 'hospital/admin/add_appointment.html', context)
+
+def view_appointment(request, pk):
+    # Specific appointment uthayein ID (pk) ke zariye
+    appointment = get_object_or_404(Appointment, id=pk)
+    
+    # Agar aap mazeed details dikhana chahti hain jo profile mein hain:
+    patient_profile = appointment.patient_user.patient_profile # Related name use kiya
+
+    context = {
+        'appt': appointment,
+        'patient': patient_profile
+    }
+    return render(request, 'hospital/admin/view_appointment.html', context)
+
+def delete_appointment(request, pk):
+
+    # Ye function appointment ko cancel karne ke liye use ho raha hai
+
+    appointment = get_object_or_404(Appointment, id=pk)
+
+    
+
+    if appointment.status != 'Completed':
+
+        appointment.status = 'Cancelled'
+
+        appointment.save()
+
+        messages.success(request, "Appointment has been cancelled successfully.")
+
+    else:
+
+        messages.error(request, "Completed appointments cannot be cancelled.")
+
+        
+
+    return redirect('manage_appointments')
 
 def generate_bills(request):
     return render(request, 'hospital/admin/generate_bills.html')
@@ -360,7 +470,7 @@ def delete_doctor(request, pk):
 # doctor schedule fn
 def doctor_schedule(request):
 
-    doctor = Doctors.objects.get(user=request.user)
+    doctor = Doctors.objects.get(user=request.user).first()
 
     schedules = DoctorSchedule.objects.filter(doctor=doctor)
 
@@ -418,20 +528,7 @@ def edit_schedule(request, id):
     }
 
     return render(request, 'hospital/doctor/edit_schedule.html', context)
-def delete_schedule(request, pk):
-    schedule = get_object_or_404(DoctorSchedule, id=pk)
-    
-    # Check karein ke sirf wahi doctor delete kar sakay jis ka schedule hai
-    # (Security ke liye achi practice hai)
-    doctor = get_object_or_404(Doctors, user=request.user)
-    
-    if schedule.doctor == doctor:
-        schedule.delete()
-        messages.success(request, "Schedule deleted successfully!")
-    else:
-        messages.error(request, "Aap ye schedule delete nahi kar saktay.")
-        
-    return redirect('doctor_schedule')
+
 def delete_schedule(request, id):
 
     schedule = DoctorSchedule.objects.get(id=id)
@@ -618,9 +715,6 @@ def discharge_patient(request, pk):
     record.save()
     messages.success(request, f"{record.patient.user.fullname} has been discharged.")
     return redirect('In_Patient')
-
-def add_appointment(request):
-    return render(request, 'hospital/admin/add_appointment.html')
 
 def doctor_dashboard(request):
     return render(request, 'hospital/doctor/doctor_dashboard.html')
