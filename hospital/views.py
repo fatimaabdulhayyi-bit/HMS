@@ -4,9 +4,8 @@ from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Max
-from datetime import date
-from datetime import datetime
-from django.db import transaction # Isay top par add karein
+from datetime import date,datetime,timedelta
+from django.db import transaction
 
 def signup(request):
     if request.method == "POST":
@@ -17,38 +16,53 @@ def signup(request):
         confirm_password = request.POST.get('confirm_password')
 
         if password != confirm_password:
-            return render(request, 'hospital/forms/sign_up.html', {'error': 'Passwords do not match'})
+            return render(request, 'hospital/forms/sign_up.html',
+                          {'error': 'Passwords do not match'})
 
-        if role == "admin":
-            # Admin signup form me nahi hai, backend-only
-            return render(request, 'hospital/forms/sign_up.html', {'error': 'Admin cannot signup here.'})
+        # Check if user already exists
+        user = UserAccount.objects.filter(email=email).first()
+        if user:
 
-        # Check if user exists
-        user_exists = UserAccount.objects.filter(email=email).first()
-        if user_exists:
-            if user_exists.role == 'patient':
-                # Patient already exists → redirect to patient registration (profile completion)
-                return redirect('login')
-            else:
-                return render(request, 'hospital/forms/sign_up.html', {'error': 'User with this email already exists.'})
+            # Check doctor registration
+            if user.role == "doctor":
+                doctor_exists = Doctors.objects.filter(user=user).exists()
 
-        # Create user
+                if not doctor_exists:
+                    auth_login(request, user)
+                    return redirect('doctorreg')
+                else:
+                    messages.success(request, "User already exist. Please login")
+                    return redirect('login')
+
+            # Check patient registration
+            if user.role == "patient":
+                patient_exists = Patients.objects.filter(user=user).exists()
+
+                if not patient_exists:
+                    auth_login(request, user)
+                    return redirect('patientreg')
+                else:
+                    messages.success(request, "User already exist. Please login")
+                    return redirect('login')
+
+            return redirect('login')
+
+        # Create new user
         user = UserAccount.objects.create_user(
             email=email,
             fullname=fullname,
             role=role,
             password=password
         )
-        
-        auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-        if role == 'doctor':
+        auth_login(request, user)
+
+        if role == "doctor":
             user.is_approved = False
             user.save()
             return redirect('doctorreg')
 
-        user.save()
-        return redirect('patientreg')  # New patient → go to registration page
+        return redirect('patientreg')
 
     return render(request, 'hospital/forms/sign_up.html')
 
@@ -76,20 +90,35 @@ def login(request):
         user = authenticate(request, email=email, password=password)
 
         if user is not None:
-            if user.role == 'doctor' and not user.is_approved:
-                return render(request, 'hospital/pending_approval.html', 
-                              {'error': 'Your account is pending admin approval.'})
-            
-            auth_login(request, user)  # Login the user
-            
-            if user.is_superadmin:
-                return redirect('/admin/')
+            # 1. Pehle user ko login karwa dein taake session mil jaye
+            auth_login(request, user)
 
-            # 2. Frontend Admin (Normal Admin)
+            if user.role == 'doctor':
+                doctor_exists = Doctors.objects.filter(user=user).exists()
+                
+                if not doctor_exists:
+                    return redirect('doctorreg')
+                
+                if not user.is_approved:
+                    messages.warning(request, "Please wait for admin approval.")
+                    return redirect('login')
+                
+                return redirect('doctor_dashboard')
+
+            elif user.role == 'patient':
+                patient_exists = Patients.objects.filter(user=user).exists()
+                if not patient_exists:
+                    return redirect('patientreg')
+                return redirect('patient_dashboard')
+
+            # 3. Admin / Superadmin logic
+            elif user.is_superadmin:
+                messages.warning(request, "You have no access to this page.")
+                return redirect('/login/')
+            
             elif user.role == 'admin' and user.is_admin:
                 return redirect('admin_dashboard')
-            elif user.role == 'doctor':
-                return redirect('doctor_dashboard')
+
             else:
                 return redirect('patient_dashboard')
         else:
@@ -916,22 +945,35 @@ def my_appointments(request):
     appointment_date__gt=date.today()
     ).exclude(status='Cancelled').order_by('appointment_date', 'appointment_time')
 
+    checked_patients = Appointment.objects.filter(
+        doctor=doctor,
+        status__in=['Completed', 'Cancelled', 'Billed'] 
+    ).order_by('-appointment_date', '-appointment_time')
+    
     current_serving_appt = today_all.filter(status='Serving').first()
     current_token = current_serving_appt.token if current_serving_appt else "0"
 
     context = {
         'today_appointments': today_all, 
         'upcoming_appointments': upcoming_appointments,
+        'checked_patients': checked_patients,
         'current_token': current_token,
     }
     return render(request, 'hospital/doctor/my_appointments.html', context)
 
 def next_token(request):
     doctor = get_object_or_404(Doctors, user=request.user)
-    Appointment.objects.filter(doctor=doctor, status='Serving', appointment_date=date.today()).update(status='Completed')
+
+    Appointment.objects.filter(
+        doctor=doctor, 
+        status='Serving', 
+        appointment_date=date.today()
+    ).update(status='Completed')
     
     next_patient = Appointment.objects.filter(
-        doctor=doctor, status='Pending', appointment_date=date.today()
+        doctor=doctor, 
+        status='Pending', 
+        appointment_date=date.today()
     ).order_by('token').first()
     
     if next_patient:
@@ -939,7 +981,7 @@ def next_token(request):
         next_patient.save()
         return JsonResponse({'success': True, 'next_token': next_patient.token})
     
-    return JsonResponse({'success': False, 'message': 'No more pending patients.'})
+    return JsonResponse({'success': False, 'message': 'No more pending patients for today.'})
 
 def profiledoc(request):
 
@@ -991,54 +1033,146 @@ def patient_dashboard(request):
     return render(request, 'hospital/patient/patient_dashboard.html')
 
 def appointments(request):
-    # 1. Logged-in user ki patient profile fetch karein
-    # Related name 'patient_profile' models.py mein defined hai
     try:
-        profile = request.user.patient_profile
+        profile = Patients.objects.get(user=request.user)
     except Patients.DoesNotExist:
-        messages.error(request, "Patient profile not found. Please complete your profile.")
-        return redirect('home')
+        return redirect('signup')
 
-    # 2. Filter mein 'profile' pass karein na ke 'request.user'
     all_appointments = Appointment.objects.filter(patient_user=profile).order_by('-created_at')
-    
-    # Baaki logic same rahega
     latest_active = all_appointments.filter(status__in=['Pending', 'Serving']).first()
     
-    for appt in all_appointments:
-        # Check current serving token for this doctor today
-        serving_appt = Appointment.objects.filter(
-            doctor=appt.doctor, 
-            appointment_date=appt.appointment_date, 
+    if latest_active:
+        # 1. Get Current Serving Token
+        serving_now = Appointment.objects.filter(
+            doctor=latest_active.doctor,
+            appointment_date=date.today(),
             status='Serving'
         ).first()
         
-        appt.current_serving = serving_appt.token if serving_appt else 0
-        
-        # Wait Time logic
-        if appt.status == 'Pending' and appt.token > appt.current_serving:
-            cancelled_ahead = Appointment.objects.filter(
-                doctor=appt.doctor,
-                appointment_date=appt.appointment_date,
-                status='Cancelled',
-                token__lt=appt.token,
-                token__gt=appt.current_serving
-            ).count()
+        current_val = serving_now.token if serving_now else 0
+        if current_val == 0:
+            last_completed = Appointment.objects.filter(
+                doctor=latest_active.doctor,
+                appointment_date=date.today(),
+                status='Completed'
+            ).order_by('-token').first()
+            current_val = last_completed.token if last_completed else 0
             
-            actual_position = (appt.token - appt.current_serving) - cancelled_ahead
-            appt.wait_time = max(0, actual_position * 10)
+        latest_active.current_serving = current_val
+
+        # 2. Progress Calculation
+        progress = 0
+        if latest_active.token > 0:
+            progress = (current_val / latest_active.token) * 100
+            if progress > 100: progress = 100
+        latest_active.progress_val = round(progress, 2)
+
+        # 3. Smart Wait Time & Alert Logic
+        show_alert = False
+        if latest_active.status == 'Pending':
+            # Token logic
+            people_ahead = Appointment.objects.filter(
+                doctor=latest_active.doctor,
+                appointment_date=latest_active.appointment_date,
+                status='Pending',
+                token__lt=latest_active.token,
+                token__gt=current_val
+            ).count()
+            token_wait = (people_ahead + 1) * 10
+
+            # Clock logic
+            now = datetime.now()
+            appt_dt = datetime.combine(date.today(), latest_active.appointment_time)
+            mins_left = int((appt_dt - now).total_seconds() / 60)
+
+            # Assign wait time
+            if 0 < mins_left < token_wait:
+                latest_active.wait_time = mins_left
+            elif mins_left <= 0:
+                latest_active.wait_time = 2
+            else:
+                latest_active.wait_time = token_wait
+
+            # Show Alert if 3 or fewer tokens away
+            if 0 < (latest_active.token - current_val) <= 3:
+                show_alert = True
         else:
-            appt.wait_time = 0
+            latest_active.wait_time = 0
+        
+        latest_active.show_alert = show_alert
 
     context = {
-        'patient_appointments': all_appointments,
+        'patient_appointments': all_appointments, 
         'latest_active': latest_active
     }
     return render(request, 'hospital/patient/appointments.html', context)
 
+def get_live_update(request, appt_id):
+    appointment = get_object_or_404(Appointment, id=appt_id)
+    
+    serving_now = Appointment.objects.filter(
+        doctor=appointment.doctor,
+        appointment_date=date.today(),
+        status='Serving'
+    ).first()
+    
+    current_val = serving_now.token if serving_now else 0
+    if current_val == 0:
+        last_done = Appointment.objects.filter(
+            doctor=appointment.doctor,
+            appointment_date=date.today(),
+            status='Completed'
+        ).order_by('-token').first()
+        current_val = last_done.token if last_done else 0
+
+    # Live Update Logic
+    show_alert = False
+    wait_time = 0
+    if appointment.status == 'Pending':
+        # Wait time
+        people_ahead = Appointment.objects.filter(
+            doctor=appointment.doctor,
+            appointment_date=appointment.appointment_date,
+            status='Pending',
+            token__lt=appointment.token,
+            token__gt=current_val
+        ).count()
+        token_wait = (people_ahead + 1) * 10
+        
+        now = datetime.now()
+        appt_dt = datetime.combine(date.today(), appointment.appointment_time)
+        mins_left = int((appt_dt - now).total_seconds() / 60)
+        wait_time = mins_left if 0 < mins_left < token_wait else token_wait
+        if mins_left <= 0: wait_time = 2
+
+        # Alert
+        if 0 < (appointment.token - current_val) <= 3:
+            show_alert = True
+
+    progress = 0
+    if appointment.token > 0:
+        progress = (current_val / appointment.token) * 100
+        if progress > 100: progress = 100
+
+    return JsonResponse({
+        'current_serving': current_val,
+        'wait_time': wait_time,
+        'status': appointment.status,
+        'progress': round(progress, 2),
+        'show_alert': show_alert
+    })
+
 def cancel_appointment(request, pk):
-    # Sirf wahi appointment nikaalna jo is user ki ho aur abhi 'Pending' ho
-    appointment = get_object_or_404(Appointment, id=pk, patient_user=request.user)
+    # 1. Pehle login user ki Patient Profile nikalen
+    try:
+        # Agar aapne model mein related_name='patient_profile' rakha hai
+        patient_profile = request.user.patient_profile 
+    except:
+        # Alternate tareeqa agar related_name nahi hai
+        patient_profile = get_object_or_404(Patients, user=request.user)
+
+    # 2. Ab 'patient_user' mein patient_profile pass karein (request.user nahi)
+    appointment = get_object_or_404(Appointment, id=pk, patient_user=patient_profile)
     
     if appointment.status == 'Pending':
         appointment.status = 'Cancelled'
@@ -1050,39 +1184,37 @@ def cancel_appointment(request, pk):
     return redirect('appointments')
 
 def appointment_form(request):
-    # 1. Logged-in patient ki profile fetch karein
+    # 1. Profile aur Age Fetching
     patient_profile = Patients.objects.filter(user=request.user).first()
-    
-    # Age calculate karne ka logic (agar dob mojood hai)
-    age = ""
+    age = 0
     if patient_profile and patient_profile.dob:
         today = date.today()
-        dob = patient_profile.dob
-        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        age = today.year - patient_profile.dob.year - ((today.month, today.day) < (patient_profile.dob.month, patient_profile.dob.day))
 
     if request.method == "POST":
         doc_id = request.POST.get('doctor')
+        dept_id = request.POST.get('department')
         app_date_str = request.POST.get('appointment_date')
-        app_time_str = request.POST.get('appointment_time')
         
-        # Date validation logic
-        app_date_obj = datetime.strptime(app_date_str, '%Y-%m-%d')
+        # Date Validation
+        app_date_obj = datetime.strptime(app_date_str, '%Y-%m-%d').date()
         day_name = app_date_obj.strftime('%A') 
 
-        schedule = DoctorSchedule.objects.filter(
-            doctor_id=doc_id, 
-            day=day_name, 
-            is_available=True
-        ).first()
+        # Schedule Fetching
+        schedule = DoctorSchedule.objects.filter(doctor_id=doc_id, day=day_name, is_available=True).first()
 
         if not schedule:
             messages.error(request, f"Doctor is not available on {day_name}.")
             return redirect('appointment_form')
 
-        # Time Validation
-        selected_time = datetime.strptime(app_time_str, '%H:%M').time()
-        if not (schedule.start_time <= selected_time <= schedule.end_time):
-            messages.error(request, f"Doctor is only available from {schedule.start_time} to {schedule.end_time}.")
+        # --- SMART TIME & SLOT VALIDATION ---
+        start_dt = datetime.combine(date.today(), schedule.start_time)
+        end_dt = datetime.combine(date.today(), schedule.end_time)
+        now = datetime.now()
+
+        # Check A: Agar shift khatam ho chuki hai (For Today)
+        if app_date_obj == date.today() and now >= end_dt:
+            messages.error(request, f"Doctor's shift for today has already ended at {schedule.end_time.strftime('%I:%M %p')}.")
             return redirect('appointment_form')
 
         # Token Generation
@@ -1090,23 +1222,37 @@ def appointment_form(request):
             doctor_id=doc_id, 
             appointment_date=app_date_str
         ).aggregate(Max('token'))['token__max'] or 0
-        
         new_token = last_token + 1
         
-        # Appointment Create (Data automatically profile se le rahe hain)
+        # Time Calculation (Base: 10 mins per patient)
+        calculated_dt = start_dt + timedelta(minutes=last_token * 10)
+
+        #Past Time Conflict Fix
+        if app_date_obj == date.today() and calculated_dt < now:
+            calculated_dt = now + timedelta(minutes=5)
+
+        # STRICT SHIFT LIMIT 
+        if calculated_dt > end_dt:
+            messages.error(request, f"Sorry, all slots are full! Doctor's shift ends at {schedule.end_time.strftime('%I:%M %p')}.")
+            return redirect('appointment_form')
+
+        final_time = calculated_dt.time()
+
+        # 3. Create Appointment
         Appointment.objects.create(
             patient_user=patient_profile,
-            fullname=request.user.fullname, # User account se naam
-            age=age,                        # Calculated age
-            gender=patient_profile.gender,  # Profile se gender
-            contact=patient_profile.phone,  # Profile se phone
-            department_id=request.POST.get('department'),
+            fullname=request.user.fullname,
+            age=age,
+            gender=patient_profile.gender,
+            contact=patient_profile.phone,
+            department_id=dept_id,
             doctor_id=doc_id,
             appointment_date=app_date_str,
-            appointment_time=app_time_str,
+            appointment_time=final_time,
             token=new_token
         )
-        messages.success(request, f"Appointment booked! Your Token is #{new_token}")
+        
+        messages.success(request, f"Appointment Booked! Token: #{new_token} | Time: {final_time.strftime('%I:%M %p')}")
         return redirect('appointments')
 
     depts = Departments.objects.filter(status=True)
@@ -1116,6 +1262,44 @@ def appointment_form(request):
         'calculated_age': age
     }
     return render(request, 'hospital/patient/appointment-form.html', context)
+
+def get_estimated_time(request):
+    doc_id = request.GET.get('doctor_id')
+    date_str = request.GET.get('date')
+    
+    if doc_id and date_str:
+        try:
+            app_date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+            day_name = app_date_obj.strftime('%A')
+            schedule = DoctorSchedule.objects.filter(doctor_id=doc_id, day=day_name).first()
+            
+            if schedule:
+                now = datetime.now()
+                end_dt = datetime.combine(date.today(), schedule.end_time)
+                
+                # 1. Shift Check
+                if app_date_obj == date.today() and now >= end_dt:
+                    return JsonResponse({'success': False, 'message': 'Doctor\'s shift has ended for today.'})
+
+                # 2. Time Calculation
+                last_token = Appointment.objects.filter(doctor_id=doc_id, appointment_date=date_str).count()
+                start_dt = datetime.combine(date.today(), schedule.start_time)
+                calculated_dt = start_dt + timedelta(minutes=last_token * 10)
+
+                if app_date_obj == date.today() and calculated_dt < now:
+                    calculated_dt = now + timedelta(minutes=5)
+
+                # 3. Final Slot Check
+                if calculated_dt > end_dt:
+                    return JsonResponse({'success': False, 'message': 'All slots are full for this doctor today.'})
+
+                est_time = calculated_dt.strftime('%I:%M %p')
+                return JsonResponse({'success': True, 'estimated_time': est_time})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': 'Error calculating time.'})
+            
+    return JsonResponse({'success': False})
+
 def ajax_load_doctors(request):
     department_id = request.GET.get('department_id')
     # Sirf approved doctors jo us department ke hain

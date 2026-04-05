@@ -1,18 +1,17 @@
-
 {% extends 'hospital/patient/base_patient.html' %}
 {% load static %}
 {% block title %}Book Appointment{% endblock %}
 {% block content %}
 {% for message in messages %}
-        <div class="alert alert-success text-center">
-            {{ message }}
-        </div>
-    {% endfor %}
+    <div class="alert alert-success text-center">
+        {{ message }}
+    </div>
+{% endfor %}
+
 <div class="page-wrapper">
   <div class="appointment-card">
-    <!-- Heading -->
     <h2 class="card-heading">Book Appointment</h2>
-    <!-- Card Body -->
+    
     <div class="card-body">
       <form method="POST" class="patient-form">
         {% csrf_token %}
@@ -24,42 +23,50 @@
           <div class="col-md-6">
             <label class="form-label">Age</label>
             <input type="number" name="age" class="form-control" value="{{ calculated_age }}" readonly>
-    </div>
+          </div>
           
           <div class="col-md-6">
             <label class="form-label">Gender</label>
-           <input type="text" name="gender" class="form-control" value="{{ patient.gender }}" readonly>
+            <input type="text" name="gender" class="form-control" value="{{ patient.gender }}" readonly>
           </div>
-        <div class="col-md-6">
-  <label class="form-label">Contact</label>
-  <input type="text" name="contact" class="form-control" value="{{ patient.phone }}" readonly>
-</div>
-<div class="col-md-6">
+          
+          <div class="col-md-6">
+            <label class="form-label">Contact</label>
+            <input type="text" name="contact" class="form-control" value="{{ patient.phone }}" readonly>
+          </div>
+
+          <div class="col-md-6">
             <label class="form-label">Department</label>
             <select name="department" id="id_department" class="form-select" required>
-    <option value="">Select Department</option>
-    {% for dept in departments %}
-        <option value="{{ dept.id }}">{{ dept.name }}</option>
-    {% endfor %}
-</select>
+                <option value="">Select Department</option>
+                {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                {% endfor %}
+            </select>
           </div>
+
           <div class="col-md-6">
             <label class="form-label">Doctor</label>
             <select name="doctor" id="id_doctor" class="form-select" required>
-    <option value="">Select Doctor</option>
-    </select>
+                <option value="">Select Doctor</option>
+            </select>
           </div>
-<div class="col-md-6">
-  <label class="form-label">Appointment Date</label>
-  <input type="date" name="appointment_date" class="form-control" required>
-</div>
-<div class="col-md-6">
-  <label class="form-label">Appointment Time</label>
-  <input type="time" name="appointment_time" class="form-control" required>
-</div>
+
+          <div class="col-md-6">
+            <label class="form-label">Appointment Date</label>
+            <input type="date" name="appointment_date" id="id_date" class="form-control" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Expected Appointment Time</label>
+            <div id="time-info-box" class="form-control bg-light" style="display:none; color: #055160; border: 1px solid #b6effb;">
+                <i class="fa fa-clock"></i> <span id="display_time">Calculating...</span>
+            </div>
+            <input type="text" id="time_placeholder" class="form-control" value="Select Date & Doctor" readonly>
+          </div>
           
         </div>
-        <!-- Submit Button -->
+
         <div class="text-center">
           <button type="submit" class="btn-submit">Book Appointment</button>
         </div>
@@ -67,8 +74,10 @@
     </div>
   </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // 1. Original AJAX for loading doctors
     $("#id_department").change(function () {
         const url = "{% url 'ajax_load_doctors' %}";
         const deptId = $(this).val();
@@ -82,12 +91,39 @@
                     html_data += `<option value="${doc.id}">${doc.user__fullname}</option>`;
                 });
                 $("#id_doctor").html(html_data);
+                $("#time-info-box").hide();
+                $("#time_placeholder").show();
             }
         });
     });
-     document.addEventListener("DOMContentLoaded", function () {
+
+    // 2. AJAX for estimating time
+    $("#id_doctor, #id_date").change(function () {
+        const docId = $("#id_doctor").val();
+        const dateVal = $("#id_date").val();
+
+        if (docId && dateVal) {
+            $.ajax({
+                url: "{% url 'get_estimated_time' %}",
+                data: { 'doctor_id': docId, 'date': dateVal },
+                success: function (data) {
+                    if(data.success) {
+                        $("#time_placeholder").hide();
+                        $("#time-info-box").fadeIn();
+                        $("#display_time").text(data.estimated_time);
+                    } else {
+                        $("#time-info-box").hide();
+                        $("#time_placeholder").show().val("No schedule found for this day");
+                    }
+                }
+            });
+        }
+    });
+
+    // Original logic to disable past dates
+    document.addEventListener("DOMContentLoaded", function () {
         let today = new Date().toISOString().split('T')[0];
-        document.querySelector('input[name="appointment_date"]').setAttribute('min', today);
+        document.getElementById('id_date').setAttribute('min', today);
     });
 </script>
 {% endblock %}

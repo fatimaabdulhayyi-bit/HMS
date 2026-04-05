@@ -88,26 +88,30 @@
   {% endfor %}
 </tbody>
 
-        <tbody id="checked-body" style="display: none;">
-          {% for appt in today_appointments %}
-            {% if appt.status == 'Completed' or appt.status == 'Cancelled' %}
-            <tr>
-              <td><span class="token-badge">{{ appt.token }}</span></td>
-              <td><strong>{{ appt.fullname }}</strong><br><small>#{{ appt.id }}</small></td>
-              <td>{{ appt.age }}</td>
-              <td>{{ appt.appointment_time }}</td>
-              <td>
-                {% if appt.status == 'Completed' %}
-                    <span class="status completed" style="color: #1976d2;">Completed</span>
-                {% else %}
-                    <span class="status cancelled" style="color: red;">Cancelled</span>
-                {% endif %}
-              </td>
-              <td><span class="text-muted">History</span></td>
-            </tr>
-            {% endif %}
-          {% endfor %}
-        </tbody>
+  <tbody id="checked-body" style="display: none;">
+  {% for appt in checked_patients %}
+    <tr>
+      <td><span class="token-badge">{{ appt.token }}</span></td>
+      <td>
+        <strong>{{ appt.fullname }}</strong><br>
+        <small class="text-muted">{{ appt.appointment_date }}</small>
+      </td>
+      <td>{{ appt.age }}</td>
+      <td>{{ appt.appointment_time }}</td>
+      <td>
+        {% if appt.status == 'Completed' or appt.status == 'Billed' %}
+            <span class="status completed" style="color: #1976d2; font-weight: bold;">Checked</span>
+        {% elif appt.status == 'Cancelled' %}
+            <span class="status cancelled" style="color: red; font-weight: bold;">Cancelled</span>
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="5" style="text-align: center; color: #888;">No history found.</td>
+    </tr>
+  {% endfor %}
+</tbody>
       </table>
     </div>
   </div>
@@ -121,22 +125,23 @@ function showTab(tabName, btn) {
     const todayBody = document.getElementById('today-body');
     const upcomingBody = document.getElementById('upcoming-body');
     const checkedBody = document.getElementById('checked-body');
+    const actionHeader = document.querySelector('#appointments-table thead th:last-child');
 
-    // Default: Sab hide karein
     todayBody.style.display = 'none';
     upcomingBody.style.display = 'none';
     checkedBody.style.display = 'none';
 
-    // Jo select hua usay show karein
     if (tabName === 'today') {
-        todayBody.style.display = 'table-row-group';
+        todayBody.style.display = ''; 
+        actionHeader.style.display = ''; // Show Action Header
     } else if (tabName === 'upcoming') {
-        upcomingBody.style.display = 'table-row-group';
+        upcomingBody.style.display = '';
+        actionHeader.style.display = ''; // Show Action Header
     } else if (tabName === 'checked') {
-        checkedBody.style.display = 'table-row-group';
+        checkedBody.style.display = '';
+        actionHeader.style.display = 'none'; // HIDE Action Header
     }
 }
-
 function handleNextToken() {
     fetch("{% url 'next_token' %}")
     .then(response => response.json())
@@ -153,5 +158,4 @@ function handleNextToken() {
     });
 }
 </script>
-
 {% endblock %}
