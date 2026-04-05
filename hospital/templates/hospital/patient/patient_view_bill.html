@@ -1,0 +1,240 @@
+{% extends 'hospital/patient/base_patient.html' %}
+{% load static %}
+
+{% block title %}Invoice #{{ bill.id }}{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- Top Buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
+        <a href="{% url 'patient_dashboard' %}" 
+           class="btn me-2 text-white"
+           style="background:#1977cc; border:none;">
+            ← Back
+        </a>
+
+        <button onclick="window.print()" class="btn btn-success shadow-sm">
+            🖨 Print Invoice
+        </button>
+    </div>
+
+    <!-- Invoice Card -->
+    <div id="printableArea" class="invoice-card shadow-lg">
+
+        <div class="invoice-header text-white p-4 rounded-top">
+            <div class="d-flex justify-content-between align-items-center flex-nowrap">
+
+                <!-- LEFT -->
+                <div>
+                    <h2 class="fw-bold mb-0">HMS HOSPITAL</h2>
+                    <small>Quality Healthcare • Care & Trust</small>
+                </div>
+
+                <!-- RIGHT -->
+                <div class="text-end">
+                    <h1 class="fw-bold mb-1">INVOICE</h1>
+                    <p class="mb-0">Bill #: {{ bill.id }}</p>
+                    <p class="mb-0">Date: {{ bill.bill_date }}</p>
+                </div>
+
+            </div>
+        </div>
+
+         <!-- PATIENT INFO -->
+<div class="p-4 bg-light border-bottom">
+
+    <h5 class="text-primary fw-bold mb-3">
+        Patient Details
+    </h5>
+
+    <div class="d-flex justify-content-between flex-wrap">
+
+        <!-- LEFT SIDE -->
+        <div style="min-width: 250px;">
+            <p class="mb-1">
+                <strong>Patient Name:</strong> {{ bill.patient.user.fullname }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Patient Type:</strong> {{ bill.patient_type }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Contact:</strong> {{ bill.patient.phone }}
+            </p>
+        </div>
+
+        <!-- RIGHT SIDE (ONLY IN-PATIENT) -->
+        <!-- RIGHT SIDE (IN-PATIENT) -->
+{% if bill.patient_type == "In-Patient" %}
+<div class="pe-4" style="min-width: 280px;">
+
+    <p class="mb-1">
+        <strong>Admit Date:</strong>{{ bill.admission_date }}
+    </p>
+
+    <p class="mb-1">
+        <strong>Discharge Date:</strong>{{ bill.discharge_date }}
+    </p>
+
+    <p class="mb-0">
+        <strong>Total Days:</strong>{{ bill.staying_days }}
+    </p>
+
+</div>
+{% endif %}
+
+    </div>
+</div>
+
+        <!-- ITEMS -->
+        <div class="my-4 px-3">
+
+            <div class="table-responsive">
+                <h5 class="text-primary fw-bold mb-3">
+                    Bill Details
+                </h5>
+
+                <table class="table table-bordered align-middle" style="margin: auto; width: 95%;">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service Description</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.service_name }}</td>
+                            <td class="text-center">{{ item.quantity }}</td>
+                            <td class="text-end">Rs {{ item.unit_price }}</td>
+                            <td class="text-end fw-bold">Rs {{ item.total }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                                No items found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+
+        <!-- TOTAL -->
+        <div style="width: 95%; margin: auto;">
+
+            <p class="mb-1 text-end" style="text-align: left;">
+                <strong>Subtotal:</strong> Rs {{ bill.subtotal }}
+            </p>
+
+            <p class="mb-1 text-end" style="text-align: left;">
+                <strong>Discount:</strong> -Rs {{ bill.total_discount }}
+            </p>
+
+            <hr style="width: 200px; margin: 4px 0 6px auto;">
+
+            <p class="mb-3 text-end" style="text-align: left;">
+                <strong>Total Amount:</strong> Rs {{ bill.grand_total }}
+            </p>
+
+        </div>
+
+        <!-- PAYMENT DETAILS -->
+        <div class="p-4 bg-light border-top">
+
+            <h5 class="text-primary fw-bold mb-3">
+                Payment Details
+            </h5>
+
+            <p class="mb-1">
+                <strong>Status:</strong>
+                <span class="badge bg-success">{{ bill.payment_status }}</span>
+            </p>
+
+            <p class="mb-1">
+                <strong>Method:</strong> {{ bill.payment_method|default:"N/A" }}
+            </p>
+
+            <p class="mb-0">
+                <strong>Amount Paid:</strong> Rs {{ bill.amount_paid }}
+            </p>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center p-4 border-top">
+            <small class="text-muted">
+                Thank you for choosing HMS Hospital ❤️
+            </small>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.invoice-card{
+    background:#fff;
+    border-radius:15px;
+    overflow:hidden;
+}
+
+.invoice-header{
+    background: #1977cc;
+}
+
+.table tbody tr:hover{
+    background:#f8f9fa;
+}
+
+@media print {
+
+    .navbar,
+    .sidebar,
+    .main-header,
+    header,
+    nav,
+    footer,
+    .d-print-none {
+        display: none !important;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #printableArea,
+    #printableArea * {
+        visibility: visible;
+    }
+
+    #printableArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+    .invoice-header {
+        background: #1977cc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .invoice-card {
+        box-shadow: none !important;
+        border: none !important;
+    }
+}
+</style>
+
+{% endblock %}

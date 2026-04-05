@@ -1,11 +1,12 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient, DoctorSchedule, Appointment
+from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient, DoctorSchedule, Appointment, Bills, BillItems
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Max
 from datetime import date
 from datetime import datetime
+from django.db import transaction # Isay top par add karein
 
 def signup(request):
     if request.method == "POST":
@@ -209,7 +210,13 @@ def admin_dashboard(request):
     pending_doctors = Doctors.objects.filter(is_approved=False)
     total_doctors = Doctors.objects.filter(is_approved=True).count()
     total_appointments = Appointment.objects.count()
+    pending_opd = Appointment.objects.filter(status='Completed').exclude(status='Billed') 
     
+    pending_ipd = InPatient.objects.filter(
+        is_discharged=True
+    ).exclude(
+        status='Billed'
+    )    
     active_InPatients_count = InPatient.objects.filter(is_discharged=False).count()
     ongoing_appointments = Appointment.objects.filter(
         appointment_date=date.today(),
@@ -224,6 +231,8 @@ def admin_dashboard(request):
         'total_InPatients': active_InPatients_count,
         'total_appointments': total_appointments,
         'ongoing_appointments': ongoing_appointments,
+        'pending_opd_bills': pending_opd,
+        'pending_ipd_bills': pending_ipd,
     }
     return render(request, 'hospital/admin/admin_dashboard.html', context)
 
@@ -289,7 +298,7 @@ def add_appointment(request):
 
         # 3. Create Appointment
         Appointment.objects.create(
-            patient_user=patient_obj.user, # Connect to UserAccount
+            patient_user=patient_obj, # Connect to UserAccount
             fullname=patient_obj.user.fullname,
             age=calculated_age,
             gender=patient_obj.gender,
@@ -318,8 +327,8 @@ def view_appointment(request, pk):
     appointment = get_object_or_404(Appointment, id=pk)
     
     # Agar aap mazeed details dikhana chahti hain jo profile mein hain:
-    patient_profile = appointment.patient_user.patient_profile # Related name use kiya
 
+    patient_profile = appointment.patient_user
     context = {
         'appt': appointment,
         'patient': patient_profile
@@ -350,11 +359,185 @@ def delete_appointment(request, pk):
 
     return redirect('manage_appointments')
 
-def generate_bills(request):
-    return render(request, 'hospital/admin/generate_bills.html')
+def generate_bills(request, p_type=None, id=None):
+    selected_patient = None
+    initial_type = ""
+    source_obj = None
+    
+    # 1. Fetching Patient based on OPD/IPD
+    if p_type and id:
+        if p_type == 'OPD':
+            appt = get_object_or_404(Appointment, id=id)
+            selected_patient = appt.patient_user
+            initial_type = "Out-Patient"
+            source_obj = appt
+        elif p_type == 'IPD':
+            ipd = get_object_or_404(InPatient, id=id)
+            selected_patient = ipd.patient
+            initial_type = "In-Patient"
+            source_obj = ipd
+
+    if request.method == "POST":
+        try:
+            with transaction.atomic():
+                user_id = request.POST.get('patient_user_id')
+                patient_obj = get_object_or_404(Patients, user_id=user_id)
+                p_status = request.POST.get('payment_status')
+                
+                # 2. Create Main Bill
+                bill = Bills.objects.create(
+                    patient=patient_obj,
+                    patient_type=initial_type, # Using backend variable for safety
+                    bill_date=request.POST.get('bill_date') or date.today(),
+                    admission_date=request.POST.get('admission_date') if request.POST.get('admission_date') else None,
+                    discharge_date=request.POST.get('discharge_date') if request.POST.get('discharge_date') else None,
+                    staying_days=int(request.POST.get('staying_days') or 0),
+                    payment_status=p_status,
+                    payment_method=request.POST.get('payment_method') if p_status == "Paid" else "Unpaid",
+                    amount_paid=request.POST.get('amount_paid') if p_status == "Paid" else 0,
+                    grand_total=0 
+                )
+
+                # 3. Process Dynamic Items
+                services = request.POST.getlist('service_name[]')
+                qtys = request.POST.getlist('qty[]')
+                prices = request.POST.getlist('unit_price[]')
+                discounts = request.POST.getlist('discount[]')
+
+                total_sub = 0
+                total_disc = 0
+
+                for i in range(len(services)):
+                    s_name = services[i].strip()
+                    if not s_name: continue
+
+                    q = int(qtys[i] or 1)
+                    p = float(prices[i] or 0)
+                    d = float(discounts[i] or 0)
+                    
+                    # BACKEND NEGATIVE CHECK
+                    line_total = (q * p) - d
+                    if line_total < 0: line_total = 0
+                    
+                    BillItems.objects.create(
+                        bill=bill,
+                        service_name=s_name,
+                        quantity=q,
+                        unit_price=p,
+                        discount=d,
+                        total=line_total
+                    )
+                    total_sub += (q * p)
+                    total_disc += d
+
+                # 4. Final Totals Update (with safety check)
+                bill.subtotal = total_sub
+                bill.total_discount = total_disc
+                final_grand = total_sub - total_disc
+                bill.grand_total = max(0, final_grand)
+                bill.save()
+                
+                # 5. STATUS UPDATE (Dashboard se hatane ke liye)
+                if p_type == 'OPD':
+                    Appointment.objects.filter(id=id).update(status='Billed') 
+                elif p_type == 'IPD':
+                    InPatient.objects.filter(id=id).update(status='Billed', is_discharged=True)
+
+                messages.success(request, f"Bill #{bill.id} generated successfully!")
+                return redirect('bill_list')
+
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+
+    context = {
+        'selected_patient': selected_patient,
+        'initial_type': initial_type,
+        'source_obj': source_obj,
+        'today': date.today(),
+    }
+    return render(request, 'hospital/admin/generate_bills.html', context)
 
 def bill_list(request):
-    return render(request, 'hospital/admin/bill_list.html')
+    bills = Bills.objects.all().order_by('-created_at')
+    return render(request, 'hospital/admin/bill_list.html', {'bills': bills})
+
+def view_bill(request, pk):
+    # 1. Pehle Bill nikalein
+    bill = get_object_or_404(Bills, id=pk)
+    items = BillItems.objects.filter(bill=bill)
+    context = {
+        'bill': bill,
+        'items': items  
+    }
+    return render(request, 'hospital/admin/view_bill.html', context)
+
+def edit_bill(request, pk):
+    bill = get_object_or_404(Bills, id=pk)
+    items = BillItems.objects.filter(bill=bill)
+    
+    if request.method == "POST":
+        with transaction.atomic(): # Taake agar koi error aaye to data kharab na ho
+            # 1. Main Bill Fields Update karein
+            bill.bill_date = request.POST.get('bill_date')
+            bill.payment_status = request.POST.get('payment_status')
+            bill.payment_method = request.POST.get('payment_method')
+            bill.amount_paid = request.POST.get('amount_paid', 0)
+            
+            if bill.patient_type == "In-Patient":
+                bill.discharge_date = request.POST.get('discharge_date')
+                bill.staying_days = request.POST.get('staying_days', 0)
+
+            # 2. Purane Items Delete karein
+            BillItems.objects.filter(bill=bill).delete()
+
+            # 3. Naye Items Save karein (Loop)
+            services = request.POST.getlist('service_name[]')
+            qtys = request.POST.getlist('qty[]')
+            prices = request.POST.getlist('unit_price[]')
+            discounts = request.POST.getlist('discount[]')
+
+            total_subtotal = 0
+            total_discount = 0
+
+            for i in range(len(services)):
+                q = int(qtys[i])
+                p = float(prices[i])
+                d = float(discounts[i])
+                line_total = (q * p) - d
+                
+                BillItems.objects.create(
+                    bill=bill,
+                    service_name=services[i],
+                    quantity=q, # Model field: quantity
+                    unit_price=p,
+                    discount=d,
+                    total=line_total # Model field: total
+                )
+                
+                total_subtotal += (q * p)
+                total_discount += d
+
+            # 4. Bill ke totals update karein
+            bill.subtotal = total_subtotal
+            bill.total_discount = total_discount
+            bill.grand_total = total_subtotal - total_discount
+            bill.save()
+
+            return redirect('bill_list')
+
+    return render(request, 'hospital/admin/edit_bill.html', {
+        'bill': bill,
+        'items': items
+    })
+
+def delete_bill(request, pk):
+    bill = get_object_or_404(Bills, id=pk)
+    
+    if request.method == "POST":
+        bill.delete()
+        return redirect('bill_list')
+        
+    return render(request, 'hospital/admin/confirm_delete_bill.html', {'bill': bill})
 
 def doctors(request):
     all_doctors = Doctors.objects.filter(is_approved=True) 
@@ -470,7 +653,7 @@ def delete_doctor(request, pk):
 # doctor schedule fn
 def doctor_schedule(request):
 
-    doctor = Doctors.objects.get(user=request.user).first()
+    doctor = Doctors.objects.get(user=request.user)
 
     schedules = DoctorSchedule.objects.filter(doctor=doctor)
 
@@ -808,11 +991,18 @@ def patient_dashboard(request):
     return render(request, 'hospital/patient/patient_dashboard.html')
 
 def appointments(request):
-    # Patient ki saari appointments (History ke liye)
-    all_appointments = Appointment.objects.filter(patient_user=request.user).order_by('-created_at')
+    # 1. Logged-in user ki patient profile fetch karein
+    # Related name 'patient_profile' models.py mein defined hai
+    try:
+        profile = request.user.patient_profile
+    except Patients.DoesNotExist:
+        messages.error(request, "Patient profile not found. Please complete your profile.")
+        return redirect('home')
+
+    # 2. Filter mein 'profile' pass karein na ke 'request.user'
+    all_appointments = Appointment.objects.filter(patient_user=profile).order_by('-created_at')
     
-    # Sirf wo latest appointment jo cancel nahi hui aur na hi complete hui hai
-    # Is se top card automatic update hoga
+    # Baaki logic same rahega
     latest_active = all_appointments.filter(status__in=['Pending', 'Serving']).first()
     
     for appt in all_appointments:
@@ -825,9 +1015,8 @@ def appointments(request):
         
         appt.current_serving = serving_appt.token if serving_appt else 0
         
-        # Accurate Wait Time: Cancelled logon ko nikal kar calculation
+        # Wait Time logic
         if appt.status == 'Pending' and appt.token > appt.current_serving:
-            # Un logon ko ginein jo aap se pehle hain lekin cancel kar chuke hain
             cancelled_ahead = Appointment.objects.filter(
                 doctor=appt.doctor,
                 appointment_date=appt.appointment_date,
@@ -836,7 +1025,6 @@ def appointments(request):
                 token__gt=appt.current_serving
             ).count()
             
-            # Actual Position = (Gap) - (Cancelled)
             actual_position = (appt.token - appt.current_serving) - cancelled_ahead
             appt.wait_time = max(0, actual_position * 10)
         else:
@@ -907,7 +1095,7 @@ def appointment_form(request):
         
         # Appointment Create (Data automatically profile se le rahe hain)
         Appointment.objects.create(
-            patient_user=request.user,
+            patient_user=patient_profile,
             fullname=request.user.fullname, # User account se naam
             age=age,                        # Calculated age
             gender=patient_profile.gender,  # Profile se gender
@@ -935,21 +1123,70 @@ def ajax_load_doctors(request):
     return JsonResponse(list(doctors), safe=False)
 
 def bill(request):
-    return render(request, 'hospital/patient/bill.html')
+
+    try:
+        # Agar aapne related_name='patient' nahi rakha to niche wala line error de sakti hai
+        # Check karein aapke model mein related_name kya hai
+        patient = Patients.objects.get(user=request.user) 
+        bills = Bills.objects.filter(patient=patient)
+    except Patients.DoesNotExist:
+        # Agar user patient nahi hai (maslan admin hai) to empty list bhej dein ya error handle karein
+        bills = []
+        patient = None
+
+    return render(request, 'hospital/patient/bill.html', {'bills': bills})
+
+# =========================
+# PATIENT BILL VIEWS
+# =========================
+
+def patient_bill_list(request):
+    try:
+        patient = Patients.objects.get(user=request.user)
+        bills = Bills.objects.filter(patient=patient).order_by('-id')
+    except Patients.DoesNotExist:
+        bills = []
+
+    return render(request, 'hospital/patient/patient_bill_list.html', {
+        'bills': bills
+    })
+
+
+def patient_view_bill(request, pk):
+    # Get bill
+    bill = get_object_or_404(Bills, pk=pk)
+
+    # Get related items (THIS WAS MISSING EARLIER)
+    items = BillItems.objects.filter(bill=bill)
+
+    # Send to template
+    return render(request, 'hospital/patient/patient_view_bill.html', {
+        'bill': bill,
+        'items': items,
+    })
 
 def feedback(request):
     if request.method == "POST":
         description = request.POST.get('description')
         
+        # 1. Pehle logged-in user ki Patient profile nikalen
+        # (Assuming your related_name is 'patient_profile' or use the model name)
         try:
-            # Feedback ko save karna
+            patient_profile = request.user.patient_profile 
+            
+            # 2. Feedback save karte waqt profile object dein
             PatientFeedback.objects.create(
-                patient=request.user, # Logged-in patient
+                patient=patient_profile,  # <--- SHI: Patient profile object
                 description=description
             )
+            messages.success(request, "Thank you! Your feedback has been submitted.")
+            return redirect('feedback') # Ya jo bhi aapka page name hai
             
+        except Patients.DoesNotExist:
+            messages.error(request, "Patient profile not found. Please complete your profile.")
         except Exception as e:
             messages.error(request, f"Something went wrong: {e}")
+            
     return render(request, 'hospital/patient/feedback.html')
 
 def medical_records(request):

@@ -196,7 +196,7 @@
             <!-- ================= OPD PENDING ================= -->
             {% for appt in pending_opd_bills %}
             <tr>
-              <td>{{ appt.patient.full_name }}</td>
+              <td>{{ appt.fullname }}</td>
 
               <td>
                 <span class="badge bg-info">Out-Patient</span>
@@ -207,11 +207,11 @@
               </td>
 
               <td>
-                {{ appt.date|date:"d M Y" }}
+                {{ appt.appointment_date|date:"d M Y" }}
               </td>
 
               <td class="text-center">
-                <a href="{% url 'generate_bills' appt.id %}"
+                <a href="{% url 'generate_bills' 'OPD' appt.id %}"
                    class="btn btn-success btn-sm">
                   Generate Bill
                 </a>
@@ -222,7 +222,7 @@
             <!-- ================= IPD PENDING ================= -->
             {% for ipd in pending_ipd_bills %}
             <tr>
-              <td>{{ ipd.patient.full_name }}</td>
+              <td>{{ ipd.patient.user.fullname }}</td>
 
               <td>
                 <span class="badge bg-secondary">In-Patient</span>
@@ -237,8 +237,8 @@
               </td>
 
               <td class="text-center">
-                <a href="{% url 'generate_bills' ipd.id %}"
-                   class="btn btn-success btn-sm">
+                <a href="{% url 'generate_bills' 'IPD' ipd.id %}"
+                class="btn btn-success btn-sm">
                   Generate Bill
                 </a>
               </td>

@@ -55,7 +55,7 @@
           <span class="badge bg-warning text-dark">Pending</span>
         {% elif appointment.status == "Serving" %}
           <span class="badge bg-info">Serving</span>
-        {% elif appointment.status == "Completed" %}
+        {% elif appointment.status == "Completed" or appointment.status == "Billed" %}
           <span class="badge bg-success">Completed</span>
         {% elif appointment.status == "Cancelled" %}
           <span class="badge bg-danger">Cancelled</span>

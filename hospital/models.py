@@ -142,14 +142,21 @@ class DoctorSchedule(models.Model):
     
 class PatientFeedback(models.Model):
     # Kaunsa patient feedback de raha hai (Login user)
-    patient = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def _str_(self):
-        return f"{self.patient.fullname} | {self.description}"
+        return f"{self.patient.user.fullname} | {self.description}"
 
 class InPatient(models.Model):
+
+    STATUS_CHOICES = [
+        ('Admitted', 'Admitted'),
+        ('Discharge', 'Discharge'),
+        ('Billed', 'Billed')
+    ]
+
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
     room_no = models.CharField(max_length=50)
@@ -158,6 +165,7 @@ class InPatient(models.Model):
     admission_time = models.TimeField()
     diagnosis = models.TextField()
     is_discharged = models.BooleanField(default=False)
+    status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='Admitted')
     
     # Meta class taake data sorted rahay
     class Meta:
@@ -173,9 +181,10 @@ class Appointment(models.Model):
         ('Serving', 'Serving'),
         ('Completed', 'Completed'),
         ('Cancelled', 'Cancelled'),
+        ('Billed', 'Billed')
     ]
 
-    patient_user = models.ForeignKey(UserAccount, on_delete=models.CASCADE) # Jo login hai
+    patient_user = models.ForeignKey(Patients, on_delete=models.CASCADE) # Jo login hai
     fullname = models.CharField(max_length=100) # Form se aane wala naam
     age = models.IntegerField()
     gender = models.CharField(max_length=10)
@@ -199,3 +208,45 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"Token {self.token} | {self.fullname} | {self.doctor.user.fullname}"
+    
+class Bills(models.Model):
+    BILL_TYPES = [('Out-Patient', 'Out-Patient'), ('In-Patient', 'In-Patient')]
+    PAYMENT_STATUS = [('Paid', 'Paid'), ('Unpaid', 'Unpaid'), ('Partial', 'Partial')]
+
+    patient = models.ForeignKey(Patients, on_delete=models.CASCADE, related_name='bills')
+    patient_type = models.CharField(max_length=20, choices=BILL_TYPES)
+    bill_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    admission_date = models.DateField(null=True, blank=True)
+    discharge_date = models.DateField(null=True, blank=True)
+    staying_days = models.IntegerField(default=0)
+    
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    grand_total = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    payment_status = models.CharField(max_length=15, choices=PAYMENT_STATUS, default='Unpaid')
+    payment_method = models.CharField(max_length=20, blank=True, null=True)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    class Meta:
+        db_table = 'Bills'
+
+    def __str__(self):
+        return f"Bill #{self.id} | {self.patient.user.fullname} | {self.patient_type} | {self.grand_total} | {self.payment_status}"
+
+class BillItems(models.Model):
+    # 'Bill' ko 'bill' (lowercase) kar diya hai conflict khatam karne ke liye
+    bill = models.ForeignKey(Bills, on_delete=models.CASCADE, related_name='items')
+    service_name = models.CharField(max_length=255)
+    quantity = models.IntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        db_table = 'Bill_Items'
+
+    def __str__(self):
+        return f"{self.service_name} for bill {self.bill.id} [{self.bill.patient.user.fullname}]"

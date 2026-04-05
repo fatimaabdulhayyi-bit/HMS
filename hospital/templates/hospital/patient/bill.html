@@ -1,6 +1,7 @@
 {% extends 'hospital/patient/base_patient.html' %}
 {% load static %}
 {% block title %}Bills{% endblock %}
+
 {% block content %}
 
 <section class="bills-section">
@@ -22,19 +23,60 @@
             <th>Status</th>
             <th>Action</th>
           </tr>
-          
         </thead>
+
         <tbody>
-          <tr>
-            <td colspan="5" style="text-align:center; color:#888;">
-              No bills available.
-            </td>
-          </tr>
+          {% if bills %}
+            {% for bill in bills %}
+              <tr>
+                <td>#{{ bill.id }}</td>
+                <td>{{ bill.bill_date }}</td>
+                <td>Rs. {{ bill.grand_total }}</td>
+
+                <td>
+                  <span class="status-badge {{ bill.payment_status|lower }}">
+                    {{ bill.payment_status }}
+                  </span>
+                </td>
+
+                <td>
+                  <!-- Styled View Button -->
+                  <a href="{% url 'patient_view_bill' bill.id %}" class="btn-edit">
+                    View
+                  </a>
+                </td>
+
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="5" style="text-align:center; color:#888;">
+                No bills available.
+              </td>
+            </tr>
+          {% endif %}
         </tbody>
+
       </table>
     </div>
 
   </div>
 </section>
+<style>
+  .btn-edit {
+    background-color: #e3f2fd;
+    /* Light Blue */
+    color: #0d6efd;
+    padding: 6px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.3s;
+}
 
+.btn-edit:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+</style>
 {% endblock %}

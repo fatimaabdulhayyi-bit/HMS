@@ -85,5 +85,9 @@
             }
         });
     });
+     document.addEventListener("DOMContentLoaded", function () {
+        let today = new Date().toISOString().split('T')[0];
+        document.querySelector('input[name="appointment_date"]').setAttribute('min', today);
+    });
 </script>
 {% endblock %}
