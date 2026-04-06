@@ -1,158 +1,169 @@
 {% extends 'hospital/doctor/base_doctor.html' %}
+{% block title %}Medical Case Study{% endblock %}
 
-{% block title %}Patient Medical Record{% endblock %}
 {% block content %}
+<style>
+    :root { --theme-blue: #1976d2; }
+    .bg-theme { background-color: var(--theme-blue) !important; }
+    .text-theme { color: var(--theme-blue) !important; }
+    
+    /* Blue Theme Button (Custom) */
+    .btn-theme-primary { 
+        background-color: var(--theme-blue); 
+        color: white; 
+        border: none;
+        transition: all 0.3s;
+    }
+    .btn-theme-primary:hover { 
+        background-color: #1565c0; 
+        color: white; 
+        shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    /* Outlined Blue Button */
+    .btn-theme-outline { 
+        border: 2px solid var(--theme-blue); 
+        color: var(--theme-blue); 
+        background: transparent;
+        transition: all 0.3s;
+    }
+    .btn-theme-outline:hover { 
+        background-color: var(--theme-blue); 
+        color: white; 
+    }
+
+    .custom-card { border: 1px solid #edf2f9 !important; box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important; }
+    .info-box { background: #f8faff; border: 1px solid #e3e8f0; }
+</style>
 
 <div class="container-fluid px-4 my-4">
 
-  <div class="card shadow-lg border-0 rounded-4">
-
-    <!-- 🔵 Blue Header Section -->
-    <div class="card-header text-white rounded-top-4 py-4" style="background-color:#1976d2;">
-
-  <div class="d-flex justify-content-between align-items-center">
-
-    <!-- LEFT SIDE HEADING -->
-    <h3 class="fw-bold mb-0">
-      Patient Medical Record
-    </h3>
-
-    <!-- RIGHT SIDE BUTTON -->
-    <a href="{% url 'add_medical_record' %}"
-       class="btn btn-light text-primary fw-semibold shadow-sm">
-      <i class="fas fa-plus me-1"></i> Add Medical Record
-    </a>
-
-  </div>
-
-</div>
-
-    <!-- Body -->
-    <div class="card-body p-4">
-
-      <!-- Patient Info Section -->
-<h5 class="text-primary fw-bold mb-4">Patient Information</h5>
-
-<div class="row mb-4">
-
-  <div class="col-md-4 mb-3">
-    <label class="form-label fw-bold">Patient Name</label>
-    <input type="text"
-           class="form-control rounded-3 shadow-sm"
-           value="{{ appointment.patient.name }}"
-           readonly>
-  </div>
-
-  <div class="col-md-4 mb-3">
-    <label class="form-label fw-bold">Age</label>
-    <input type="text"
-           class="form-control rounded-3 shadow-sm"
-           value="{{ appointment.patient.age }}"
-           readonly>
-  </div>
-
-  <div class="col-md-4 mb-3">
-    <label class="form-label fw-bold">Consultation Date</label>
-    <input type="text"
-           class="form-control rounded-3 shadow-sm"
-           value="{{ appointment.date }}"
-           readonly>
-  </div>
-
-</div>
-
-
-      <!-- Symptoms -->
-      <div class="mb-4">
-        <label class="form-label fw-bold text-primary fs-5">Symptoms</label>
-        <textarea class="form-control rounded-4 shadow-sm" rows="3" readonly>
-{{ medical_record.symptoms }}
-        </textarea>
-      </div>
-
-
-      <!-- Diagnosis + Tests -->
-      <div class="row mb-4">
-        <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold text-primary fs-5">Diagnosis</label>
-          <input type="text"
-                 class="form-control rounded-4 shadow-sm"
-                 value="{{ medical_record.diagnosis }}"
-                 readonly>
-        </div>
-
-        <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold text-primary fs-5">
-            Recommended Tests
-          </label>
-          <input type="text"
-                 class="form-control rounded-4 shadow-sm"
-                 value="{{ medical_record.tests|default:'None' }}"
-                 readonly>
-        </div>
-      </div>
-
-<!-- Prescribed Medicines Section -->
-<div class="mt-5">
-
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="fw-bold text-primary mb-0">
-      Prescribed Medicines
-    </h4>
-
-    <!-- Add Medicine Button -->
-    
-  </div>
-
-  {% if medical_record.medicines_list %}
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover align-middle shadow-sm">
-
-      <thead class="table-primary text-center">
-        <tr>
-          <th style="width:10%;">#</th>
-          <th style="width:45%;">Medicine Name</th>
-          <th style="width:45%;">Dosage</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {% for med in medical_record.medicines_list %}
-        <tr>
-          <td class="text-center">{{ forloop.counter }}</td>
-          <td>{{ med.name }}</td>
-          <td>{{ med.dosage }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-
-    </table>
-  </div>
-
-  {% else %}
-  <div class="text-center py-4 bg-light rounded-4 shadow-sm">
-    <p class="text-muted mb-0">
-      No medicines prescribed for this visit.
-    </p>
-  </div>
-  {% endif %}
-
-</div>
-      
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark mb-0">Medical Record</h3>
+        <a href="{% url 'my_appointments' %}" class="btn btn-theme-outline rounded-pill px-4 btn-sm shadow-sm fw-bold">
+    <i class="fa fa-chevron-left me-1"></i> Back
+</a>
     </div>
 
+    <div class="card custom-card border-0 rounded-4 mb-5 overflow-hidden">
+        <div class="card-header bg-theme text-white py-3 d-flex justify-content-between align-items-center border-0">
+            <h5 class="mb-0 fw-bold text-white"><i class="fa fa-file-medical me-2"></i>Current Visit Record</h5>
+            {% if medical_record %}
+                <a href="{% url 'edit_medical_record' appointment.id %}" class="btn btn-light btn-sm rounded-pill px-4 fw-bold text-theme shadow-sm">
+                    <i class="fa fa-edit me-1"></i> Edit This Record
+                </a>
+            {% endif %}
+        </div>
+        
+        <div class="card-body p-4">
+            <div class="row g-3 mb-4 mx-0">
+                <div class="col-md-3">
+                    <div class="p-3 info-box rounded-4 text-center">
+                        <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 10px;">Patient</small>
+                        <span class="fw-bold text-dark">{{ appointment.fullname }}</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 info-box rounded-4 text-center">
+                        <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 10px;">Age / Gender</small>
+                        <span class="text-dark">{{ appointment.age }}Y / {{ appointment.gender }}</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 info-box rounded-4 text-center">
+                        <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 10px;">Visit Date</small>
+                        <span class="text-dark">{{ medical_record.created_at|date:"d M, Y" }}</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 info-box rounded-4 text-center">
+                        <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 10px;">Diagnosis</small>
+                        <span class="text-theme fw-bold">{{ medical_record.diagnosis }}</span>
+                    </div>
+                </div>
+            </div>
 
-    <!-- Footer -->
-    <div class="card-footer bg-white text-center py-3 border-0">
-  <a href="{% url 'doctor_dashboard' %}"
-     class="btn btn-primary px-4 shadow-sm rounded-pill">
-     Cancel
-  </a>
+            {% if medical_record %}
+            <div class="row g-4 mt-2">
+                <div class="col-md-6 border-end">
+                    <div class="p-3">
+                        <h6 class="fw-bold text-dark mb-3">Symptoms & Complaints</h6>
+                        <p class="text-muted small p-3 bg-light rounded-3 border-start border-3 border-primary">{{ medical_record.symptoms }}</p>
+                    </div>
+                </div>
+                <div class="col-md-6 ps-md-4">
+                    <h6 class="fw-bold text-dark mb-3">Prescribed Medicines</h6>
+                    <div class="list-group list-group-flush">
+                        {% for med in medical_record.medicines_data %}
+                        <div class="list-group-item px-0 border-0 d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-medium text-dark"><i class="fa fa-pills me-2 text-theme opacity-50"></i>{{ med.name }}</span>
+                            <span class="badge bg-theme px-3 py-2 rounded-pill fw-bold">{{ med.dosage }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">No record found for this visit.</p>
+                <a href="{% url 'add_medical_record' appointment.id %}" class="btn btn-theme-primary rounded-pill px-5 py-2">
+                    <i class="fa fa-plus me-2"></i>Add New Record
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="history-section mb-5">
+        <div class="d-flex align-items-center mb-4">
+            <div class="bg-theme text-white rounded-pill px-3 py-1 small fw-bold me-2">History</div>
+            <h4 class="fw-bold text-dark mb-0">Previous Records</h4>
+        </div>
+
+        <div class="accordion custom-card rounded-4 overflow-hidden border-0 shadow-sm" id="historyAccordion">
+            {% for history in full_history %}
+            <div class="accordion-item border-0 border-bottom">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed py-3 px-4" type="button" data-bs-toggle="collapse" data-bs-target="#hist{{ history.id }}">
+                        <div class="row w-100 align-items-center">
+                            <div class="col-md-4">
+                                <span class="text-muted small me-2">Date:</span>
+                                <span class="fw-bold text-dark">{{ history.created_at|date:"d M, Y" }}</span>
+                            </div>
+                            <div class="col-md-8">
+                                <span class="text-muted small me-2">Diagnosis:</span>
+                                <span class="text-theme fw-bold">{{ history.diagnosis }}</span>
+                            </div>
+                        </div>
+                    </button>
+                </h2>
+                <div id="hist{{ history.id }}" class="accordion-collapse collapse" data-bs-parent="#historyAccordion">
+                    <div class="accordion-body bg-white p-4">
+                        <div class="row g-4">
+                            <div class="col-md-6 border-end">
+                                <label class="small fw-bold text-muted text-uppercase mb-2 d-block">Symptoms & Advice</label>
+                                <p class="small text-dark mb-2"><strong>Symptoms:</strong> {{ history.symptoms }}</p>
+                                <p class="small text-dark mb-0"><strong>Tests:</strong> {{ history.tests|default:"None" }}</p>
+                            </div>
+                            <div class="col-md-6 ps-md-4">
+                                <label class="small fw-bold text-muted text-uppercase mb-3 d-block">Prescription</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for med in history.medicines_data %}
+                                    <span class="badge bg-light text-theme border border-primary-subtle py-2 px-3 rounded-pill fw-normal">
+                                        {{ med.name }} ({{ med.dosage }})
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-4 text-end pt-2 border-top">
+                                    <small class="text-muted">Managed by Dr. {{ history.doctor.fullname }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
-
-
-  </div>
-
-</div>
-
 {% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'hospital/doctor/base_doctor.html' %}
+{% block title %}Edit Record{% endblock %}
+
+{% block content %}
+<style>
+/* Buttons Theme Consistency */
+.btn-add-med {
+    border: 2px solid #1976d2;
+    color: #1976d2;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-add-med:hover {
+    background-color: #1976d2;
+    color: white !important;
+    transform: scale(1.05);
+}
+
+.btn-update-record {
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-update-record:hover {
+    background-color: #1565c0;
+    color: white !important;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(25, 118, 210, 0.4) !important;
+}
+
+.btn-save-finalize:active, .btn-add-med:active {
+    transform: scale(0.98);
+}
+</style>
+
+<div class="container-fluid px-4 my-4">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+        
+        <div class="card-header text-white py-3 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color:#1976d2; border: none;">
+            <div class="d-flex align-items-center">
+                <i class="fa fa-edit me-2 fs-4 text-white"></i>
+                <h3 class="fw-bold mb-0 text-white" style="font-size: 1.5rem;">Edit Medical Record</h3>
+            </div>
+            <a href="{% url 'view_medical_record' appointment.id %}" class="btn btn-sm rounded-pill px-3 fw-bold" 
+               style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); transition: 0.3s;">
+                <i class="fa fa-times me-1"></i> Cancel
+            </a>
+        </div>
+
+        <div class="card-body p-5">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row mb-4 bg-light p-3 rounded-4 border mx-0">
+                    <div class="col-md-4"><strong>Patient:</strong> {{ appointment.fullname }}</div>
+                    <div class="col-md-4"><strong>Age:</strong> {{ appointment.age }}</div>
+                    <div class="col-md-4"><strong>ID:</strong> #{{ appointment.id }}</div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Symptoms</label>
+                    <textarea name="symptoms" class="form-control rounded-4 shadow-sm border-light" rows="3" required>{{ medical_record.symptoms }}</textarea>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Diagnosis</label>
+                        <input type="text" name="diagnosis" class="form-control rounded-4 shadow-sm border-light" value="{{ medical_record.diagnosis }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Recommended Tests</label>
+                        <input type="text" name="tests" class="form-control rounded-4 shadow-sm border-light" value="{{ medical_record.tests }}">
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                        <h4 class="fw-bold mb-0 text-dark"><i class="fa fa-pills text-primary me-2"></i>Edit Medicines</h4>
+                        <button type="button" class="btn btn-add-med rounded-pill px-4 fw-bold shadow-sm btn-sm" onclick="addMedRow()">
+                            <i class="fa fa-plus me-1"></i> Add More
+                        </button>
+                    </div>
+                    
+                    <div id="medicines-list">
+                        {% for med in medical_record.medicines_data %}
+                        <div class="row g-3 mb-2 medicine-item align-items-center">
+                            <div class="col-md-5">
+                                <input type="text" name="med_name[]" class="form-control border-light shadow-sm" value="{{ med.name }}" placeholder="Medicine Name" required>
+                            </div>
+                            <div class="col-md-5">
+                                <input type="text" name="med_dosage[]" class="form-control border-light shadow-sm" value="{{ med.dosage }}" placeholder="Dosage" required>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <button type="button" class="btn btn-light text-danger rounded-circle border p-2 shadow-sm" onclick="this.closest('.row').remove()">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="text-center mt-5 pt-4 border-top">
+                    <button type="submit" class="btn btn-update-record px-5 py-3 rounded-pill shadow-lg fw-bold">
+                        <i class="fa fa-save me-2"></i> Update & Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function addMedRow() {
+    const row = `
+    <div class="row g-3 mb-2 medicine-item align-items-center">
+        <div class="col-md-5">
+            <input type="text" name="med_name[]" class="form-control border-light shadow-sm" placeholder="Medicine Name" required>
+        </div>
+        <div class="col-md-5">
+            <input type="text" name="med_dosage[]" class="form-control border-light shadow-sm" placeholder="Dosage" required>
+        </div>
+        <div class="col-md-2 text-end">
+            <button type="button" class="btn btn-light text-danger rounded-circle border p-2 shadow-sm" onclick="this.closest('.row').remove()">
+                <i class="fa fa-trash"></i>
+            </button>
+        </div>
+    </div>`;
+    document.getElementById('medicines-list').insertAdjacentHTML('beforeend', row);
+}
+</script>
+{% endblock %}

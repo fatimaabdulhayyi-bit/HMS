@@ -1,171 +1,115 @@
 {% extends 'hospital/doctor/base_doctor.html' %}
-{% block title %}Add Medical Record{% endblock %}
+{% block title %}Add Record{% endblock %}
 {% block content %}
+<style>
+    /* 1. Add Medicine Button (Outline Style) */
+.btn-add-med {
+    border: 2px solid #1976d2;
+    color: #1976d2;
+    background: transparent;
+    transition: all 0.3s ease;
+}
 
+.btn-add-med:hover {
+    background-color: #1976d2;
+    color: white !important;
+    transform: scale(1.05); /* Thoda sa bada hoga hover par */
+}
+
+/* 2. Save & Finalize Button (Solid Style) */
+.btn-save-finalize {
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-save-finalize:hover {
+    background-color: #1565c0; /* Darker Blue */
+    color: white !important;
+    transform: translateY(-3px); /* Button thoda upar uthega */
+    box-shadow: 0 8px 20px rgba(25, 118, 210, 0.4) !important; /* Blue shadow */
+}
+
+/* Active/Click effect */
+.btn-save-finalize:active, .btn-add-med:active {
+    transform: scale(0.98);
+}
+</style>
 <div class="container-fluid px-4 my-4">
-
     <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header text-white py-3 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color:#1976d2; border: none;">
+    <div class="d-flex align-items-center">
+        <h3 class="fw-bold mb-0 text-white" style="font-size: 1.5rem;">Add New Medical Record</h3>
+    </div>
 
-        <!-- 🔵 Header -->
-        <div class="card-header text-white py-4 rounded-top-4" style="background-color:#1976d2;">
-            <div class="d-flex justify-content-between align-items-center">
-
-                <!-- Title -->
-                <div>
-                    <h3 class="fw-bold mb-0">Add New Medical Record</h3>
-                    
-                </div>
-
-                <!-- Cancel Button RIGHT -->
-                <a href="{% url 'view_medical_record' %}"
-                   class="btn btn-light rounded-pill px-4 shadow-sm">
-                   Cancel
-                </a>
-
-            </div>
-        </div>
-
-        <div class="card-body p-5">
-
-            <!-- Patient Info Section -->
-<h5 class="text-primary fw-bold mb-4">Patient Information</h5>
-
-<div class="row mb-4">
-
-  <div class="col-md-4 mb-3">
-    <label class="form-label fw-bold">Patient Name</label>
-    <input type="text"
-           class="form-control rounded-3 shadow-sm"
-           value="{{ appointment.patient.name }}"
-           readonly>
-  </div>
-
-  <div class="col-md-4 mb-3">
-    <label class="form-label fw-bold">Age</label>
-    <input type="text"
-           class="form-control rounded-3 shadow-sm"
-           value="{{ appointment.patient.age }}"
-           readonly>
-  </div>
-
-  <div class="col-md-4 mb-3">
-    <label class="form-label fw-bold">Consultation Date</label>
-    <input type="text"
-           class="form-control rounded-3 shadow-sm"
-           value="{{ appointment.date }}"
-           readonly>
-  </div>
-
+    <a href="{% url 'doctor_dashboard' %}" class="btn btn-sm rounded-pill px-3 fw-bold" 
+       style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); transition: 0.3s;">
+        <i class="fa fa-times me-1"></i> Cancel
+    </a>
 </div>
-
-            <!-- 📝 Form -->
+        <div class="card-body p-5">
             <form method="POST">
                 {% csrf_token %}
-
-                <!-- Symptoms -->
-                <div class="mb-4">
-                    <label class="form-label fw-bold text-primary fs-5">
-                        Symptoms
-                    </label>
-                    <textarea name="symptoms"
-                              class="form-control rounded-4 shadow-sm p-3"
-                              rows="3"
-                              placeholder="Enter patient's complaints..."
-                              required></textarea>
+                <div class="row mb-4 bg-light p-3 rounded-3">
+                    <div class="col-md-4"><strong>Patient:</strong> {{ appointment.fullname }}</div>
+                    <div class="col-md-4"><strong>Age:</strong> {{ appointment.age }}</div>
+                    <div class="col-md-4"><strong>ID:</strong> #{{ appointment.id }}</div>
                 </div>
 
-                <!-- Diagnosis + Tests -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold ">Symptoms</label>
+                    <textarea name="symptoms" class="form-control rounded-4 shadow-sm" rows="3" required></textarea>
+                </div>
+
                 <div class="row mb-4">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold text-primary">
-                            Diagnosis
-                        </label>
-                        <input type="text"
-                               name="diagnosis"
-                               class="form-control rounded-4 shadow-sm"
-                               placeholder="e.g. Viral Infection"
-                               required>
+                        <label class="form-label fw-bold ">Diagnosis</label>
+                        <input type="text" name="diagnosis" class="form-control rounded-4 shadow-sm" required>
                     </div>
-
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold text-primary">
-                            Recommended Tests
-                        </label>
-                        <input type="text"
-                               name="tests"
-                               class="form-control rounded-4 shadow-sm"
-                               placeholder="e.g. CBC, X-Ray">
+                        <label class="form-label fw-bold ">Recommended Tests</label>
+                        <input type="text" name="tests" class="form-control rounded-4 shadow-sm">
                     </div>
                 </div>
 
-                <!-- Medicines -->
                 <div class="mt-5">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="fw-bold text-primary mb-0">
-                            Prescribe Medicines
-                        </h4>
-
-                        <button type="button"
-                                class="btn btn-outline-primary rounded-pill px-4"
-                                id="add-medicine-btn">
-                            + Add Medicine
-                        </button>
+                        <h4 class="fw-bold mb-0">Prescribe Medicines</h4>
+                        <button type="button" class="btn btn-add-med rounded-pill px-4 fw-bold shadow-sm" onclick="addMedRow()">
+    <i class="fa fa-plus me-1"></i> Add Medicine
+</button>
                     </div>
-
                     <div id="medicines-list">
-
-                        <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 medicine-item">
-                            <div class="row g-3 align-items-center">
-
-                                <div class="col-md-5">
-                                    <input type="text"
-                                           name="med_name[]"
-                                           class="form-control rounded-3"
-                                           placeholder="Medicine Name"
-                                           required>
-                                </div>
-
-                                <div class="col-md-5">
-                                    <input type="text"
-                                           name="med_dosage[]"
-                                           class="form-control rounded-3"
-                                           placeholder="Dosage / Instructions"
-                                           required>
-                                </div>
-
-                                <div class="col-md-2 text-end"></div>
-
-                            </div>
+                        <div class="row g-3 mb-2 medicine-item">
+                            <div class="col-md-5"><input type="text" name="med_name[]" class="form-control" placeholder="Medicine Name" required></div>
+                            <div class="col-md-5"><input type="text" name="med_dosage[]" class="form-control" placeholder="Dosage" required></div>
+                            <div class="col-md-2"></div>
                         </div>
-
                     </div>
                 </div>
 
-                <!-- Save Button -->
                 <div class="text-center mt-5">
-                    <button type="submit"
-                            class="btn btn-primary px-5 py-3 rounded-pill shadow-lg">
-                        Save & Finalize Record
-                    </button>
+                    <div class="text-center mt-5">
+    <button type="submit" class="btn btn-save-finalize px-5 py-3 rounded-pill shadow-lg fw-bold">
+        Save & Finalize Record
+    </button>
+</div>
                 </div>
-
             </form>
-
         </div>
     </div>
 </div>
 
-<style>
-.form-control:focus {
-    border-color: #1e90ff;
-    box-shadow: 0 0 10px rgba(13,110,253,0.2);
+<script>
+function addMedRow() {
+    const row = `
+    <div class="row g-3 mb-2 medicine-item">
+        <div class="col-md-5"><input type="text" name="med_name[]" class="form-control" placeholder="Medicine Name"></div>
+        <div class="col-md-5"><input type="text" name="med_dosage[]" class="form-control" placeholder="Dosage"></div>
+        <div class="col-md-2"><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.row').remove()">X</button></div>
+    </div>`;
+    document.getElementById('medicines-list').insertAdjacentHTML('beforeend', row);
 }
-.card {
-    transition: 0.3s ease;
-}
-.card:hover {
-    transform: translateY(-2px);
-}
-</style>
-
+</script>
 {% endblock %}

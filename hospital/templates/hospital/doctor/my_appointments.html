@@ -62,7 +62,7 @@
                     <span class="status pending">Pending</span>
                 {% endif %}
               </td>
-              <td><a href="{% url 'view_medical_record' %}" class="view-btn">View</a></td>
+              <td><a href="{% url 'view_medical_record' appt.id %}" class="view-btn">View</a></td>
             </tr>
             {% endif %}
             {% empty %}

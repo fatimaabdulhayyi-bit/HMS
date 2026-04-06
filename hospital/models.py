@@ -251,3 +251,22 @@ class BillItems(models.Model):
 
     def __str__(self):
         return f"{self.service_name} for bill {self.bill.id} [{self.bill.patient.user.fullname}]"
+    
+class MedicalRecord(models.Model):
+    # Aik appointment ka sirf aik hi record ho sakta hai
+    appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE, related_name='medical_record')
+    patient = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name='patient_history')
+    doctor = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name='doctor_prescriptions')
+    
+    symptoms = models.TextField()
+    diagnosis = models.CharField(max_length=255)
+    tests = models.TextField(blank=True, null=True)
+    medicines_data = models.JSONField(default=list)  # Medicines yahan list mein hongi
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Medical Record"
+        verbose_name_plural = "Medical Records"
+    
+    def __str__(self):
+        return f"Record for {self.patient.fullname} - {self.created_at.date()}"

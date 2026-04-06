@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient, DoctorSchedule, Appointment, Bills, BillItems
+from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient, DoctorSchedule, Appointment, Bills, BillItems,MedicalRecord
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
 from django.http import JsonResponse
@@ -1163,11 +1163,71 @@ def edit_docprofile(request):
     }
     return render(request, 'hospital/doctor/edit_docprofile.html', context)
 
-def view_medical_record(request):
-    return render(request, 'hospital/doctor/view_medical_record.html' )
+def view_medical_record(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    
+    # 1. Is specific appointment ka record (agar doctor ne save kiya hai)
+    medical_record = MedicalRecord.objects.filter(appointment=appointment).first()
+    
+    # 2. Patient ki mukammal history (Life-time records)
+    # appointment.patient_user (Patients model) -> .user (UserAccount model)
+    patient_account = appointment.patient_user.user
+    full_history = MedicalRecord.objects.filter(patient=patient_account).order_by('-created_at')
 
-def add_medical_record(request):
-    return render(request, 'hospital/doctor/add_medical_record.html' )
+    return render(request, 'hospital/doctor/view_medical_record.html', {
+        'appointment': appointment,
+        'medical_record': medical_record,
+        'full_history': full_history,
+    })
+
+def add_medical_record(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    
+    if request.method == 'POST':
+        # 1. Appointment se patient (UserAccount object) nikalna
+        # patient_user 'Patients' model hai, uske andar 'user' field 'UserAccount' hai
+        patient_account = appointment.patient_user.user 
+        
+        # 2. Doctor (request.user) jo ke already UserAccount object hai
+        doctor_account = request.user 
+
+        # Record create karna
+        MedicalRecord.objects.create(
+            appointment=appointment,
+            patient=patient_account,  # UserAccount object assigned
+            doctor=doctor_account,    # UserAccount object assigned
+            symptoms=request.POST.get('symptoms'),
+            diagnosis=request.POST.get('diagnosis'),
+            tests=request.POST.get('tests'),
+            medicines_data=[
+                {"name": n, "dosage": d} 
+                for n, d in zip(request.POST.getlist('med_name[]'), request.POST.getlist('med_dosage[]')) 
+                if n
+            ]
+        )
+        
+        messages.success(request, "Record Added Successfully!")
+        return redirect('view_medical_record', appointment_id=appointment_id)
+
+    return render(request, 'hospital/doctor/add_medical_record.html', {'appointment': appointment})
+
+def edit_medical_record(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    medical_record = get_object_or_404(MedicalRecord, appointment=appointment)
+
+    if request.method == 'POST':
+        medical_record.symptoms = request.POST.get('symptoms')
+        medical_record.diagnosis = request.POST.get('diagnosis')
+        medical_record.tests = request.POST.get('tests')
+        medical_record.medicines_data = [{"name": n, "dosage": d} for n, d in zip(request.POST.getlist('med_name[]'), request.POST.getlist('med_dosage[]')) if n]
+        medical_record.save()
+        messages.success(request, "Record Updated!")
+        return redirect('view_medical_record', appointment_id=appointment_id)
+
+    return render(request, 'hospital/doctor/edit_medical_record.html', {
+        'appointment': appointment,
+        'medical_record': medical_record
+    })
 
 @role_required(allowed_roles=['patient'])
 def patient_dashboard(request):
@@ -1547,7 +1607,11 @@ def feedback(request):
     return render(request, 'hospital/patient/feedback.html')
 
 def medical_records(request):
-    return render(request, 'hospital/patient/medical_records.html')
+    # Sirf login patient ke records nikalna
+    # request.user.patient_profile se hum Patients model tak pohanchtay hain
+    records = MedicalRecord.objects.filter(patient=request.user).order_by('-created_at')
+    
+    return render(request, 'hospital/patient/medical_records.html', {'records': records})
 
 @role_required(allowed_roles=['patient'])
 def profile(request):
