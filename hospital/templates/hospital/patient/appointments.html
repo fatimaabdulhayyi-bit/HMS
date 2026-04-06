@@ -16,7 +16,7 @@
     <div class="token-card">
     <div class="token-header">Token Status</div>
     <div class="token-body">
-        {% if latest_active %}
+        {% if latest_active and latest_active.appointment_date == today %}
             <p class="current-label">Current Serving</p>
             
             <div class="token-circle">
@@ -49,11 +49,19 @@
                 
                 <p class="wait-time">
                     {% if latest_active.status == 'Pending' %}
-                        Estimated Wait: <strong id="timerDisplay">{{ latest_active.wait_time|default:"--" }}</strong> <strong>minutes</strong>
+                        Estimated Wait: <strong id="timerDisplay">{{ latest_active.wait_time|default:"--" }}</strong>
                     {% elif latest_active.status == 'Serving' %}
                         <span style="color: #28a745; font-weight: bold;">It's your turn! Please proceed.</span>
                     {% endif %}
                 </p>
+            </div>
+        {% elif latest_active %}
+            <div class="text-center py-4">
+                <div style="font-size: 40px; color: #17a2b8; margin-bottom: 10px;">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <p class="mb-1">Next Appointment: <strong>{{ latest_active.appointment_date }}</strong></p>
+                <p class="text-muted" style="font-size: 0.9rem;">Live tracking will start on the appointment day.</p>
             </div>
         {% else %}
             <div class="text-center py-4">
@@ -72,17 +80,6 @@
       </div>
       <div class="table-wrapper">
         <table class="table">
-          <thead>
-            <tr>
-              <th>Doctor</th>
-              <th>Department</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Token</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
           <tbody>
             {% for appt in patient_appointments %}
             <tr>
@@ -106,7 +103,7 @@
                 {% if appt.status == 'Pending' %}
                   <a href="{% url 'cancel_appointment' appt.id %}" 
                      class="btn btn-sm btn-outline-danger" 
-                     onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                     onclick="return confirm('Are you sure?')">
                      <i class="fas fa-times"></i> Cancel
                   </a>
                 {% else %}
@@ -115,9 +112,7 @@
               </td>
             </tr>
             {% empty %}
-            <tr>
-              <td colspan="7" class="text-center text-muted">No appointments found.</td>
-            </tr>
+            <tr><td colspan="7" class="text-center">No appointments found.</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -127,33 +122,32 @@
 </section>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <script>
     function updateDataFromServer() {
         const apptId = "{{ latest_active.id }}";
-        if (!apptId || apptId === "None") return;
+        // Sirf tab update karein jab aaj ki appointment ho
+        if (!apptId || apptId === "None" || "{{ latest_active.appointment_date }}" !== "{{ today }}") return;
 
         $.ajax({
             url: `/get-live-update/${apptId}/`, 
             success: function(data) {
-                // 1. Numbers & Bar
                 $("#tokenNumber").text(data.current_serving);
                 $("#progressFill").css("width", data.progress + "%");
 
-                // 2. Alert Toggle
                 if (data.show_alert) {
                     $("#readyAlert").slideDown();
                 } else {
                     $("#readyAlert").slideUp();
                 }
 
-                // 3. Status & Timer
                 if (data.status === 'Serving') {
                     $(".wait-time").html('<span style="color: #28a745; font-weight: bold;">It\'s your turn! Please proceed.</span>');
                     $("#readyAlert").hide();
                 } else if (data.status === 'Pending') {
-                    $("#timerDisplay").text(data.wait_time);
+                    // Update wait time text carefully
+                    $(".wait-time").html(`Estimated Wait: <strong id="timerDisplay">${data.wait_time}</strong>`);
                 } else {
+                    // Agar status change ho gaya (Completed wagera), toh refresh karein
                     location.reload(); 
                 }
             }
@@ -161,7 +155,6 @@
     }
 
     setInterval(updateDataFromServer, 10000);
-
     $(document).ready(function() {
         updateDataFromServer();
     });

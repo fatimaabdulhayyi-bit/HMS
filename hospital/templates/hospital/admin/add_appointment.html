@@ -5,19 +5,16 @@
 
 {% block content %}
 
-<!-- PAGE HEADER -->
 <div class="d-flex justify-content-between align-items-center mb-4 px-4 pt-4">
   <h2 class="page-title">Add Appointment</h2>
   <a href="{% url 'appointments' %}" class="btn-back">Back</a>
 </div>
 
-<!-- FORM WRAPPER -->
 <div class="doctor-form-wrapper">
 
   <form method="POST" class="doctor-form">
     {% csrf_token %}
 
-    <!-- APPOINTMENT INFO -->
     <div class="row g-4">
 
       <div class="col-md-6">
@@ -25,28 +22,14 @@
         <select name="patient" class="form-select" required>
           <option value="">Select Patient</option>
           {% for patient in patients %}
-            <option value="{{ patient.id }}">
-              {{ patient.fullname }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Doctor Name</label>
-        <select name="doctor" class="form-select" required>
-          <option value="">Select Doctor</option>
-          {% for doctor in doctors %}
-            <option value="{{ doctor.id }}">
-              {{ doctor.user.first_name }} {{ doctor.user.last_name }}
-            </option>
+            <option value="{{ patient.id }}">{{ patient.user.fullname }}</option>
           {% endfor %}
         </select>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Department</label>
-        <select name="department" class="form-select" required>
+        <select name="department" id="id_department" class="form-select" required>
           <option value="">Select Department</option>
           {% for dept in departments %}
             <option value="{{ dept.id }}">{{ dept.name }}</option>
@@ -55,13 +38,23 @@
       </div>
 
       <div class="col-md-6">
-        <label class="form-label">Appointment Date</label>
-        <input type="date" name="appointment_date" class="form-control" required>
+        <label class="form-label">Doctor Name</label>
+        <select name="doctor" id="id_doctor" class="form-select" required>
+          <option value="">Select Doctor</option>
+          </select>
       </div>
 
       <div class="col-md-6">
-        <label class="form-label">Appointment Time</label>
-        <input type="time" name="appointment_time" class="form-control" required>
+        <label class="form-label">Appointment Date</label>
+        <input type="date" name="appointment_date" id="id_date" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Expected Appointment Time</label>
+        <div id="time-info-box" class="form-control bg-light" style="display:none; color: #055160; border: 1px solid #b6effb;">
+            <i class="fa fa-clock"></i> <span id="display_time">Calculating...</span>
+        </div>
+        <input type="text" id="time_placeholder" class="form-control" value="Select Date & Doctor" readonly>
       </div>
 
       <div class="col-md-6">
@@ -73,28 +66,65 @@
         </select>
       </div>
 
-      <div class="col-md-12">
-        <label class="form-label">Message</label>
-        <textarea name="message" class="form-control" rows="5"
-          placeholder="Enter patient problem / note"></textarea>
-      </div>
-
     </div>
 
-    <!-- SUBMIT -->
     <div class="text-center mt-5">
-      <button type="submit" class="btn-submit">
-        Create Appointment
-      </button>
+      <button type="submit" class="btn-submit">Create Appointment</button>
     </div>
 
   </form>
-
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    $(document).ready(function() {
+        // 1. Date Restriction (Disable Past Dates)
         let today = new Date().toISOString().split('T')[0];
-        document.querySelector('input[name="appointment_date"]').setAttribute('min', today);
+        document.getElementById('id_date').setAttribute('min', today);
+
+        // 2. AJAX to load Doctors based on Department (Fix for "Doctors not showing")
+        $("#id_department").change(function () {
+            const url = "{% url 'ajax_load_doctors' %}"; // Use the same URL as patient side
+            const deptId = $(this).val();
+
+            $.ajax({
+                url: url,
+                data: { 'department_id': deptId },
+                success: function (data) {
+                    let html_data = '<option value="">Select Doctor</option>';
+                    data.forEach(function (doc) {
+                        // Patient side par doc.user__fullname use ho raha hai
+                        html_data += `<option value="${doc.id}">${doc.user__fullname}</option>`;
+                    });
+                    $("#id_doctor").html(html_data);
+                    $("#time-info-box").hide();
+                    $("#time_placeholder").show();
+                }
+            });
+        });
+
+        // 3. AJAX for Estimating Time (Exactly like Patient side)
+        $("#id_doctor, #id_date").change(function () {
+            const docId = $("#id_doctor").val();
+            const dateVal = $("#id_date").val();
+
+            if (docId && dateVal) {
+                $.ajax({
+                    url: "{% url 'get_estimated_time' %}",
+                    data: { 'doctor_id': docId, 'date': dateVal },
+                    success: function (data) {
+                        if(data.success) {
+                            $("#time_placeholder").hide();
+                            $("#time-info-box").fadeIn();
+                            $("#display_time").text(data.estimated_time);
+                        } else {
+                            $("#time-info-box").hide();
+                            $("#time_placeholder").show().val(data.message || "No schedule found");
+                        }
+                    }
+                });
+            }
+        });
     });
 </script>
 {% endblock %}

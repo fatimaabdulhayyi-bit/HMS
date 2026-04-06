@@ -4,6 +4,14 @@
 {% block title %}Patients{% endblock %}
 
 {% block content %}
+{% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
 
 <div class="container-fluid px-4 py-4">
 
@@ -26,7 +34,6 @@
             <th>DOB</th>
             <th>Blood Group</th>
             <th>Phone</th>
-            <th>Category</th>
             <th class="text-center">Action</th>
           </tr>
         </thead>
@@ -39,10 +46,7 @@
       <td>{{ patient.user.email }}</td>
       <td>{{ patient.dob }}</td>
       <td>{{ patient.blood_group }}</td>
-      <td>{{ patient.phone }}</td>
-      
-      <td>{{ patient.patient_type }}</td>
-      
+      <td>{{ patient.phone }}</td>      
       <td class="text-center">
         <a href="{% url 'update_patient' patient.id %}" class="btn-edit">Edit</a>
         <a href="{% url 'delete_patient' patient.id %}" 

@@ -94,10 +94,10 @@
       <td><span class="token-badge">{{ appt.token }}</span></td>
       <td>
         <strong>{{ appt.fullname }}</strong><br>
-        <small class="text-muted">{{ appt.appointment_date }}</small>
+        <small class="text-muted">#{{ appt.id }}</small>
       </td>
       <td>{{ appt.age }}</td>
-      <td>{{ appt.appointment_time }}</td>
+      <td>{{ appt.appointment_date }}<br><small>{{ appt.appointment_time }}</small></td>
       <td>
         {% if appt.status == 'Completed' or appt.status == 'Billed' %}
             <span class="status completed" style="color: #1976d2; font-weight: bold;">Checked</span>
@@ -108,7 +108,7 @@
     </tr>
   {% empty %}
     <tr>
-      <td colspan="5" style="text-align: center; color: #888;">No history found.</td>
+      <td colspan="6" style="text-align: center; color: #888;">No history found.</td>
     </tr>
   {% endfor %}
 </tbody>

@@ -4,7 +4,14 @@
 {% block title %}Appointments{% endblock %}
 
 {% block content %}
-
+{% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
 <div class="container-fluid px-4 py-4">
 
   <!-- PAGE HEADER -->
@@ -25,7 +32,6 @@
           <tr>
             <th>Token</th>
             <th>Patient</th>
-            <th>Age</th>
             <th>Doctor</th>
             <th>Department</th>
             <th>Date</th>
@@ -42,7 +48,6 @@
       <td><span class="badge bg-primary">{{ appointment.token|default:"0" }}</span></td>
       
       <td>{{ appointment.fullname }}</td>
-      <td>{{ appointment.age }}</td>
       
       <td>Dr. {{ appointment.doctor.user.fullname }}</td>
       <td>{{ appointment.department.name }}</td>

@@ -303,51 +303,83 @@ def manage_appointments(request):
 
 def add_appointment(request):
     if request.method == "POST":
+        # Form data
         patient_id = request.POST.get('patient')
-        dept_id = request.POST.get('department')
         doc_id = request.POST.get('doctor')
-        app_date = request.POST.get('appointment_date')
-        app_time = request.POST.get('appointment_time')
-        status = request.POST.get('status')
+        dept_id = request.POST.get('department')
+        app_date_str = request.POST.get('appointment_date')
+        status = request.POST.get('status', 'Pending')
 
-        # 1. Patient ki details fetch karein (Auto-filling for Appointment model)
-        patient_obj = get_object_or_404(Patients, id=patient_id)
-        
-        # Age calculate karein (agar model mein method nahi hai toh manually)
-        today = date.today()
-        dob = patient_obj.dob
-        calculated_age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        # 1. Patient Profile & Age Fetching
+        patient_profile = get_object_or_404(Patients, id=patient_id)
+        age = 0
+        if patient_profile.dob:
+            today = date.today()
+            age = today.year - patient_profile.dob.year - ((today.month, today.day) < (patient_profile.dob.month, patient_profile.dob.day))
 
-        # 2. Token Generation (Aaj ka max token + 1)
+        # 2. Date & Schedule Validation
+        app_date_obj = datetime.strptime(app_date_str, '%Y-%m-%d').date()
+        day_name = app_date_obj.strftime('%A') 
+        schedule = DoctorSchedule.objects.filter(doctor_id=doc_id, day=day_name, is_available=True).first()
+
+        if not schedule:
+            messages.error(request, f"Doctor is not available on {day_name}.")
+            return redirect('add_appointment')
+
+        # 3. Smart Time & Slot Calculation (Yahi logic patient side pr hai)
+        start_dt = datetime.combine(date.today(), schedule.start_time)
+        end_dt = datetime.combine(date.today(), schedule.end_time)
+        now = datetime.now()
+
+        # Check: Agar shift khatam ho chuki hai
+        if app_date_obj == date.today() and now >= end_dt:
+            messages.error(request, f"Doctor's shift for today has already ended.")
+            return redirect('add_appointment')
+
+        # Token Generation
         last_token = Appointment.objects.filter(
             doctor_id=doc_id, 
-            appointment_date=app_date
+            appointment_date=app_date_str
         ).aggregate(Max('token'))['token__max'] or 0
         new_token = last_token + 1
+        
+        # Time Calculation (10 mins per patient)
+        calculated_dt = start_dt + timedelta(minutes=last_token * 10)
 
-        # 3. Create Appointment
+        # Past Time Conflict Fix
+        if app_date_obj == date.today() and calculated_dt < now:
+            calculated_dt = now + timedelta(minutes=5)
+
+        # Shift Limit Check
+        if calculated_dt > end_dt:
+            messages.error(request, "Sorry, all slots are full for this shift!")
+            return redirect('add_appointment')
+
+        final_time = calculated_dt.time()
+
+        # 4. Create Appointment
         Appointment.objects.create(
-            patient_user=patient_obj, # Connect to UserAccount
-            fullname=patient_obj.user.fullname,
-            age=calculated_age,
-            gender=patient_obj.gender,
-            contact=patient_obj.phone,
+            patient_user=patient_profile,
+            fullname=patient_profile.user.fullname,
+            age=age,
+            gender=patient_profile.gender,
+            contact=patient_profile.phone,
             department_id=dept_id,
             doctor_id=doc_id,
-            appointment_date=app_date,
-            appointment_time=app_time,
+            appointment_date=app_date_str,
+            appointment_time=final_time,
             token=new_token,
             status=status
         )
+        
+        messages.success(request, f"Appointment Booked! Token: #{new_token} | Assigned Time: {final_time.strftime('%I:%M %p')}")
+        return redirect('manage_appointments')
 
-        messages.success(request, f"Appointment created! Token #{new_token} assigned.")
-        return redirect('manage_appointments') # Admin appointments list par wapas
-
-    # GET Request: Dropdowns fill karne k liye
+    # GET Request
     context = {
         'patients': Patients.objects.all(),
         'departments': Departments.objects.filter(status=True),
-        'doctors': Doctors.objects.filter(is_approved=True), # Default list (AJAX isay update kar dega)
+        'doctors': Doctors.objects.filter(is_approved=True),
     }
     return render(request, 'hospital/admin/add_appointment.html', context)
 
@@ -934,22 +966,41 @@ def doctor_dashboard(request):
 def my_appointments(request):
     doctor = get_object_or_404(Doctors, user=request.user)
     
+    # Aaj ka din (e.g., 'Monday') aur current time
+    today_name = date.today().strftime('%A')
+    now_time = datetime.now().time()
+
+    # 1. Aaj ka Schedule fetch karein
+    schedule = DoctorSchedule.objects.filter(
+        doctor=doctor, 
+        day=today_name, 
+        is_available=True
+    ).first()
+    
+    # Clinic Start Check
+    clinic_started = True
+    if schedule:
+        if now_time < schedule.start_time:
+            clinic_started = False
+    else:
+        # Agar aaj schedule hi nahi hai toh button disable rakhein
+        clinic_started = False
+
+    # 2. Appointments Queries
     today_all = Appointment.objects.filter(
         doctor=doctor, 
         appointment_date=date.today()
     ).order_by('token')
 
-    # Upcoming appointments mein se Cancelled ko nikal dein
     upcoming_appointments = Appointment.objects.filter(
-    doctor=doctor,
-    appointment_date__gt=date.today()
+        doctor=doctor,
+        appointment_date__gt=date.today()
     ).exclude(status='Cancelled').order_by('appointment_date', 'appointment_time')
 
     checked_patients = Appointment.objects.filter(
         doctor=doctor,
         status__in=['Completed', 'Cancelled', 'Billed'] 
-    ).order_by('-appointment_date', '-appointment_time')
-    
+    ).order_by('-appointment_date', '-token')
     current_serving_appt = today_all.filter(status='Serving').first()
     current_token = current_serving_appt.token if current_serving_appt else "0"
 
@@ -958,18 +1009,43 @@ def my_appointments(request):
         'upcoming_appointments': upcoming_appointments,
         'checked_patients': checked_patients,
         'current_token': current_token,
+        'clinic_started': clinic_started, # Frontend button control ke liye
+        'schedule': schedule,
     }
     return render(request, 'hospital/doctor/my_appointments.html', context)
 
 def next_token(request):
     doctor = get_object_or_404(Doctors, user=request.user)
+    today_name = date.today().strftime('%A')
+    now_time = datetime.now().time()
 
+    # 1. Clinic Schedule Check
+    schedule = DoctorSchedule.objects.filter(
+        doctor=doctor, 
+        day=today_name, 
+        is_available=True
+    ).first()
+    
+    if not schedule:
+        return JsonResponse({
+            'success': False, 
+            'message': 'You do not have a schedule for today.'
+        })
+    
+    if now_time < schedule.start_time:
+        return JsonResponse({
+            'success': False, 
+            'message': f'your time starts at {schedule.start_time.strftime("%I:%M %p")}. Cannot start early.'
+        })
+
+    # 2. Purane serving ko Complete karein
     Appointment.objects.filter(
         doctor=doctor, 
         status='Serving', 
         appointment_date=date.today()
     ).update(status='Completed')
     
+    # 3. Next pending patient fetch karein
     next_patient = Appointment.objects.filter(
         doctor=doctor, 
         status='Pending', 
@@ -979,9 +1055,15 @@ def next_token(request):
     if next_patient:
         next_patient.status = 'Serving'
         next_patient.save()
-        return JsonResponse({'success': True, 'next_token': next_patient.token})
+        return JsonResponse({
+            'success': True, 
+            'next_token': next_patient.token
+        })
     
-    return JsonResponse({'success': False, 'message': 'No more pending patients for today.'})
+    return JsonResponse({
+        'success': False, 
+        'message': 'No more pending patients for today.'
+    })
 
 def profiledoc(request):
 
@@ -1039,18 +1121,24 @@ def appointments(request):
         return redirect('signup')
 
     all_appointments = Appointment.objects.filter(patient_user=profile).order_by('-created_at')
-    latest_active = all_appointments.filter(status__in=['Pending', 'Serving']).first()
+    
+    # FIX: Sirf AAJ ki Pending/Serving appointment uthayein
+    latest_active = all_appointments.filter(
+        appointment_date=date.today(), 
+        status__in=['Pending', 'Serving']
+    ).first()
     
     if latest_active:
-        # 1. Get Current Serving Token
+        # 1. Get Current Serving Token Logic
         serving_now = Appointment.objects.filter(
             doctor=latest_active.doctor,
             appointment_date=date.today(),
             status='Serving'
         ).first()
         
-        current_val = serving_now.token if serving_now else 0
-        if current_val == 0:
+        if serving_now:
+            current_val = serving_now.token
+        else:
             last_completed = Appointment.objects.filter(
                 doctor=latest_active.doctor,
                 appointment_date=date.today(),
@@ -1060,64 +1148,91 @@ def appointments(request):
             
         latest_active.current_serving = current_val
 
-        # 2. Progress Calculation
+        # 2. Check if Clinic is active (Doctor has started calling tokens)
+        is_clinic_active = Appointment.objects.filter(
+            doctor=latest_active.doctor,
+            appointment_date=date.today(),
+            status__in=['Serving', 'Completed']
+        ).exists()
+
+        # 3. Wait Time & Alert Logic
+        show_alert = False
+        now = datetime.now()
+        appt_dt = datetime.combine(date.today(), latest_active.appointment_time)
+        mins_remaining = int((appt_dt - now).total_seconds() / 60)
+
+        if latest_active.status == 'Pending':
+            if not is_clinic_active:
+                latest_active.wait_time = "Doctor not started yet"
+            else:
+                people_ahead = Appointment.objects.filter(
+                    doctor=latest_active.doctor,
+                    appointment_date=latest_active.appointment_date,
+                    status='Pending',
+                    token__lt=latest_active.token,
+                    token__gt=current_val
+                ).count()
+                
+                token_wait = (people_ahead + 1) * 10
+                
+                # Logic for display time
+                wait_val = mins_remaining if 0 < mins_remaining < token_wait else token_wait
+                if mins_remaining <= 0: wait_val = 2
+                latest_active.wait_time = f"{wait_val} mins"
+
+                # Alert: Token gap <= 3 AND Time <= 20 mins
+                token_gap = latest_active.token - current_val
+                if 0 < token_gap <= 3 and mins_remaining <= 20:
+                    show_alert = True
+        
+        elif latest_active.status == 'Serving':
+            latest_active.wait_time = "In Progress"
+        
+        latest_active.show_alert = show_alert
+
+        # 4. Progress Calculation
         progress = 0
         if latest_active.token > 0:
             progress = (current_val / latest_active.token) * 100
             if progress > 100: progress = 100
         latest_active.progress_val = round(progress, 2)
 
-        # 3. Smart Wait Time & Alert Logic
-        show_alert = False
-        if latest_active.status == 'Pending':
-            # Token logic
-            people_ahead = Appointment.objects.filter(
-                doctor=latest_active.doctor,
-                appointment_date=latest_active.appointment_date,
-                status='Pending',
-                token__lt=latest_active.token,
-                token__gt=current_val
-            ).count()
-            token_wait = (people_ahead + 1) * 10
-
-            # Clock logic
-            now = datetime.now()
-            appt_dt = datetime.combine(date.today(), latest_active.appointment_time)
-            mins_left = int((appt_dt - now).total_seconds() / 60)
-
-            # Assign wait time
-            if 0 < mins_left < token_wait:
-                latest_active.wait_time = mins_left
-            elif mins_left <= 0:
-                latest_active.wait_time = 2
-            else:
-                latest_active.wait_time = token_wait
-
-            # Show Alert if 3 or fewer tokens away
-            if 0 < (latest_active.token - current_val) <= 3:
-                show_alert = True
-        else:
-            latest_active.wait_time = 0
-        
-        latest_active.show_alert = show_alert
-
     context = {
         'patient_appointments': all_appointments, 
-        'latest_active': latest_active
+        'latest_active': latest_active,
+        'today': date.today()
     }
     return render(request, 'hospital/patient/appointments.html', context)
 
 def get_live_update(request, appt_id):
     appointment = get_object_or_404(Appointment, id=appt_id)
     
+    # Safety Check: Agar appointment aaj ki nahi hai toh live logic skip karein
+    if appointment.appointment_date != date.today():
+        return JsonResponse({
+            'current_serving': 0,
+            'wait_time': "Scheduled",
+            'status': appointment.status,
+            'progress': 0,
+            'show_alert': False
+        })
+
+    # Check if clinic is active
+    is_clinic_active = Appointment.objects.filter(
+        doctor=appointment.doctor,
+        appointment_date=date.today(),
+        status__in=['Serving', 'Completed']
+    ).exists()
+
     serving_now = Appointment.objects.filter(
         doctor=appointment.doctor,
         appointment_date=date.today(),
         status='Serving'
     ).first()
     
-    current_val = serving_now.token if serving_now else 0
-    if current_val == 0:
+    if serving_now:
+        current_val = serving_now.token
+    else:
         last_done = Appointment.objects.filter(
             doctor=appointment.doctor,
             appointment_date=date.today(),
@@ -1125,29 +1240,37 @@ def get_live_update(request, appt_id):
         ).order_by('-token').first()
         current_val = last_done.token if last_done else 0
 
-    # Live Update Logic
     show_alert = False
-    wait_time = 0
+    wait_time_display = "0"
+    
     if appointment.status == 'Pending':
-        # Wait time
-        people_ahead = Appointment.objects.filter(
-            doctor=appointment.doctor,
-            appointment_date=appointment.appointment_date,
-            status='Pending',
-            token__lt=appointment.token,
-            token__gt=current_val
-        ).count()
-        token_wait = (people_ahead + 1) * 10
-        
-        now = datetime.now()
-        appt_dt = datetime.combine(date.today(), appointment.appointment_time)
-        mins_left = int((appt_dt - now).total_seconds() / 60)
-        wait_time = mins_left if 0 < mins_left < token_wait else token_wait
-        if mins_left <= 0: wait_time = 2
+        if not is_clinic_active:
+            wait_time_display = "Doctor not started"
+        else:
+            people_ahead = Appointment.objects.filter(
+                doctor=appointment.doctor,
+                appointment_date=appointment.appointment_date,
+                status='Pending',
+                token__lt=appointment.token,
+                token__gt=current_val
+            ).count()
+            token_wait = (people_ahead + 1) * 10
+            
+            now = datetime.now()
+            appt_dt = datetime.combine(date.today(), appointment.appointment_time)
+            mins_remaining = int((appt_dt - now).total_seconds() / 60)
+            
+            res_wait = mins_remaining if 0 < mins_remaining < token_wait else token_wait
+            if mins_remaining <= 0: res_wait = 2
+            wait_time_display = f"{res_wait} mins"
 
-        # Alert
-        if 0 < (appointment.token - current_val) <= 3:
-            show_alert = True
+            # Alert Logic
+            token_gap = appointment.token - current_val
+            if 0 < token_gap <= 3 and mins_remaining <= 20:
+                show_alert = True
+    
+    elif appointment.status == 'Serving':
+        wait_time_display = "In Progress"
 
     progress = 0
     if appointment.token > 0:
@@ -1156,7 +1279,7 @@ def get_live_update(request, appt_id):
 
     return JsonResponse({
         'current_serving': current_val,
-        'wait_time': wait_time,
+        'wait_time': wait_time_display,
         'status': appointment.status,
         'progress': round(progress, 2),
         'show_alert': show_alert
@@ -1320,22 +1443,6 @@ def bill(request):
 
     return render(request, 'hospital/patient/bill.html', {'bills': bills})
 
-# =========================
-# PATIENT BILL VIEWS
-# =========================
-
-def patient_bill_list(request):
-    try:
-        patient = Patients.objects.get(user=request.user)
-        bills = Bills.objects.filter(patient=patient).order_by('-id')
-    except Patients.DoesNotExist:
-        bills = []
-
-    return render(request, 'hospital/patient/patient_bill_list.html', {
-        'bills': bills
-    })
-
-
 def patient_view_bill(request, pk):
     # Get bill
     bill = get_object_or_404(Bills, pk=pk)
@@ -1408,5 +1515,4 @@ def doctor_recommendation(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login') 
-
+    return redirect('login')
