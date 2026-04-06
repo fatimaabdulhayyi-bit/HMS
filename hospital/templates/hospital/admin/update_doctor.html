@@ -90,6 +90,11 @@
         <label class="form-label">Medical License</label>
         <input type="text" name="license_number" class="form-control" value="{{ doctor.license_number }}">
       </div>
+
+      <div class="col-md-6">
+    <label class="form-label">Consultation Fee (PKR)</label>
+    <input type="number" name="consultation_fee" class="form-control" value="{{ doctor.consultation_fee }}" min="0" required>
+</div>
     </div>
 
     <div class="mt-4">

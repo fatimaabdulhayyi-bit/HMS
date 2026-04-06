@@ -184,6 +184,10 @@ width:60%;
 <input type="number" name="experience" class="form-control" required>
 </div>
 
+<div class="col-md-6">
+    <label class="form-label">Consultation Fee (PKR)</label>
+    <input type="number" name="consultation_fee" id="fee" class="form-control" placeholder="e.g. 1500" required>
+    <small id="feeError" style="color:red;"></small> </div>
 </div>
 
 <div class="text-center mt-4">
@@ -279,6 +283,19 @@ document.getElementById("doctorForm").addEventListener("submit", function(e){
     let pattern = /^03[0-9]{9}$|^\+923[0-9]{9}$/;
     if(!pattern.test(phone)){
         error.innerText = "Enter valid mobile number (11 digits starting with 03 or +923XXXXXXXXX).";
+        e.preventDefault();
+    } else {
+        error.innerText = "";
+    }
+});
+
+// Fee Validation (Add this inside your script)
+document.getElementById("doctorForm").addEventListener("submit", function(e){
+    let fee = document.getElementById("fee").value;
+    let error = document.getElementById("feeError");
+
+    if(fee < 0){
+        error.innerText = "Fee cannot be negative.";
         e.preventDefault();
     } else {
         error.innerText = "";

@@ -92,7 +92,8 @@
               <span>Experience (Years)</span>
               <input type="number" name="experience" class="form-control form-control-sm" value="{{ doctor.experience }}">
           </div>
-
+          
+          
           <div class="info-row">
               <span>Department</span>
               <select name="dept" class="form-select form-select-sm">
@@ -103,6 +104,10 @@
                   {% endfor %}
               </select>
           </div>
+          <div class="info-row">
+    <span>Consultation Fee (PKR)</span>
+    <input type="number" name="consultation_fee" class="form-control form-control-sm" value="{{ doctor.consultation_fee }}" min="0" required>
+</div>
         </div>
 
         <div class="p-3">
@@ -189,6 +194,16 @@ document.getElementById("doctorForm").addEventListener("submit", function(e){
         e.preventDefault();
     } else {
         error.innerText = "";
+    }
+});
+
+document.getElementById("doctorForm").addEventListener("submit", function(e){
+    // ... aapki purani validations (CNIC, Phone etc) ...
+
+    let feeInput = document.getElementsByName("consultation_fee")[0]; // Name se pakadne ka tareeqa
+    if(feeInput.value < 0){
+        alert("Consultation fee cannot be negative!");
+        e.preventDefault();
     }
 });
 </script>

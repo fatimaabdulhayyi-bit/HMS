@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.db.models import Max
 from datetime import date,datetime,timedelta
 from django.db import transaction
+from .decorators import role_required
 
 def signup(request):
     if request.method == "POST":
@@ -67,6 +68,7 @@ def signup(request):
     return render(request, 'hospital/forms/sign_up.html')
 
 def index(request):
+
     active_depts = Departments.objects.filter(status=True)
     total_patients = Patients.objects.count()
     total_departments = Departments.objects.count()
@@ -80,8 +82,16 @@ def index(request):
         'total_doctors' : total_doctors,
         'total_appointments': total_appointments,
     }
+    if request.user.is_authenticated:
+        # User ke role ke mutabiq usay sahi dashboard par bhej do
+        if request.user.role == 'doctor':
+            return redirect('doctor_dashboard')
+        elif request.user.role == 'patient':
+            return redirect('patient_dashboard')
+        elif request.user.role == 'admin':
+            return redirect('admin_dashboard')
     return render(request, 'hospital/index.html', context)
-   
+
 def login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -90,34 +100,38 @@ def login(request):
         user = authenticate(request, email=email, password=password)
 
         if user is not None:
-            # 1. Pehle user ko login karwa dein taake session mil jaye
+            # User ko login karwaein taake session create ho jaye
             auth_login(request, user)
 
+            # --- DOCTOR LOGIC ---
             if user.role == 'doctor':
-                doctor_exists = Doctors.objects.filter(user=user).exists()
-                
-                if not doctor_exists:
+                try:
+                    doctor_profile = Doctors.objects.get(user=user)
+                    
+                    # Agar admin ne approve nahi kiya (User ya Profile level par)
+                    if not user.is_approved or not doctor_profile.is_approved:
+                        messages.warning(request, "Please wait for admin approval.")
+                        return redirect('login')
+                    
+                    return redirect('doctor_dashboard')
+                except Doctors.DoesNotExist:
+                    # Agar user account hai par Doctors profile nahi bani
                     return redirect('doctorreg')
-                
-                if not user.is_approved:
-                    messages.warning(request, "Please wait for admin approval.")
-                    return redirect('login')
-                
-                return redirect('doctor_dashboard')
 
+            # --- PATIENT LOGIC ---
             elif user.role == 'patient':
                 patient_exists = Patients.objects.filter(user=user).exists()
                 if not patient_exists:
                     return redirect('patientreg')
                 return redirect('patient_dashboard')
 
-            # 3. Admin / Superadmin logic
-            elif user.is_superadmin:
-                messages.warning(request, "You have no access to this page.")
-                return redirect('/login/')
-            
+            # --- ADMIN LOGIC ---
             elif user.role == 'admin' and user.is_admin:
                 return redirect('admin_dashboard')
+            
+            elif user.is_superadmin:
+                messages.warning(request, "You have no access to this page.")
+                return redirect('login')
 
             else:
                 return redirect('patient_dashboard')
@@ -126,6 +140,7 @@ def login(request):
 
     return render(request, 'hospital/forms/login.html')
 
+@role_required(allowed_roles=['patient'])
 def patientreg(request):
     if request.method == 'POST':
         # Form se data uthana
@@ -151,6 +166,7 @@ def patientreg(request):
         return redirect('patient_dashboard')
     return render(request, 'hospital/forms/patientreg.html')
 
+@role_required(allowed_roles=['doctor'])
 def doctorreg(request):
 
     depts = Departments.objects.filter(status=True)
@@ -168,6 +184,7 @@ def doctorreg(request):
         license_number = request.POST.get('license')
         qualification = request.POST.get('qualification')
         experience = request.POST.get('experience')
+        fee = request.POST.get('consultation_fee')
 
         department = Departments.objects.get(id=dept_id)
 
@@ -182,7 +199,8 @@ def doctorreg(request):
             department=department,
             license_number=license_number,
             qualification=qualification,
-            experience=experience
+            experience=experience,
+            consultation_fee=fee,
         )
         logout(request)
         messages.success(request, "Registration submitted successfully. Please wait for admin approval.")
@@ -191,6 +209,7 @@ def doctorreg(request):
 
     return render(request, 'hospital/forms/doctorreg.html', {'departments': depts})
 
+@role_required(allowed_roles=['admin'])
 def department(request):
      # Database se saray patients ka data unke user account ke sath mangwana
     # select_related use karne se performance behtar hoti hai
@@ -201,6 +220,7 @@ def department(request):
     }
     return render(request, 'hospital/admin/department.html', context)
 
+@role_required(allowed_roles=['admin'])
 def add_department(request):
     if request.method == "POST":
         name = request.POST.get('department_name')
@@ -214,6 +234,7 @@ def add_department(request):
         return redirect('department')
     return render(request, 'hospital/admin/add_department.html')
 
+@role_required(allowed_roles=['admin'])
 def update_department(request, pk):
     dept = get_object_or_404(Departments, id=pk)
     
@@ -227,12 +248,14 @@ def update_department(request, pk):
         
     return render(request, 'hospital/admin/update_department.html', {'dept': dept})
 
+@role_required(allowed_roles=['admin'])
 def delete_department(request, pk):
     dept = get_object_or_404(Departments, id=pk)
     dept.delete()
     messages.success(request, "Department deleted!")
     return redirect('department')
 
+@role_required(allowed_roles=['admin'])
 def admin_dashboard(request):
     total_patients = Patients.objects.count()
     total_departments = Departments.objects.count()
@@ -265,6 +288,7 @@ def admin_dashboard(request):
     }
     return render(request, 'hospital/admin/admin_dashboard.html', context)
 
+@role_required(allowed_roles=['admin'])
 def approve_doctor(request, doctor_id):
 
     doctor = get_object_or_404(Doctors, id=doctor_id)
@@ -278,6 +302,7 @@ def approve_doctor(request, doctor_id):
 
     return redirect('admin_dashboard')
 
+@role_required(allowed_roles=['admin'])
 def reject_doctor(request, doctor_id):
 
     doctor = get_object_or_404(Doctors, id=doctor_id)
@@ -287,6 +312,7 @@ def reject_doctor(request, doctor_id):
     user.delete()    # Delete user account
     return redirect('admin_dashboard')
 
+@role_required(allowed_roles=['admin'])
 def manage_appointments(request):
     # select_related use karne se doctor aur department ka data aik hi query mein aa jayega
     # -appointment_date ka matlab hai ke latest appointments sab se upar aayengi
@@ -301,6 +327,7 @@ def manage_appointments(request):
     }
     return render(request, 'hospital/admin/manage_appointments.html', context)
 
+@role_required(allowed_roles=['admin'])
 def add_appointment(request):
     if request.method == "POST":
         # Form data
@@ -383,6 +410,7 @@ def add_appointment(request):
     }
     return render(request, 'hospital/admin/add_appointment.html', context)
 
+@role_required(allowed_roles=['admin'])
 def view_appointment(request, pk):
     # Specific appointment uthayein ID (pk) ke zariye
     appointment = get_object_or_404(Appointment, id=pk)
@@ -396,6 +424,7 @@ def view_appointment(request, pk):
     }
     return render(request, 'hospital/admin/view_appointment.html', context)
 
+@role_required(allowed_roles=['admin'])
 def delete_appointment(request, pk):
 
     # Ye function appointment ko cancel karne ke liye use ho raha hai
@@ -416,10 +445,9 @@ def delete_appointment(request, pk):
 
         messages.error(request, "Completed appointments cannot be cancelled.")
 
-        
-
     return redirect('manage_appointments')
 
+@role_required(allowed_roles=['admin'])
 def generate_bills(request, p_type=None, id=None):
     selected_patient = None
     initial_type = ""
@@ -518,10 +546,12 @@ def generate_bills(request, p_type=None, id=None):
     }
     return render(request, 'hospital/admin/generate_bills.html', context)
 
+@role_required(allowed_roles=['admin'])
 def bill_list(request):
     bills = Bills.objects.all().order_by('-created_at')
     return render(request, 'hospital/admin/bill_list.html', {'bills': bills})
 
+@role_required(allowed_roles=['admin'])
 def view_bill(request, pk):
     # 1. Pehle Bill nikalein
     bill = get_object_or_404(Bills, id=pk)
@@ -532,6 +562,7 @@ def view_bill(request, pk):
     }
     return render(request, 'hospital/admin/view_bill.html', context)
 
+@role_required(allowed_roles=['admin'])
 def edit_bill(request, pk):
     bill = get_object_or_404(Bills, id=pk)
     items = BillItems.objects.filter(bill=bill)
@@ -591,6 +622,7 @@ def edit_bill(request, pk):
         'items': items
     })
 
+@role_required(allowed_roles=['admin'])
 def delete_bill(request, pk):
     bill = get_object_or_404(Bills, id=pk)
     
@@ -600,39 +632,45 @@ def delete_bill(request, pk):
         
     return render(request, 'hospital/admin/confirm_delete_bill.html', {'bill': bill})
 
+@role_required(allowed_roles=['admin'])
 def doctors(request):
     all_doctors = Doctors.objects.filter(is_approved=True) 
     return render(request, 'hospital/admin/doctors.html', {'doctors': all_doctors})
 
+@role_required(allowed_roles=['admin'])
 def add_doctor(request):
     if request.method == "POST":
         email = request.POST.get('email')
         fullname = request.POST.get('fullname')
-        password = "Doctor@123"  # Standard password for new accounts
+        password = "Doctor@123"  # Default password
 
         try:
-            # 1. Check karein ke user pehle se exist toh nahi karta
+            # 1. Email duplication check
             if UserAccount.objects.filter(email=email).exists():
                 messages.error(request, "This email is already registered.")
                 return redirect('add_doctor')
 
-            # 2. UserAccount create karein 
-            # (Sirf wahi fields pass karein jo UserAccount model mein hain)
+            # 2. UserAccount create karein
             user = UserAccount.objects.create_user(
                 email=email, 
                 password=password, 
                 fullname=fullname, 
                 role='doctor'
             )
+            
+            # CRITICAL FIX: Admin add kar raha hai toh user level approval true karein
+            user.is_approved = True 
+            user.save()
 
-            # 3. Department fetch karein
+            # 3. Department object get karein
             dept_id = request.POST.get('dept')
             dept_obj = Departments.objects.get(id=dept_id) if dept_id else None
-
-            # 4. Doctors Profile create karein
-            # String 'True' ko boolean True mein convert karna zaroori hai
+            
+            fee = request.POST.get('consultation_fee')
+            # 4. Check status from form
             status_check = request.POST.get('is_approved') == 'True'
 
+            # 5. Doctors Profile create karein
             Doctors.objects.create(
                 user=user,
                 father_name=request.POST.get('father_name'),
@@ -645,27 +683,28 @@ def add_doctor(request):
                 license_number=request.POST.get('license_number'),
                 qualification=request.POST.get('qualification'),
                 experience=request.POST.get('experience'),
-                is_approved=status_check
+                consultation_fee=fee,
+                is_approved=status_check # Profile level approval
             )
             
-            messages.success(request, f"Doctor {fullname} created successfully!")
+            messages.success(request, f"Doctor {fullname} created successfully and approved!")
             return redirect('doctors')
             
         except Exception as e:
-            # Agar koi error aaye toh console/terminal mein print hoga
             print(f"Error creating doctor: {e}") 
-            messages.error(request, f"Registration failed: {e}")
+            messages.error(request, f"Registration failed: {str(e)}")
 
     depts = Departments.objects.filter(status=True)
     return render(request, 'hospital/admin/add_doctor.html', {'departments': depts})
 
+@role_required(allowed_roles=['admin'])
 def update_doctor(request, pk):
     doctor = get_object_or_404(Doctors, id=pk)
     depts = Departments.objects.filter(status=True)
 
     if request.method == "POST":
         try:
-            # Updating Profile Fields
+            # Basic Details
             doctor.father_name = request.POST.get('father_name')
             doctor.dob = request.POST.get('dob')
             doctor.gender = request.POST.get('gender')
@@ -682,6 +721,9 @@ def update_doctor(request, pk):
             doctor.experience = request.POST.get('experience')
             doctor.license_number = request.POST.get('license_number')
             
+            # FEE FIX: Make sure your model field is 'consultation_fee'
+            doctor.consultation_fee = request.POST.get('consultation_fee')
+            
             # Status update
             doctor.is_approved = request.POST.get('is_approved') == 'True'
 
@@ -691,13 +733,15 @@ def update_doctor(request, pk):
 
         except Exception as e:
             messages.error(request, f"Update failed: {e}")
-            return redirect('update_doctor')
-
+            # Fix redirect with PK
+            return redirect('update_doctor', pk=pk)
 
     return render(request, 'hospital/admin/update_doctor.html', {
         'doctor': doctor, 
         'departments': depts
     })
+
+@role_required(allowed_roles=['admin'])
 def delete_doctor(request, pk):
     doctor = get_object_or_404(Doctors, id=pk)
     
@@ -711,7 +755,8 @@ def delete_doctor(request, pk):
         messages.error(request, f"Error: {e}")
         
     return redirect('doctors')
-# doctor schedule fn
+
+@role_required(allowed_roles=['doctor'])
 def doctor_schedule(request):
 
     doctor = Doctors.objects.get(user=request.user)
@@ -723,7 +768,8 @@ def doctor_schedule(request):
     }
 
     return render(request, 'hospital/doctor/doctor_schedule.html', context)
-# add schedule fn
+
+@role_required(allowed_roles=['doctor'])
 def add_schedule(request):
 
     doctor = Doctors.objects.get(user=request.user)
@@ -749,7 +795,7 @@ def add_schedule(request):
 
     return render(request, 'hospital/doctor/add_schedule.html')
 
-# edit schedule
+@role_required(allowed_roles=['doctor'])
 def edit_schedule(request, id):
 
     schedule = get_object_or_404(DoctorSchedule, id=id)
@@ -773,6 +819,7 @@ def edit_schedule(request, id):
 
     return render(request, 'hospital/doctor/edit_schedule.html', context)
 
+@role_required(allowed_roles=['doctor'])
 def delete_schedule(request, id):
 
     schedule = DoctorSchedule.objects.get(id=id)
@@ -782,7 +829,7 @@ def delete_schedule(request, id):
 
     return redirect('doctor_schedule')
 
-
+@role_required(allowed_roles=['admin'])
 def patients(request):
     # Database se saray patients ka data unke user account ke sath mangwana
     # select_related use karne se performance behtar hoti hai
@@ -793,6 +840,7 @@ def patients(request):
     }
     return render(request, 'hospital/admin/patients.html', context)
 
+@role_required(allowed_roles=['admin'])
 def add_patient(request):
     if request.method == "POST":
         fullname = request.POST.get('fullname')
@@ -835,6 +883,7 @@ def add_patient(request):
             return render(request, 'hospital/admin/add_patient.html', {'error': e})
     return render(request, 'hospital/admin/add_patient.html')
 
+@role_required(allowed_roles=['admin'])
 def delete_patient(request, pk):
     # 1. Patient ko dhoondna
     patient = get_object_or_404(Patients, id=pk)
@@ -850,6 +899,7 @@ def delete_patient(request, pk):
         
     return redirect('patients')
 
+@role_required(allowed_roles=['admin'])
 def update_patient(request, pk):
     # 1. Pehle patient ka record database se nikalein (ID ke zariye)
     patient = get_object_or_404(Patients, id=pk)
@@ -884,12 +934,13 @@ def update_patient(request, pk):
     }
     return render(request, 'hospital/admin/update_patient.html', context)
 
+@role_required(allowed_roles=['admin'])
 def In_Patient(request):
     # 'ipd_records' variable name use kiya hai jo template mein loop ho raha hai
     records = InPatient.objects.all().order_by('-admission_date')
     return render(request, 'hospital/admin/In_patient.html', {'ipd_records': records})
 
-# 2. Add IPD Record
+@role_required(allowed_roles=['admin'])
 def add_IPrecord(request):
     if request.method == "POST":
         p_id = request.POST.get('patient')
@@ -919,7 +970,7 @@ def add_IPrecord(request):
     }
     return render(request, 'hospital/admin/add_IP-record.html', context)
 
-# 3. Update IPD Record
+@role_required(allowed_roles=['admin'])
 def update_In_Patient(request, pk):
     record = get_object_or_404(InPatient, pk=pk)
     
@@ -952,7 +1003,7 @@ def update_In_Patient(request, pk):
     }
     return render(request, 'hospital/admin/update_In_Patient.html', context)
 
-# 4. Discharge Patient
+@role_required(allowed_roles=['admin'])
 def discharge_patient(request, pk):
     record = get_object_or_404(InPatient, pk=pk)
     record.is_discharged = True
@@ -960,9 +1011,11 @@ def discharge_patient(request, pk):
     messages.success(request, f"{record.patient.user.fullname} has been discharged.")
     return redirect('In_Patient')
 
+@role_required(allowed_roles=['doctor'])
 def doctor_dashboard(request):
     return render(request, 'hospital/doctor/doctor_dashboard.html')
 
+@role_required(allowed_roles=['doctor'])
 def my_appointments(request):
     doctor = get_object_or_404(Doctors, user=request.user)
     
@@ -1014,6 +1067,7 @@ def my_appointments(request):
     }
     return render(request, 'hospital/doctor/my_appointments.html', context)
 
+@role_required(allowed_roles=['doctor'])
 def next_token(request):
     doctor = get_object_or_404(Doctors, user=request.user)
     today_name = date.today().strftime('%A')
@@ -1065,27 +1119,31 @@ def next_token(request):
         'message': 'No more pending patients for today.'
     })
 
+@role_required(allowed_roles=['doctor'])
 def profiledoc(request):
-
+    # Consultation fee display karne ke liye select_related kafi hai
     doctor = Doctors.objects.filter(user=request.user).select_related('user').first()
-
     context = {
         'doctor': doctor
     }
-
     return render(request, 'hospital/doctor/profiledoc.html', context)
 
+@role_required(allowed_roles=['doctor'])
 def edit_docprofile(request):
     doctor = get_object_or_404(Doctors, user=request.user)
     all_departments = Departments.objects.all()
 
     if request.method == "POST":
+        # ... (baaki fields same rahenge) ...
         doctor.father_name = request.POST.get('father_name')
         doctor.dob = request.POST.get('dob')
         doctor.gender = request.POST.get('gender')
         doctor.cnic = request.POST.get('cnic')
         doctor.phone = request.POST.get('phone')
         doctor.address = request.POST.get('address')
+        
+        # NAYA FIELD: Consultation Fee
+        doctor.consultation_fee = request.POST.get('consultation_fee')
         
         dept_id = request.POST.get('dept')
         if dept_id:
@@ -1111,9 +1169,11 @@ def view_medical_record(request):
 def add_medical_record(request):
     return render(request, 'hospital/doctor/add_medical_record.html' )
 
+@role_required(allowed_roles=['patient'])
 def patient_dashboard(request):
     return render(request, 'hospital/patient/patient_dashboard.html')
 
+@role_required(allowed_roles=['patient'])
 def appointments(request):
     try:
         profile = Patients.objects.get(user=request.user)
@@ -1204,6 +1264,7 @@ def appointments(request):
     }
     return render(request, 'hospital/patient/appointments.html', context)
 
+@role_required(allowed_roles=['patient'])
 def get_live_update(request, appt_id):
     appointment = get_object_or_404(Appointment, id=appt_id)
     
@@ -1285,6 +1346,7 @@ def get_live_update(request, appt_id):
         'show_alert': show_alert
     })
 
+@role_required(allowed_roles=['patient'])
 def cancel_appointment(request, pk):
     # 1. Pehle login user ki Patient Profile nikalen
     try:
@@ -1306,6 +1368,7 @@ def cancel_appointment(request, pk):
         
     return redirect('appointments')
 
+@role_required(allowed_roles=['patient'])
 def appointment_form(request):
     # 1. Profile aur Age Fetching
     patient_profile = Patients.objects.filter(user=request.user).first()
@@ -1429,6 +1492,7 @@ def ajax_load_doctors(request):
     doctors = Doctors.objects.filter(department_id=department_id, is_approved=True).values('id', 'user__fullname')
     return JsonResponse(list(doctors), safe=False)
 
+@role_required(allowed_roles=['patient'])
 def bill(request):
 
     try:
@@ -1443,6 +1507,7 @@ def bill(request):
 
     return render(request, 'hospital/patient/bill.html', {'bills': bills})
 
+@role_required(allowed_roles=['patient'])
 def patient_view_bill(request, pk):
     # Get bill
     bill = get_object_or_404(Bills, pk=pk)
@@ -1456,6 +1521,7 @@ def patient_view_bill(request, pk):
         'items': items,
     })
 
+@role_required(allowed_roles=['patient'])
 def feedback(request):
     if request.method == "POST":
         description = request.POST.get('description')
@@ -1483,6 +1549,7 @@ def feedback(request):
 def medical_records(request):
     return render(request, 'hospital/patient/medical_records.html')
 
+@role_required(allowed_roles=['patient'])
 def profile(request):
     patient = Patients.objects.filter(user=request.user).select_related('user').first()
     context = {
@@ -1490,6 +1557,7 @@ def profile(request):
     }
     return render(request, 'hospital/patient/profile.html', context)
 
+@role_required(allowed_roles=['patient'])
 def edit_profile(request):
     # Logged-in patient ka data nikalna
     patient = get_object_or_404(Patients, user=request.user)

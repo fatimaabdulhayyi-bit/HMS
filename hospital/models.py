@@ -114,6 +114,7 @@ class Doctors(models.Model):
     license_number = models.CharField(max_length=100)
     qualification = models.CharField(max_length=100)
     experience = models.IntegerField()
+    consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     is_approved = models.BooleanField(default=False)
 
     class Meta:
