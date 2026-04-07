@@ -1,27 +1,26 @@
 {% extends 'hospital/admin/base_admin.html' %}
 {% block title %}Admin Dashboard{% endblock %}
+
 {% block content %}
 
 {% if messages %}
+<div class="container-fluid px-4 pt-4">
     {% for message in messages %}
       <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     {% endfor %}
-  {% endif %}
+</div>
+{% endif %}
 
 <div class="container-fluid">
 
-  <!-- DASHBOARD CARDS -->
   <div class="row g-4 px-4 py-4">
 
-    <!-- Doctors -->
     <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
       <a href="{% url 'doctors' %}" class="dashboard-card">
-        <div class="card-icon">
-          <i class="fa fa-user-md"></i>
-        </div>
+        <div class="card-icon"><i class="fa fa-user-md"></i></div>
         <div class="card-content">
           <h3>Doctors</h3>
           <p>{{ total_doctors }}</p>
@@ -29,12 +28,9 @@
       </a>
     </div>
 
-    <!-- Patients -->
     <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
       <a href="{% url 'patients' %}" class="dashboard-card">
-        <div class="card-icon">
-          <i class="fa fa-users"></i>
-        </div>
+        <div class="card-icon"><i class="fa fa-users"></i></div>
         <div class="card-content">
           <h3>Patients</h3>
           <p>{{ total_patients }}</p>
@@ -42,12 +38,9 @@
       </a>
     </div>
 
-    <!-- IPD -->
-   <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
       <a href="{% url 'In_Patient' %}" class="dashboard-card">
-        <div class="card-icon">
-          <i class="fa fa-bed me-2"></i>
-        </div>
+        <div class="card-icon"><i class="fa fa-bed"></i></div>
         <div class="card-content">
           <h3>In-Patients</h3>
           <p>{{ total_InPatients }}</p>
@@ -55,12 +48,9 @@
       </a>
     </div>
 
-    <!-- Appointments -->
     <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
       <a href="{% url 'manage_appointments' %}" class="dashboard-card">
-        <div class="card-icon">
-          <i class="fa fa-calendar-check"></i>
-        </div>
+        <div class="card-icon"><i class="fa fa-calendar-check"></i></div>
         <div class="card-content">
           <h3>Appointments</h3>
           <p>{{ total_appointments }}</p>
@@ -68,12 +58,9 @@
       </a>
     </div>
 
-    <!-- Departments -->
     <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
       <a href="{% url 'department' %}" class="dashboard-card">
-        <div class="card-icon">
-          <i class="fa fa-check-circle"></i>
-        </div>
+        <div class="card-icon"><i class="fa fa-check-circle"></i></div>
         <div class="card-content">
           <h3>Departments</h3>
           <p>{{ total_departments }}</p>
@@ -81,41 +68,36 @@
       </a>
     </div>
 
-  </div>
+  </div> <div class="row g-4 px-4 pb-4">
 
-  <!-- LIST SECTION -->
-  <div class="row g-4 px-4 pb-4">
-
-    <!-- DOCTORS TABLE -->
     <div class="col-lg-6">
-      <div class="list-card">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="list-card h-100">
+        <div class="mb-3">
           <h3>Doctor's Request</h3>
         </div>
-
         <div class="table-responsive">
-          <table class="table  table-hover">
+          <table class="table table-hover align-middle">
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Department</th>
+                <th>Dept</th>
                 <th>License</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {% if pending_doctors %}
-                {% for doctors in pending_doctors %}
+                {% for doctor in pending_doctors %}
                 <tr>
-                  <td>{{ doctors.user.fullname }}</td>
-                  <td>{{ doctors.department.name }}</td>
-                  <td>{{ doctors.license_number}}</td>
+                  <td>{{ doctor.user.fullname }}</td>
+                  <td>{{ doctor.department.name }}</td>
+                  <td>{{ doctor.license_number }}</td>
                   <td class="d-flex gap-2">
-                    <form method="post" action="{% url 'approve_doctor' doctors.id %}">
+                    <form method="post" action="{% url 'approve_doctor' doctor.id %}">
                       {% csrf_token %}
                       <button class="btn-accept">Accept</button>
                     </form>
-                    <form method="post" action="{% url 'reject_doctor' doctors.id %}">
+                    <form method="post" action="{% url 'reject_doctor' doctor.id %}">
                       {% csrf_token %}
                       <button class="btn-reject">Reject</button>
                     </form>
@@ -124,7 +106,7 @@
                 {% endfor %}
               {% else %}
                 <tr>
-                  <td colspan="2" class="text-muted">No pending requests</td>
+                  <td colspan="4" class="text-center text-muted py-3">No pending requests</td>
                 </tr>
               {% endif %}
             </tbody>
@@ -133,146 +115,40 @@
       </div>
     </div>
 
-    <!-- APPOINTMENTS TABLE -->
     <div class="col-lg-6">
-  <div class="list-card">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3>Ongoing Appointments</h3>
-      
-    </div>
-
-    <div class="table-responsive">
-      <table class="table table-hover">
-        <thead>
-          <tr>
-            <th>Patient</th>
-            <th>Token</th>
-            <th>Time</th>
-            <th>Doctor</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% if ongoing_appointments %}
-            {% for appointment in ongoing_appointments %}
-            <tr>
-              <td>{{ appointment.fullname }}</td>
-              <td><span class="badge bg-primary">#{{ appointment.token }}</span></td>
-              <td>{{ appointment.appointment_time }}</td>
-              <td>Dr. {{ appointment.doctor.user.fullname }}</td>
-            </tr>
-            {% endfor %}
-          {% else %}
-            <tr>
-              <td colspan="4" class="text-center text-muted">No ongoing appointments today</td>
-            </tr>
-          {% endif %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-
-  </div>
-  <!-- ================= PENDING BILLING ================= -->
-<div class="row g-4 px-4 pb-4">
-
-  <div class="col-lg-12">
-    <div class="list-card">
-
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Pending Bills</h3>
-        <a href="{% url 'bill_list' %}" class="btn-view">
-          View Generated Bills
-        </a>
+      <div class="list-card h-100">
+        <div class="mb-3">
+          <h3>Ongoing Appointments</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Token</th>
+                <th>Time</th>
+                <th>Doctor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if ongoing_appointments %}
+                {% for appointment in ongoing_appointments %}
+                <tr>
+                  <td>{{ appointment.fullname }}</td>
+                  <td><span class="badge bg-primary">#{{ appointment.token }}</span></td>
+                  <td>{{ appointment.appointment_time }}</td>
+                  <td>Dr. {{ appointment.doctor.user.fullname }}</td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-3">No ongoing appointments today</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
       </div>
-
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-
-          <thead>
-            <tr>
-              <th>Patient</th>
-              <th>Type</th>
-              <th>Reference</th>
-              <th>Date</th>
-              <th class="text-center">Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-
-            <!-- ================= OPD PENDING ================= -->
-            {% for appt in pending_opd_bills %}
-            <tr>
-              <td>{{ appt.fullname }}</td>
-
-              <td>
-                <span class="badge bg-info">Out-Patient</span>
-              </td>
-
-              <td>
-                Appointment #{{ appt.token }}
-              </td>
-
-              <td>
-                {{ appt.appointment_date|date:"d M Y" }}
-              </td>
-
-              <td class="text-center">
-                <a href="{% url 'generate_bills' 'OPD' appt.id %}"
-                   class="btn btn-success btn-sm">
-                  Generate Bill
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-
-            <!-- ================= IPD PENDING ================= -->
-            {% for ipd in pending_ipd_bills %}
-            <tr>
-              <td>{{ ipd.patient.user.fullname }}</td>
-
-              <td>
-                <span class="badge bg-secondary">In-Patient</span>
-              </td>
-
-              <td>
-                IPD Admission #{{ ipd.id }}
-              </td>
-
-              <td>
-                {{ ipd.admission_date|date:"d M Y" }}
-              </td>
-
-              <td class="text-center">
-                <a href="{% url 'generate_bills' 'IPD' ipd.id %}"
-                class="btn btn-success btn-sm">
-                  Generate Bill
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-
-            <!-- ================= EMPTY STATE ================= -->
-            {% if not pending_opd_bills and not pending_ipd_bills %}
-            <tr>
-              <td colspan="5" class="text-center text-muted">
-                No pending bills 🎉
-              </td>
-            </tr>
-            {% endif %}
-
-          </tbody>
-
-        </table>
-      </div>
-
     </div>
-  </div>
 
-</div>
-
-
-</div>
-{% endblock %}
+  </div> </div> {% endblock %}

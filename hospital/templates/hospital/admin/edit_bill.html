@@ -3,222 +3,160 @@
 
 {% block content %}
 <div class="container-fluid px-4 py-4">
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="page-title">Edit Invoice #{{ bill.id }}</h1>
-    <a href="{% url 'bill_list' %}" class="btn-back">Back</a>
-</div>
-
-<form method="POST">
-    {% csrf_token %}
-
-    <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; border-left: 5px solid #ffc107;">
-        <div class="card-body p-4">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <label class="text-muted small fw-bold text-uppercase">Patient</label>
-                    <h3>{{ bill.patient.user.fullname }}</h3>
-                </div>
-                <div class="col-md-3 border-start">
-                    <label class="text-muted small fw-bold text-uppercase">Type</label>
-                    <div><span class="badge bg-light text-dark border">{{ bill.patient_type }}</span></div>
-                </div>
-                <div class="col-md-3 border-start">
-                    <label class="text-muted small fw-bold text-uppercase">Bill Date</label>
-                    <input type="date" name="bill_date" class="form-control" value="{{ bill.bill_date|date:'Y-m-d' }}" required>
-                </div>
-            </div>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title">Edit Invoice #{{ bill.id }}</h1>
+        <a href="{% url 'bill_list' %}" class="btn-back">Back</a>
     </div>
 
-    {% if bill.patient_type == "In-Patient" %}
-    <div class="list-card mb-4">
-        <h5>Stay Details</h5>
-        <div class="row g-3">
-            <div class="col-md-4">
-                <label class="small text-muted">Admission Date</label>
-                <input type="date" name="admission_date" id="admitDate" class="form-control bg-light" value="{{ bill.admission_date|date:'Y-m-d' }}" readonly>
-            </div>
-            <div class="col-md-4">
-                <label class="small text-muted">Discharge Date</label>
-                <input type="date" name="discharge_date" id="dischargeDate" class="form-control" value="{{ bill.discharge_date|date:'Y-m-d' }}" onchange="calculateStayDays()">
-            </div>
-            <div class="col-md-4">
-                <label class="small text-muted">Total Days</label>
-                <input type="number" name="staying_days" id="stayDays" class="form-control bg-light" value="{{ bill.staying_days }}" readonly>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <div class="list-card mb-4">
-        <h5>Services / Charges</h5>
-        <table class="table table-bordered" id="billTable">
-            <thead class="bg-light">
-                <tr>
-                    <th>Service Description</th>
-                    <th width="100">Qty</th>
-                    <th width="150">Unit Price</th>
-                    <th width="120">Discount</th>
-                    <th width="150">Total</th>
-                    <th width="50"></th>
-                </tr>
-            </thead>
-            <tbody id="billBody">
-                {% for item in items %}
-                <tr>
-                    <td>
-                        <input name="service_name[]" class="form-control" value="{{ item.service_name }}" required>
-                    </td>
-                    <td>
-                        <input name="qty[]" class="form-control qty" type="number" value="{{ item.quantity }}" min="1">
-                    </td>
-                    <td>
-                        <input name="unit_price[]" class="form-control price" type="number" value="{{ item.unit_price }}" min="0" required>
-                    </td>
-                    <td>
-                        <input name="discount[]" class="form-control discount" type="number" value="{{ item.discount }}" min="0">
-                    </td>
-                    <td>
-                        <input class="form-control total" readonly value="{{ item.total }}">
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-outline-danger removeRow">×</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div class="text-end"> 
-            <button type="button" class="btn btn-outline-primary mt-2" onclick="addRow()">+ Add Row</button> 
-        </div>
-    </div>
-
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="list-card">
-                <h5>Payment Status</h5>
-                <div class="row g-3">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; border-left: 5px solid #ffc107;">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
                     <div class="col-md-6">
-                        <label class="small text-muted">Status</label>
-                        <select name="payment_status" id="paymentStatus" class="form-select" onchange="togglePaymentFields()">
-                            <option value="Unpaid" {% if bill.payment_status == 'Unpaid' %}selected{% endif %}>Unpaid</option>
-                            <option value="Paid" {% if bill.payment_status == 'Paid' %}selected{% endif %}>Paid</option>
-                        </select>
+                        <label class="text-muted small fw-bold text-uppercase">Patient</label>
+                        <h3>{{ bill.patient.user.fullname }}</h3>
                     </div>
-                    <div class="col-md-6" id="paymentFields" style="display: {% if bill.payment_status == 'Paid' %}block{% else %}none{% endif %};">
-                        <label class="small text-muted">Method</label>
-                        <select name="payment_method" class="form-select">
-                            <option value="Cash" {% if bill.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
-                            <option value="Card" {% if bill.payment_method == 'Card' %}selected{% endif %}>Card</option>
-                            <option value="Online" {% if bill.payment_method == 'Online' %}selected{% endif %}>Online</option>
-                        </select>
+                    <div class="col-md-3 border-start">
+                        <label class="text-muted small fw-bold text-uppercase">Type</label>
+                        <div><span class="badge bg-light text-dark border">{{ bill.patient_type }}</span></div>
+                    </div>
+                    <div class="col-md-3 border-start">
+                        <label class="text-muted small fw-bold text-uppercase">Bill Date</label>
+                        <input type="date" name="bill_date" class="form-control" value="{{ bill.bill_date|date:'Y-m-d' }}" required>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 text-end">
-            <div class="list-card h-100 shadow-sm" style="background: #fdfdfd; border-right: 5px solid #0d6efd;">
-                <p class="mb-1">Subtotal: <span id="subtotalLabel" class="fw-bold">Rs {{ bill.subtotal }}</span></p>
-                <p class="mb-1 text-danger">Discount: <span id="totalDiscountLabel">Rs {{ bill.total_discount }}</span></p>
-                <hr>
-                <h4 class="text-primary">Grand Total: <span id="grandTotalLabel">Rs {{ bill.grand_total }}</span></h4>
-                <input type="hidden" name="amount_paid" id="amountPaid" value="{{ bill.amount_paid }}">
-                <button type="submit" class="btn-submit w-100 mt-3">Update & Save Bill</button>
+
+        {% if bill.patient_type == "In-Patient" %}
+        <div class="list-card mb-4">
+            <h5>Stay Details</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="small text-muted">Admission Date</label>
+                    <input type="date" name="admission_date" id="admitDate" class="form-control bg-light" value="{{ bill.admission_date|date:'Y-m-d' }}" readonly>
+                </div>
+                <div class="col-md-4">
+                    <label class="small text-muted">Discharge Date</label>
+                    <input type="date" name="discharge_date" id="dischargeDate" class="form-control" value="{{ bill.discharge_date|date:'Y-m-d' }}" onchange="calculateStayDays()">
+                </div>
+                <div class="col-md-4">
+                    <label class="small text-muted">Total Days</label>
+                    <input type="number" name="staying_days" id="stayDays" class="form-control bg-light" value="{{ bill.staying_days }}" readonly>
+                </div>
             </div>
         </div>
-    </div>
-</form>
+        {% endif %}
+
+        <div class="list-card mb-4">
+            <h5>Services / Charges</h5>
+            <table class="table table-bordered" id="billTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Service Description</th>
+                        <th width="100">Qty</th>
+                        <th width="150">Unit Price</th>
+                        <th width="120">Discount</th>
+                        <th width="150">Total</th>
+                        <th width="50"></th>
+                    </tr>
+                </thead>
+                <tbody id="billBody">
+                    {% for item in items %}
+                    <tr>
+                        <td><input name="service_name[]" class="form-control" value="{{ item.service_name }}" required></td>
+                        <td><input name="qty[]" class="form-control qty" type="number" value="{{ item.quantity }}" min="1"></td>
+                        <td><input name="unit_price[]" class="form-control price" type="number" value="{{ item.unit_price }}" required></td>
+                        <td><input name="discount[]" class="form-control discount" type="number" value="{{ item.discount }}"></td>
+                        <td><input class="form-control total" readonly value="{{ item.total }}"></td>
+                        <td><button type="button" class="btn btn-outline-danger removeRow">×</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addRow()">+ Add Row</button>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="list-card h-100">
+                    <h5>Payment Status</h5>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <select name="payment_status" id="paymentStatus" class="form-select" onchange="togglePaymentFields()">
+                                <option value="Unpaid" {% if bill.payment_status == 'Unpaid' %}selected{% endif %}>Unpaid</option>
+                                <option value="Paid" {% if bill.payment_status == 'Paid' %}selected{% endif %}>Paid</option>
+                            </select>
+                        </div>
+                        <div class="col-6" id="paymentFields" style="display: {% if bill.payment_status == 'Paid' %}block{% else %}none{% endif %};">
+                            <select name="payment_method" class="form-select">
+                                <option value="Cash" {% if bill.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                                <option value="Card" {% if bill.payment_method == 'Card' %}selected{% endif %}>Card</option>
+                                <option value="Online" {% if bill.payment_method == 'Online' %}selected{% endif %}>Online</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="list-card h-100 shadow-sm" style="border-right: 5px solid #0d6efd;">
+                    <p class="mb-1">Subtotal: <span id="subtotalLabel" class="fw-bold">Rs {{ bill.subtotal }}</span></p>
+                    <p class="mb-1 text-danger">Discount: <span id="totalDiscountLabel">Rs {{ bill.total_discount }}</span></p>
+                    <hr>
+                    <h4 class="text-primary">Grand Total: <span id="grandTotalLabel">Rs {{ bill.grand_total }}</span></h4>
+                    <input type="hidden" name="amount_paid" id="amountPaid" value="{{ bill.amount_paid }}">
+                    <button type="submit" class="btn-submit w-100 mt-3">Update & Save Bill</button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    if(document.getElementById("admitDate")) calculateStayDays();
-    calculate(); // Initial calculation on load
-});
-
-function calculateStayDays(){
-    let a = new Date(document.getElementById("admitDate").value);
-    let d = new Date(document.getElementById("dischargeDate").value);
-    if(a && d && d >= a){
-        let diff = Math.ceil((d - a) / (1000 * 60 * 60 * 24));
-        document.getElementById("stayDays").value = Math.max(1, diff);
-    }
-}
-
-function calculate(){
-    let total_sub = 0;
-    let total_disc = 0;
-    
-    document.querySelectorAll("#billBody tr").forEach(r => {
-        // Negative input ko 0 treat karne ke liye Math.max use kiya
-        let q = Math.max(0, +r.querySelector(".qty").value || 0);
-        let p = Math.max(0, +r.querySelector(".price").value || 0);
-        let d = Math.max(0, +r.querySelector(".discount").value || 0);
-        
-        let row_subtotal = q * p;
-        
-        // Check: Discount subtotal se zyada na ho
-        if (d > row_subtotal) {
-            d = row_subtotal;
+    function calculateStayDays(){
+        const a = new Date(document.getElementById("admitDate").value);
+        const d = new Date(document.getElementById("dischargeDate").value);
+        if(a && d && d >= a){
+            document.getElementById("stayDays").value = Math.ceil((d - a) / (1000 * 60 * 60 * 24)) || 1;
         }
-        
-        let lineTotal = row_subtotal - d;
-        r.querySelector(".total").value = lineTotal.toFixed(2);
-        
-        total_sub += row_subtotal;
-        total_disc += d;
-    });
-
-    let grandTotal = total_sub - total_disc;
-    
-    document.getElementById("subtotalLabel").innerText = `Rs ${total_sub.toFixed(2)}`;
-    document.getElementById("totalDiscountLabel").innerText = `Rs ${total_disc.toFixed(2)}`;
-    document.getElementById("grandTotalLabel").innerText = `Rs ${Math.max(0, grandTotal).toFixed(2)}`;
-
-    // Paid status hone par hidden amount field update karein
-    if(document.getElementById("paymentStatus").value === "Paid") {
-        document.getElementById("amountPaid").value = Math.max(0, grandTotal).toFixed(2);
-    } else {
-        document.getElementById("amountPaid").value = 0;
     }
-}
 
-document.addEventListener("input", calculate);
+    function calculate(){
+        let sub = 0, disc = 0;
+        document.querySelectorAll("#billBody tr").forEach(r => {
+            let q = +r.querySelector(".qty").value || 0;
+            let p = +r.querySelector(".price").value || 0;
+            let d = +r.querySelector(".discount").value || 0;
+            let row_sub = q * p;
+            let row_total = Math.max(0, row_sub - d);
+            r.querySelector(".total").value = row_total.toFixed(2);
+            sub += row_sub; disc += d;
+        });
+        document.getElementById("subtotalLabel").innerText = `Rs ${sub.toFixed(2)}`;
+        document.getElementById("totalDiscountLabel").innerText = `Rs ${disc.toFixed(2)}`;
+        let grand = sub - disc;
+        document.getElementById("grandTotalLabel").innerText = `Rs ${grand.toFixed(2)}`;
+        document.getElementById("amountPaid").value = (document.getElementById("paymentStatus").value === "Paid") ? grand.toFixed(2) : 0;
+    }
 
-function addRow(){
-    const tbody = document.querySelector("#billBody");
-    tbody.insertAdjacentHTML("beforeend",`
-    <tr>
-        <td><input name="service_name[]" class="form-control" required></td>
-        <td><input name="qty[]" class="form-control qty" type="number" value="1" min="1"></td>
-        <td><input name="unit_price[]" class="form-control price" type="number" min="0" required></td>
-        <td><input name="discount[]" class="form-control discount" type="number" value="0" min="0"></td>
-        <td><input class="form-control total" readonly value="0"></td>
-        <td><button type="button" class="btn btn-outline-danger removeRow">×</button></td>
-    </tr>`);
-}
+    function addRow(){
+        const row = `<tr>
+            <td><input name="service_name[]" class="form-control" required></td>
+            <td><input name="qty[]" class="form-control qty" type="number" value="1" min="1"></td>
+            <td><input name="unit_price[]" class="form-control price" type="number" min="0" required></td>
+            <td><input name="discount[]" class="form-control discount" type="number" value="0"></td>
+            <td><input class="form-control total" readonly value="0.00"></td>
+            <td><button type="button" class="btn btn-outline-danger removeRow">×</button></td>
+        </tr>`;
+        document.getElementById("billBody").insertAdjacentHTML("beforeend", row);
+    }
 
-document.addEventListener("click", e => {
-    if(e.target.classList.contains("removeRow")){
-        e.target.closest("tr").remove(); 
+    document.addEventListener("input", calculate);
+    document.addEventListener("click", e => { if(e.target.classList.contains("removeRow")){ e.target.closest("tr").remove(); calculate(); } });
+    function togglePaymentFields() {
+        document.getElementById("paymentFields").style.display = (document.getElementById("paymentStatus").value === "Paid") ? "block" : "none";
         calculate();
     }
-});
-
-function togglePaymentFields() {
-    const status = document.getElementById("paymentStatus").value;
-    const fields = document.getElementById("paymentFields");
-    const amountInput = document.getElementById("amountPaid");
-    const grandTotalVal = parseFloat(document.getElementById("grandTotalLabel").innerText.replace('Rs ', '')) || 0;
-
-    if (status === "Paid") {
-        fields.style.display = "block";
-        amountInput.value = grandTotalVal.toFixed(2);
-    } else {
-        fields.style.display = "none";
-        amountInput.value = 0;
-    }
-}
 </script>
 {% endblock %}

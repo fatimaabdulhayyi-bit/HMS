@@ -7,6 +7,7 @@ from django.db.models import Max
 from datetime import date,datetime,timedelta
 from django.db import transaction
 from .decorators import role_required
+from decimal import Decimal
 
 def signup(request):
     if request.method == "POST":
@@ -97,25 +98,26 @@ def login(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         
+        # Pehle check karein ke fields khali toh nahi
+        if not email or not password:
+            messages.error(request, "Please provide both email and password.")
+            return render(request, 'hospital/forms/login.html')
+
         user = authenticate(request, email=email, password=password)
 
         if user is not None:
-            # User ko login karwaein taake session create ho jaye
+            # User mil gaya aur password sahi hai
             auth_login(request, user)
 
             # --- DOCTOR LOGIC ---
             if user.role == 'doctor':
                 try:
                     doctor_profile = Doctors.objects.get(user=user)
-                    
-                    # Agar admin ne approve nahi kiya (User ya Profile level par)
                     if not user.is_approved or not doctor_profile.is_approved:
                         messages.warning(request, "Please wait for admin approval.")
                         return redirect('login')
-                    
                     return redirect('doctor_dashboard')
                 except Doctors.DoesNotExist:
-                    # Agar user account hai par Doctors profile nahi bani
                     return redirect('doctorreg')
 
             # --- PATIENT LOGIC ---
@@ -129,14 +131,21 @@ def login(request):
             elif user.role == 'admin' and user.is_admin:
                 return redirect('admin_dashboard')
             
-            elif user.is_superadmin:
-                messages.warning(request, "You have no access to this page.")
-                return redirect('login')
-
             else:
                 return redirect('patient_dashboard')
+
         else:
-            return render(request, 'hospital/forms/login.html', {'error': 'Invalid credentials.'})
+            # --- ERROR HANDLING ---
+            # Yahan check karte hain ke masla email mein hai ya password mein
+            from hospital.models import UserAccount
+            user_exists = UserAccount.objects.filter(email=email).exists()
+            
+            if not user_exists:
+                messages.error(request, "Invalid Email: No account found with this email.")
+            else:
+                messages.error(request, "Invalid Password: The password you entered is incorrect.")
+            
+            return render(request, 'hospital/forms/login.html')
 
     return render(request, 'hospital/forms/login.html')
 
@@ -257,23 +266,19 @@ def delete_department(request, pk):
 
 @role_required(allowed_roles=['admin'])
 def admin_dashboard(request):
+    # Basic counts
     total_patients = Patients.objects.count()
     total_departments = Departments.objects.count()
     pending_doctors = Doctors.objects.filter(is_approved=False)
     total_doctors = Doctors.objects.filter(is_approved=True).count()
     total_appointments = Appointment.objects.count()
-    pending_opd = Appointment.objects.filter(status='Completed').exclude(status='Billed') 
-    
-    pending_ipd = InPatient.objects.filter(
-        is_discharged=True
-    ).exclude(
-        status='Billed'
-    )    
+
     active_InPatients_count = InPatient.objects.filter(is_discharged=False).count()
+    
     ongoing_appointments = Appointment.objects.filter(
         appointment_date=date.today(),
         status__in=['Pending', 'Serving']
-    ).order_by('token')[:5] # Top 5 dikhane ke liye
+    ).order_by('token')[:5]
     
     context = {
         'total_patients': total_patients,
@@ -283,11 +288,8 @@ def admin_dashboard(request):
         'total_InPatients': active_InPatients_count,
         'total_appointments': total_appointments,
         'ongoing_appointments': ongoing_appointments,
-        'pending_opd_bills': pending_opd,
-        'pending_ipd_bills': pending_ipd,
     }
     return render(request, 'hospital/admin/admin_dashboard.html', context)
-
 @role_required(allowed_roles=['admin'])
 def approve_doctor(request, doctor_id):
 
@@ -330,21 +332,22 @@ def manage_appointments(request):
 @role_required(allowed_roles=['admin'])
 def add_appointment(request):
     if request.method == "POST":
-        # Form data
+        # Form data fetch karein
         patient_id = request.POST.get('patient')
         doc_id = request.POST.get('doctor')
         dept_id = request.POST.get('department')
         app_date_str = request.POST.get('appointment_date')
-        status = request.POST.get('status', 'Pending')
-
+        
         # 1. Patient Profile & Age Fetching
         patient_profile = get_object_or_404(Patients, id=patient_id)
+        doctor = get_object_or_404(Doctors, id=doc_id)
+        
         age = 0
         if patient_profile.dob:
             today = date.today()
             age = today.year - patient_profile.dob.year - ((today.month, today.day) < (patient_profile.dob.month, patient_profile.dob.day))
 
-        # 2. Date & Schedule Validation
+        # 2. Schedule & Date Validation
         app_date_obj = datetime.strptime(app_date_str, '%Y-%m-%d').date()
         day_name = app_date_obj.strftime('%A') 
         schedule = DoctorSchedule.objects.filter(doctor_id=doc_id, day=day_name, is_available=True).first()
@@ -353,54 +356,72 @@ def add_appointment(request):
             messages.error(request, f"Doctor is not available on {day_name}.")
             return redirect('add_appointment')
 
-        # 3. Smart Time & Slot Calculation (Yahi logic patient side pr hai)
+        # 3. Smart Time Calculation (Patient side logic)
         start_dt = datetime.combine(date.today(), schedule.start_time)
         end_dt = datetime.combine(date.today(), schedule.end_time)
         now = datetime.now()
 
-        # Check: Agar shift khatam ho chuki hai
-        if app_date_obj == date.today() and now >= end_dt:
-            messages.error(request, f"Doctor's shift for today has already ended.")
-            return redirect('add_appointment')
-
-        # Token Generation
-        last_token = Appointment.objects.filter(
+        total_booked = Appointment.objects.filter(
             doctor_id=doc_id, 
             appointment_date=app_date_str
-        ).aggregate(Max('token'))['token__max'] or 0
-        new_token = last_token + 1
+        ).count()
         
-        # Time Calculation (10 mins per patient)
-        calculated_dt = start_dt + timedelta(minutes=last_token * 10)
+        calculated_dt = start_dt + timedelta(minutes=total_booked * 10)
 
-        # Past Time Conflict Fix
+        # Past time conflict fix
         if app_date_obj == date.today() and calculated_dt < now:
             calculated_dt = now + timedelta(minutes=5)
 
-        # Shift Limit Check
         if calculated_dt > end_dt:
             messages.error(request, "Sorry, all slots are full for this shift!")
             return redirect('add_appointment')
 
         final_time = calculated_dt.time()
 
-        # 4. Create Appointment
-        Appointment.objects.create(
-            patient_user=patient_profile,
-            fullname=patient_profile.user.fullname,
-            age=age,
-            gender=patient_profile.gender,
-            contact=patient_profile.phone,
-            department_id=dept_id,
-            doctor_id=doc_id,
-            appointment_date=app_date_str,
-            appointment_time=final_time,
-            token=new_token,
-            status=status
-        )
-        
-        messages.success(request, f"Appointment Booked! Token: #{new_token} | Assigned Time: {final_time.strftime('%I:%M %p')}")
-        return redirect('manage_appointments')
+        # 4. --- TRANSACTION BLOCK (Atomic) ---
+        # Same as patient_form logic
+        try:
+            with transaction.atomic():
+                # A. Create Appointment (Token is None)
+                appointment = Appointment.objects.create(
+                    patient_user=patient_profile,
+                    fullname=patient_profile.user.fullname,
+                    age=age,
+                    gender=patient_profile.gender,
+                    contact=patient_profile.phone,
+                    department_id=dept_id,
+                    doctor=doctor,
+                    appointment_date=app_date_str,
+                    appointment_time=final_time,
+                    token=None,  # Token None rahy ga jab tak pay na ho
+                    status='Pending'
+                )
+
+                # B. AUTO-BILL: System bill generate kare ga
+                bill = Bills.objects.create(
+                    patient=patient_profile,
+                    patient_type='Out-Patient',
+                    bill_date=date.today(),
+                    subtotal=doctor.consultation_fee,
+                    grand_total=doctor.consultation_fee,
+                    payment_status='Unpaid'
+                )
+
+                # C. Bill Item add karein
+                BillItems.objects.create(
+                    bill=bill,
+                    service_name=f"Consultation Fee - Dr. {doctor.user.fullname}",
+                    quantity=1,
+                    unit_price=doctor.consultation_fee,
+                    total=doctor.consultation_fee
+                )
+
+            messages.success(request, f"Appointment Added! Bill of Rs.{doctor.consultation_fee} generated. Token will be assigned after payment.")
+            return redirect('manage_appointments')
+
+        except Exception as e:
+            messages.error(request, f"Database Error: {str(e)}")
+            return redirect('add_appointment')
 
     # GET Request
     context = {
@@ -453,7 +474,7 @@ def generate_bills(request, p_type=None, id=None):
     initial_type = ""
     source_obj = None
     
-    # 1. Fetching Patient based on OPD/IPD
+    # URL parameters se patient fetch karna
     if p_type and id:
         if p_type == 'OPD':
             appt = get_object_or_404(Appointment, id=id)
@@ -469,42 +490,42 @@ def generate_bills(request, p_type=None, id=None):
     if request.method == "POST":
         try:
             with transaction.atomic():
-                user_id = request.POST.get('patient_user_id')
-                patient_obj = get_object_or_404(Patients, user_id=user_id)
+                # POST data se patient retrieval
+                p_id = request.POST.get('patient')
+                patient_obj = get_object_or_404(Patients, id=p_id)
                 p_status = request.POST.get('payment_status')
                 
-                # 2. Create Main Bill
+                # Main Bill Create karna
                 bill = Bills.objects.create(
                     patient=patient_obj,
-                    patient_type=initial_type, # Using backend variable for safety
+                    patient_type=request.POST.get('patient_type'),
                     bill_date=request.POST.get('bill_date') or date.today(),
-                    admission_date=request.POST.get('admission_date') if request.POST.get('admission_date') else None,
-                    discharge_date=request.POST.get('discharge_date') if request.POST.get('discharge_date') else None,
+                    admission_date=request.POST.get('admission_date') or None,
+                    discharge_date=request.POST.get('discharge_date') or None,
                     staying_days=int(request.POST.get('staying_days') or 0),
                     payment_status=p_status,
                     payment_method=request.POST.get('payment_method') if p_status == "Paid" else "Unpaid",
-                    amount_paid=request.POST.get('amount_paid') if p_status == "Paid" else 0,
+                    amount_paid=Decimal(request.POST.get('amount_paid') or 0) if p_status == "Paid" else 0,
                     grand_total=0 
                 )
 
-                # 3. Process Dynamic Items
+                # Dynamic Items Process karna
                 services = request.POST.getlist('service_name[]')
                 qtys = request.POST.getlist('qty[]')
                 prices = request.POST.getlist('unit_price[]')
                 discounts = request.POST.getlist('discount[]')
 
-                total_sub = 0
-                total_disc = 0
+                total_sub = Decimal('0.00')
+                total_disc = Decimal('0.00')
 
                 for i in range(len(services)):
                     s_name = services[i].strip()
                     if not s_name: continue
 
                     q = int(qtys[i] or 1)
-                    p = float(prices[i] or 0)
-                    d = float(discounts[i] or 0)
+                    p = Decimal(prices[i] or 0)
+                    d = Decimal(discounts[i] or 0)
                     
-                    # BACKEND NEGATIVE CHECK
                     line_total = (q * p) - d
                     if line_total < 0: line_total = 0
                     
@@ -519,14 +540,13 @@ def generate_bills(request, p_type=None, id=None):
                     total_sub += (q * p)
                     total_disc += d
 
-                # 4. Final Totals Update (with safety check)
+                # Bill Totals Update
                 bill.subtotal = total_sub
                 bill.total_discount = total_disc
-                final_grand = total_sub - total_disc
-                bill.grand_total = max(0, final_grand)
+                bill.grand_total = max(0, total_sub - total_disc)
                 bill.save()
                 
-                # 5. STATUS UPDATE (Dashboard se hatane ke liye)
+                # Dashboard status update
                 if p_type == 'OPD':
                     Appointment.objects.filter(id=id).update(status='Billed') 
                 elif p_type == 'IPD':
@@ -539,10 +559,10 @@ def generate_bills(request, p_type=None, id=None):
             messages.error(request, f"Error: {str(e)}")
 
     context = {
+        'patients': Patients.objects.all(),
         'selected_patient': selected_patient,
         'initial_type': initial_type,
         'source_obj': source_obj,
-        'today': date.today(),
     }
     return render(request, 'hospital/admin/generate_bills.html', context)
 
@@ -565,62 +585,90 @@ def view_bill(request, pk):
 @role_required(allowed_roles=['admin'])
 def edit_bill(request, pk):
     bill = get_object_or_404(Bills, id=pk)
-    items = BillItems.objects.filter(bill=bill)
     
+    # --- SECURITY CHECK ---
+    # Agar bill pehle se hi 'Paid' hai, toh edit allow nahi karna
+    if bill.payment_status == 'Paid':
+        messages.warning(request, "Paid bills cannot be edited for security reasons.")
+        return redirect('bill_list')
+    # ----------------------
+
+    items = BillItems.objects.filter(bill=bill)
+
     if request.method == "POST":
-        with transaction.atomic(): # Taake agar koi error aaye to data kharab na ho
-            # 1. Main Bill Fields Update karein
-            bill.bill_date = request.POST.get('bill_date')
-            bill.payment_status = request.POST.get('payment_status')
-            bill.payment_method = request.POST.get('payment_method')
-            bill.amount_paid = request.POST.get('amount_paid', 0)
-            
-            if bill.patient_type == "In-Patient":
-                bill.discharge_date = request.POST.get('discharge_date')
-                bill.staying_days = request.POST.get('staying_days', 0)
+        old_status = bill.payment_status
+        new_status = request.POST.get('payment_status')
 
-            # 2. Purane Items Delete karein
-            BillItems.objects.filter(bill=bill).delete()
-
-            # 3. Naye Items Save karein (Loop)
-            services = request.POST.getlist('service_name[]')
-            qtys = request.POST.getlist('qty[]')
-            prices = request.POST.getlist('unit_price[]')
-            discounts = request.POST.getlist('discount[]')
-
-            total_subtotal = 0
-            total_discount = 0
-
-            for i in range(len(services)):
-                q = int(qtys[i])
-                p = float(prices[i])
-                d = float(discounts[i])
-                line_total = (q * p) - d
+        try:
+            with transaction.atomic():
+                bill.bill_date = request.POST.get('bill_date')
+                bill.payment_status = new_status
+                bill.payment_method = request.POST.get('payment_method')
                 
-                BillItems.objects.create(
-                    bill=bill,
-                    service_name=services[i],
-                    quantity=q, # Model field: quantity
-                    unit_price=p,
-                    discount=d,
-                    total=line_total # Model field: total
-                )
+                if bill.patient_type == "In-Patient":
+                    bill.discharge_date = request.POST.get('discharge_date')
+                    bill.staying_days = int(request.POST.get('staying_days') or 1)
+
+                # Items refresh (Delete and Re-create)
+                items.delete()
                 
-                total_subtotal += (q * p)
-                total_discount += d
+                service_names = request.POST.getlist('service_name[]')
+                quantities = request.POST.getlist('qty[]')
+                unit_prices = request.POST.getlist('unit_price[]')
+                discounts = request.POST.getlist('discount[]')
 
-            # 4. Bill ke totals update karein
-            bill.subtotal = total_subtotal
-            bill.total_discount = total_discount
-            bill.grand_total = total_subtotal - total_discount
-            bill.save()
+                t_sub = Decimal('0.00')
+                t_disc = Decimal('0.00')
 
-            return redirect('bill_list')
+                for i in range(len(service_names)):
+                    q = int(quantities[i])
+                    p = Decimal(unit_prices[i])
+                    d = Decimal(discounts[i])
+                    row_total = max(0, (q * p) - d)
 
-    return render(request, 'hospital/admin/edit_bill.html', {
-        'bill': bill,
-        'items': items
-    })
+                    BillItems.objects.create(
+                        bill=bill,
+                        service_name=service_names[i],
+                        quantity=q,
+                        unit_price=p,
+                        discount=d,
+                        total=row_total
+                    )
+                    t_sub += (q * p)
+                    t_disc += d
+
+                bill.subtotal = t_sub
+                bill.total_discount = t_disc
+                bill.grand_total = max(0, t_sub - t_disc)
+                
+                # Payment calculation
+                bill.amount_paid = bill.grand_total if new_status == 'Paid' else 0
+                bill.save()
+
+                # TOKEN ASSIGNMENT LOGIC (Sirf tab jab status Unpaid se Paid ho raha ho)
+                if new_status == 'Paid' and old_status != 'Paid':
+                    # Apne model naming convention ke mutabiq check karein (patient ya patient_user)
+                    appt = Appointment.objects.filter(patient_user=bill.patient, token__isnull=True).order_by('-created_at').first()
+                    if appt:
+                        last_t = Appointment.objects.filter(
+                            doctor=appt.doctor, 
+                            appointment_date=appt.appointment_date
+                        ).aggregate(Max('token'))['token__max'] or 0
+                        
+                        appt.token = last_t + 1
+                        appt.status = 'Pending'
+                        appt.save()
+                        messages.success(request, f"Bill Paid & Token #{appt.token} Assigned Successfully.")
+                    else:
+                        messages.info(request, "Bill Paid. No pending appointment found to assign token.")
+                else:
+                    messages.success(request, "Bill Updated Successfully.")
+
+                return redirect('bill_list')
+        except Exception as e:
+            messages.error(request, f"Update Error: {str(e)}")
+
+    return render(request, 'hospital/admin/edit_bill.html', {'bill': bill, 'items': items})
 
 @role_required(allowed_roles=['admin'])
 def delete_bill(request, pk):
@@ -1019,51 +1067,22 @@ def doctor_dashboard(request):
 def my_appointments(request):
     doctor = get_object_or_404(Doctors, user=request.user)
     
-    # Aaj ka din (e.g., 'Monday') aur current time
-    today_name = date.today().strftime('%A')
-    now_time = datetime.now().time()
-
-    # 1. Aaj ka Schedule fetch karein
-    schedule = DoctorSchedule.objects.filter(
-        doctor=doctor, 
-        day=today_name, 
-        is_available=True
-    ).first()
-    
-    # Clinic Start Check
-    clinic_started = True
-    if schedule:
-        if now_time < schedule.start_time:
-            clinic_started = False
-    else:
-        # Agar aaj schedule hi nahi hai toh button disable rakhein
-        clinic_started = False
-
-    # 2. Appointments Queries
+    # FILTER FIX: Sirf wo appointments dikhayen jin ka Token generate ho chuka hai
     today_all = Appointment.objects.filter(
         doctor=doctor, 
-        appointment_date=date.today()
+        appointment_date=date.today(),
+        token__isnull=False # <--- Ye line unpaid/untokenized logo ko filter kar degi
     ).order_by('token')
 
-    upcoming_appointments = Appointment.objects.filter(
-        doctor=doctor,
-        appointment_date__gt=date.today()
-    ).exclude(status='Cancelled').order_by('appointment_date', 'appointment_time')
-
-    checked_patients = Appointment.objects.filter(
-        doctor=doctor,
-        status__in=['Completed', 'Cancelled', 'Billed'] 
-    ).order_by('-appointment_date', '-token')
-    current_serving_appt = today_all.filter(status='Serving').first()
-    current_token = current_serving_appt.token if current_serving_appt else "0"
+    # Baki queries same raheingi...
+    upcoming = Appointment.objects.filter(doctor=doctor, appointment_date__gt=date.today()).exclude(status='Cancelled')
+    checked = Appointment.objects.filter(doctor=doctor, status__in=['Completed', 'Cancelled', 'Billed']).order_by('-token')
 
     context = {
         'today_appointments': today_all, 
-        'upcoming_appointments': upcoming_appointments,
-        'checked_patients': checked_patients,
-        'current_token': current_token,
-        'clinic_started': clinic_started, # Frontend button control ke liye
-        'schedule': schedule,
+        'upcoming_appointments': upcoming,
+        'checked_patients': checked,
+        'current_token': today_all.filter(status='Serving').first().token if today_all.filter(status='Serving').exists() else "0",
     }
     return render(request, 'hospital/doctor/my_appointments.html', context)
 
@@ -1163,6 +1182,7 @@ def edit_docprofile(request):
     }
     return render(request, 'hospital/doctor/edit_docprofile.html', context)
 
+@role_required(allowed_roles=['doctor'])
 def view_medical_record(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
@@ -1180,6 +1200,7 @@ def view_medical_record(request, appointment_id):
         'full_history': full_history,
     })
 
+@role_required(allowed_roles=['doctor'])
 def add_medical_record(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
@@ -1211,6 +1232,7 @@ def add_medical_record(request, appointment_id):
 
     return render(request, 'hospital/doctor/add_medical_record.html', {'appointment': appointment})
 
+@role_required(allowed_roles=['doctor'])
 def edit_medical_record(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     medical_record = get_object_or_404(MedicalRecord, appointment=appointment)
@@ -1242,13 +1264,14 @@ def appointments(request):
 
     all_appointments = Appointment.objects.filter(patient_user=profile).order_by('-created_at')
     
-    # FIX: Sirf AAJ ki Pending/Serving appointment uthayein
+    # Sirf AAJ ki Pending/Serving appointment uthayein
     latest_active = all_appointments.filter(
         appointment_date=date.today(), 
         status__in=['Pending', 'Serving']
     ).first()
     
-    if latest_active:
+    # FIX: Agar appointment mil gayi HAI lekin uska TOKEN abhi tak generate nahi hua (None hai)
+    if latest_active and latest_active.token is not None:
         # 1. Get Current Serving Token Logic
         serving_now = Appointment.objects.filter(
             doctor=latest_active.doctor,
@@ -1256,19 +1279,19 @@ def appointments(request):
             status='Serving'
         ).first()
         
-        if serving_now:
+        if serving_now and serving_now.token is not None:
             current_val = serving_now.token
         else:
             last_completed = Appointment.objects.filter(
                 doctor=latest_active.doctor,
                 appointment_date=date.today(),
                 status='Completed'
-            ).order_by('-token').first()
+            ).exclude(token__isnull=True).order_by('-token').first()
             current_val = last_completed.token if last_completed else 0
             
         latest_active.current_serving = current_val
 
-        # 2. Check if Clinic is active (Doctor has started calling tokens)
+        # 2. Check if Clinic is active
         is_clinic_active = Appointment.objects.filter(
             doctor=latest_active.doctor,
             appointment_date=date.today(),
@@ -1278,13 +1301,19 @@ def appointments(request):
         # 3. Wait Time & Alert Logic
         show_alert = False
         now = datetime.now()
-        appt_dt = datetime.combine(date.today(), latest_active.appointment_time)
-        mins_remaining = int((appt_dt - now).total_seconds() / 60)
+        
+        # Time calculation se pehle check karein appointment_time empty to nahi
+        if latest_active.appointment_time:
+            appt_dt = datetime.combine(date.today(), latest_active.appointment_time)
+            mins_remaining = int((appt_dt - now).total_seconds() / 60)
+        else:
+            mins_remaining = 30 # Default agar time na ho
 
         if latest_active.status == 'Pending':
             if not is_clinic_active:
                 latest_active.wait_time = "Doctor not started yet"
             else:
+                # SAFE FILTER: current_val aur latest_active.token dono check ho gaye hain
                 people_ahead = Appointment.objects.filter(
                     doctor=latest_active.doctor,
                     appointment_date=latest_active.appointment_date,
@@ -1294,13 +1323,11 @@ def appointments(request):
                 ).count()
                 
                 token_wait = (people_ahead + 1) * 10
-                
-                # Logic for display time
                 wait_val = mins_remaining if 0 < mins_remaining < token_wait else token_wait
                 if mins_remaining <= 0: wait_val = 2
                 latest_active.wait_time = f"{wait_val} mins"
 
-                # Alert: Token gap <= 3 AND Time <= 20 mins
+                # Alert Logic
                 token_gap = latest_active.token - current_val
                 if 0 < token_gap <= 3 and mins_remaining <= 20:
                     show_alert = True
@@ -1317,13 +1344,18 @@ def appointments(request):
             if progress > 100: progress = 100
         latest_active.progress_val = round(progress, 2)
 
+    elif latest_active:
+        # Agar appointment hai par token None hai (Matlab Bill pay nahi hua)
+        latest_active.wait_time = "Token Pending (Pay Bill)"
+        latest_active.current_serving = 0
+        latest_active.progress_val = 0
+
     context = {
         'patient_appointments': all_appointments, 
         'latest_active': latest_active,
         'today': date.today()
     }
     return render(request, 'hospital/patient/appointments.html', context)
-
 @role_required(allowed_roles=['patient'])
 def get_live_update(request, appt_id):
     appointment = get_object_or_404(Appointment, id=appt_id)
@@ -1430,7 +1462,7 @@ def cancel_appointment(request, pk):
 
 @role_required(allowed_roles=['patient'])
 def appointment_form(request):
-    # 1. Profile aur Age Fetching
+    # 1. Profile aur Age Fetching (Sahi variables set karein)
     patient_profile = Patients.objects.filter(user=request.user).first()
     age = 0
     if patient_profile and patient_profile.dob:
@@ -1441,6 +1473,8 @@ def appointment_form(request):
         doc_id = request.POST.get('doctor')
         dept_id = request.POST.get('department')
         app_date_str = request.POST.get('appointment_date')
+        
+        doctor = get_object_or_404(Doctors, id=doc_id)
         
         # Date Validation
         app_date_obj = datetime.strptime(app_date_str, '%Y-%m-%d').date()
@@ -1458,48 +1492,71 @@ def appointment_form(request):
         end_dt = datetime.combine(date.today(), schedule.end_time)
         now = datetime.now()
 
-        # Check A: Agar shift khatam ho chuki hai (For Today)
+        # Check A: Shift end check
         if app_date_obj == date.today() and now >= end_dt:
-            messages.error(request, f"Doctor's shift for today has already ended at {schedule.end_time.strftime('%I:%M %p')}.")
+            messages.error(request, f"Doctor's shift for today has ended at {schedule.end_time.strftime('%I:%M %p')}.")
             return redirect('appointment_form')
 
-        # Token Generation
-        last_token = Appointment.objects.filter(
+        # Appointment Count for Time Calculation (Token abhi generate nahi ho raha)
+        total_booked = Appointment.objects.filter(
             doctor_id=doc_id, 
             appointment_date=app_date_str
-        ).aggregate(Max('token'))['token__max'] or 0
-        new_token = last_token + 1
+        ).count()
         
-        # Time Calculation (Base: 10 mins per patient)
-        calculated_dt = start_dt + timedelta(minutes=last_token * 10)
+        calculated_dt = start_dt + timedelta(minutes=total_booked * 10)
 
-        #Past Time Conflict Fix
         if app_date_obj == date.today() and calculated_dt < now:
             calculated_dt = now + timedelta(minutes=5)
 
-        # STRICT SHIFT LIMIT 
         if calculated_dt > end_dt:
-            messages.error(request, f"Sorry, all slots are full! Doctor's shift ends at {schedule.end_time.strftime('%I:%M %p')}.")
+            messages.error(request, "Sorry, all slots are full for this shift!")
             return redirect('appointment_form')
 
         final_time = calculated_dt.time()
 
-        # 3. Create Appointment
-        Appointment.objects.create(
-            patient_user=patient_profile,
-            fullname=request.user.fullname,
-            age=age,
-            gender=patient_profile.gender,
-            contact=patient_profile.phone,
-            department_id=dept_id,
-            doctor_id=doc_id,
-            appointment_date=app_date_str,
-            appointment_time=final_time,
-            token=new_token
-        )
-        
-        messages.success(request, f"Appointment Booked! Token: #{new_token} | Time: {final_time.strftime('%I:%M %p')}")
-        return redirect('appointments')
+        # --- TRANSACTION BLOCK (Atomic) ---
+        try:
+            with transaction.atomic():
+                # 1. Create Appointment (Token = None for Pay-First)
+                appointment = Appointment.objects.create(
+                    patient_user=patient_profile,
+                    fullname=request.user.fullname,
+                    age=age,
+                    gender=patient_profile.gender,
+                    contact=patient_profile.phone,
+                    department_id=dept_id,
+                    doctor=doctor,
+                    appointment_date=app_date_str,
+                    appointment_time=final_time,
+                    token=None,  # Pay-First logic
+                    status='Pending'
+                )
+
+                # 2. AUTO-BILL: System khud bill banaye ga
+                bill = Bills.objects.create(
+                    patient=patient_profile,
+                    patient_type='Out-Patient',
+                    bill_date=date.today(),
+                    subtotal=doctor.consultation_fee,
+                    grand_total=doctor.consultation_fee,
+                    payment_status='Unpaid'
+                )
+
+                # 3. Bill Item add karein
+                BillItems.objects.create(
+                    bill=bill,
+                    service_name=f"Consultation Fee - Dr. {doctor.user.fullname}",
+                    quantity=1,
+                    unit_price=doctor.consultation_fee,
+                    total=doctor.consultation_fee
+                )
+
+            messages.success(request, f"Request Sent! Please pay Rs.{doctor.consultation_fee} at reception to get your token.")
+            return redirect('appointments')
+
+        except Exception as e:
+            messages.error(request, f"Database Error: {str(e)}")
+            return redirect('appointment_form')
 
     depts = Departments.objects.filter(status=True)
     context = {
@@ -1508,7 +1565,6 @@ def appointment_form(request):
         'calculated_age': age
     }
     return render(request, 'hospital/patient/appointment-form.html', context)
-
 def get_estimated_time(request):
     doc_id = request.GET.get('doctor_id')
     date_str = request.GET.get('date')
@@ -1568,6 +1624,47 @@ def bill(request):
     return render(request, 'hospital/patient/bill.html', {'bills': bills})
 
 @role_required(allowed_roles=['patient'])
+def pay_bill(request, pk):
+    bill = get_object_or_404(Bills, id=pk, patient__user=request.user)
+    
+    if bill.payment_status == 'Paid':
+        messages.info(request, "This bill is already paid.")
+    else:
+        bill.payment_status = 'Paid'
+        bill.payment_method = 'Online'
+        bill.amount_paid = bill.grand_total
+        bill.save()
+
+        # --- TOKEN GENERATION START ---
+        # Patient ki latest appointment uthayein jis ka token None hai
+        appointment = Appointment.objects.filter(
+            patient_user=bill.patient, 
+            token__isnull=True
+        ).order_by('-created_at').first() # Sab se latest wali
+
+        if appointment:
+            # Aaj ke din is doctor ka max token
+            last_token_record = Appointment.objects.filter(
+                doctor=appointment.doctor,
+                appointment_date=appointment.appointment_date # Use appointment's date
+            ).aggregate(Max('token'))
+            
+            last_val = last_token_record['token__max']
+            new_token = (last_val + 1) if last_val is not None else 1
+            
+            appointment.token = new_token
+            appointment.status = 'Pending'
+            appointment.save()
+            
+            messages.success(request, f"Payment Successful! Your Token is {new_token}")
+        else:
+            # Agar appointment direct nahi mil rahi to check karein model fields
+            messages.warning(request, "Payment received but no pending appointment found to assign token.")
+        # --- TOKEN GENERATION END ---
+
+    return redirect('bill')
+
+@role_required(allowed_roles=['patient'])
 def patient_view_bill(request, pk):
     # Get bill
     bill = get_object_or_404(Bills, pk=pk)
@@ -1606,6 +1703,7 @@ def feedback(request):
             
     return render(request, 'hospital/patient/feedback.html')
 
+@role_required(allowed_roles=['patient'])
 def medical_records(request):
     # Sirf login patient ke records nikalna
     # request.user.patient_profile se hum Patients model tak pohanchtay hain

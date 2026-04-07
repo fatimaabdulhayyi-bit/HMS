@@ -16,7 +16,9 @@
   <!-- PAGE HEADER -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="page-title">Bills</h1>
-
+   <a href="{% url 'generate_bills' %}" class="btn-add">
+      <i class="fa fa-plus"></i> Add Bill
+    </a>
   </div>
 
   <!-- BILLS TABLE -->
@@ -36,69 +38,59 @@
           </tr>
         </thead>
 
-        <tbody>
-          {% if bills %}
-            {% for bill in bills %}
-            <tr>
+    <tbody>
+  {% if bills %}
+    {% for bill in bills %}
+    <tr>
+      <td>
+        <span class="badge bg-primary">{{ bill.id }}</span>
+      </td>
 
-              <td>
-                <span class="badge bg-primary">
-                  {{ bill.id }}
-                </span>
-              </td>
+      <td>{{ bill.patient.user.fullname }}</td>
 
-              <td>{{ bill.patient.user.fullname }}</td>
+      <td>
+        {% if bill.patient_type == "Out-Patient" or bill.patient_type == "OPD" %}
+          OPD
+        {% else %}
+          IPD
+        {% endif %}
+      </td>
 
-              <td>
-  {% if bill.patient_type == "Out-Patient" or bill.patient_type == "OPD" %}
-    OPD
+      <td>Rs. {{ bill.grand_total }}</td>
+
+      <td>
+        {% if bill.payment_status == "Paid" %}
+          <span class="badge bg-success">Paid</span>
+        {% elif bill.payment_status == "Unpaid" %}
+          <span class="badge bg-warning text-dark">Unpaid</span>
+        {% else %}
+          <span class="badge bg-danger">Partial</span>
+        {% endif %}
+      </td>
+
+      <td>{{ bill.bill_date }}</td>
+
+      <td class="text-center">
+        <a href="{% url 'view_bill' bill.id %}" class="btn-edit">View</a>
+
+        {% if bill.payment_status != "Paid" %}
+          <a href="{% url 'edit_bill' bill.id %}" class="btn-edit">Edit</a>
+        {% endif %}
+
+        <a href="{% url 'delete_bill' bill.id %}" 
+           class="btn-delete" 
+           onclick="return confirm('Are you sure you want to delete this bill?')">
+          Delete
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
   {% else %}
-    IPD
+    <tr>
+      <td colspan="7" class="text-center text-muted">No bills found</td>
+    </tr>
   {% endif %}
-</td>
-
-              <td>
-                Rs. {{ bill.grand_total }}
-              </td>
-
-              <td>
-                {% if bill.payment_status == "Paid" %}
-                  <span class="badge bg-success">Paid</span>
-                {% elif bill.payment_status == "Unpaid" %}
-                  <span class="badge bg-warning text-dark">Unpaid</span>
-                {% else %}
-                  <span class="badge bg-danger">Partial</span>
-                {% endif %}
-              </td>
-
-              <td>{{ bill.bill_date }}</td>
-
-              <td class="text-center">
-                <a href="{% url 'view_bill' bill.id %}" class="btn-edit">
-                  View
-                </a>
-
-                <!-- Update -->
-                        <a href="{% url 'edit_bill' bill.id %}" class="btn-edit">Edit</a>
-
-               <!-- Delete -->
-                 <a href="{% url 'delete_bill' bill.id %}" 
-   class="btn-delete" 
-   onclick="return confirm('WARNING: This will permanently delete the patient and their login account. Are you sure?')">
-   Delete
-</a>
-
-             </td>
-            </tr>
-            {% endfor %}
-          {% else %}
-            <tr>
-              <td colspan="7" class="text-center text-muted">
-                No bills found
-              </td>
-            </tr>
-          {% endif %}
-        </tbody>
+</tbody>
 
       </table>
     </div>

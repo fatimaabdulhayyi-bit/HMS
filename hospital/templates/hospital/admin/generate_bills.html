@@ -1,222 +1,271 @@
 {% extends 'hospital/admin/base_admin.html' %}
 {% load static %}
 
+{% block title %}Generate Bill{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-4 py-4">
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="page-title">Generate Bill</h1>
-    <a href="{% url 'bill_list' %}" class="btn-back">Back</a>
-</div>
-
-<form method="POST" id="billForm">
-{% csrf_token %}
-
-<div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; border-left: 5px solid #0d6efd;">
-    <div class="card-body p-4">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <label class="text-muted small fw-bold text-uppercase">Patient Name</label>
-                <h3>{{ selected_patient.user.fullname }}</h3>
-                <input type="hidden" name="patient_user_id" value="{{ selected_patient.user.id }}">
-                <input type="hidden" name="patient_type_val" value="{{ initial_type }}">
-            </div>
-            <div class="col-md-3 border-start">
-                <label class="text-muted small fw-bold text-uppercase">Type</label>
-                <div><span class="badge bg-light text-dark border">{{ initial_type }}</span></div>
-            </div>
-            <div class="col-md-3 border-start">
-                <label class="text-muted small fw-bold text-uppercase">Bill Date</label>
-                <input type="date" name="bill_date" id="todayDate" class="form-control form-control-sm" required>
-            </div>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title">Generate Bill</h1>
+        <a href="{% url 'bill_list' %}" class="btn-back">Back</a>
     </div>
-</div>
 
-{% if initial_type == "In-Patient" %}
-<div class="list-card mb-4">
-    <h5>In-Patient Stay Details</h5>
-    <div class="row g-3">
-        <div class="col-md-4">
-            <label class="small text-muted">Admission Date</label>
-            <input type="date" name="admission_date" id="admitDate" class="form-control" 
-                   value="{{ source_obj.admission_date|date:'Y-m-d' }}" onchange="calculateStayDays()" readonly>
-        </div>
-        <div class="col-md-4">
-            <label class="small text-muted">Discharge Date</label>
-            <input type="date" name="discharge_date" id="dischargeDate" class="form-control" 
-                   value="{{ today|date:'Y-m-d' }}" onchange="calculateStayDays()">
-        </div>
-        <div class="col-md-4">
-            <label class="small text-muted">Total Staying Days</label>
-            <input type="number" name="staying_days" id="stayDays" class="form-control bg-light" readonly>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<div class="list-card mb-4">
-    <h5>Charge Items</h5>
-    <table class="table table-bordered" id="billTable">
-        <thead class="bg-light">
-            <tr>
-                <th>Service</th>
-                <th width="100">Qty</th>
-                <th width="150">Unit Price</th>
-                <th width="120">Discount</th>
-                <th width="150">Total</th>
-                <th width="50"></th>
-            </tr>
-        </thead>
-        <tbody id="billBody">
-            <tr>
-                <td><input name="service_name[]" class="form-control" required placeholder="e.g. Consultation"></td>
-                <td><input name="qty[]" class="form-control qty" type="number" value="1" min="1"></td>
-                <td><input name="unit_price[]" class="form-control price" type="number" min="0" required></td>
-                <td><input name="discount[]" class="form-control discount" type="number" value="0" min="0"></td>
-                <td><input class="form-control total" readonly value="0"></td>
-                <td><button type="button" class="btn btn-outline-danger removeRow">×</button></td>
-            </tr>
-        </tbody>
-    </table>
-    <div class="text-end"> 
-        <button type="button" class="btn btn-outline-primary mt-3" onclick="addRow()"> + Add Service </button> 
-    </div>
-</div>
-
-<div class="row g-4">
-    <div class="col-md-6">
-        <div class="list-card h-100">
-            <h5>Payment Details</h5>
-            <div class="row g-3">
-                <div class="col-12">
-                    <label class="small text-muted">Bill Status</label>
-                    <select name="payment_status" id="paymentStatus" class="form-select" onchange="togglePaymentFields()">
-                        <option value="Unpaid">Unpaid</option>
-                        <option value="Paid">Paid</option>
-                    </select>
+    <form method="POST" id="billForm" onsubmit="return validateForm()">
+        {% csrf_token %}
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; border-left: 5px solid #0d6efd;">
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="text-muted small fw-bold text-uppercase">Select Patient</label>
+                        <select name="patient" id="patientSelect" class="form-select" required onchange="checkSelection()">
+                            <option value="">-- Choose Patient --</option>
+                            {% for p in patients %}
+                            <option value="{{ p.id }}" 
+                                {% if selected_patient.id == p.id %}selected{% endif %}
+                                data-age="{{ p.age|default:'N/A' }}" 
+                                data-gender="{{ p.gender }}" 
+                                data-contact="{{ p.phone }}">
+                                {{ p.user.fullname }} (ID: {{ p.id }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small fw-bold text-uppercase">Patient Type</label>
+                        <select name="patient_type" id="patientType" class="form-select" required onchange="checkSelection()">
+                            <option value="">-- Choose Type --</option>
+                            <option value="Out-Patient" {% if initial_type == 'Out-Patient' %}selected{% endif %}>Out-Patient (OPD)</option>
+                            <option value="In-Patient" {% if initial_type == 'In-Patient' %}selected{% endif %}>In-Patient (IPD)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small fw-bold text-uppercase">Bill Date</label>
+                        <input type="date" name="bill_date" id="todayDate" class="form-control" required>
+                    </div>
                 </div>
 
-                <div id="paymentFields" class="mt-3" style="display: none; border-top: 1px dashed #ddd; pt-3;">
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <label class="small text-muted">Method</label>
-                            <select name="payment_method" class="form-select">
-                                <option>Cash</option>
-                                <option>Card</option>
-                                <option>Online</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label class="small text-muted">Amount Paid (Rs)</label>
-                            <input name="amount_paid" id="amountPaid" class="form-control" type="number" value="0" min="0">
+                <div class="row g-3 mt-2 p-3 bg-light rounded" id="patientDetailsBox" style="display:none; border: 1px dashed #ccc;">
+                    <div class="col-md-3"><strong>Age:</strong> <span id="p_age"></span></div>
+                    <div class="col-md-3"><strong>Gender:</strong> <span id="p_gender"></span></div>
+                    <div class="col-md-6"><strong>Contact:</strong> <span id="p_contact"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="list-card mb-4" id="ipdBox" style="display:none; background-color: #fff9f0; border: 1px solid #ffff; padding: 15px; border-radius: 10px;">
+            <h5><i class="fas fa-bed"></i> In-Patient Stay Details</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="small text-muted">Admission Date</label>
+                    <input type="date" name="admission_date" id="admitDate" class="form-control" 
+                           value="{% if source_obj and initial_type == 'In-Patient' %}{{ source_obj.admission_date|date:'Y-m-d' }}{% endif %}"
+                           onchange="calculateStayDays()">
+                </div>
+                <div class="col-md-4">
+                    <label class="small text-muted">Discharge Date</label>
+                    <input type="date" name="discharge_date" id="dischargeDate" class="form-control" onchange="calculateStayDays()">
+                </div>
+                <div class="col-md-4">
+                    <label class="small text-muted">Total Staying Days</label>
+                    <input type="number" name="staying_days" id="stayDays" class="form-control bg-light" readonly value="0">
+                </div>
+            </div>
+            <small class="text-danger" id="dateError" style="display:none;">Discharge date cannot be before admission date!</small>
+        </div>
+
+        <div class="list-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Charge Items / Services</h5>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">+ Add Service</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle" id="billTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Service Description</th>
+                            <th width="100">Qty</th>
+                            <th width="150">Unit Price</th>
+                            <th width="120">Discount</th>
+                            <th width="150">Total</th>
+                            <th width="50"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="billBody">
+                        <tr>
+                            <td><input name="service_name[]" class="form-control" required placeholder="e.g. Room Charges"></td>
+                            <td><input name="qty[]" class="form-control qty" type="number" value="1" min="1"></td>
+                            <td><input name="unit_price[]" class="form-control price" type="number" min="0" required></td>
+                            <td><input name="discount[]" class="form-control discount" type="number" value="0" min="0"></td>
+                            <td><input class="form-control total" readonly value="0.00"></td>
+                            <td><button type="button" class="btn btn-outline-danger removeRow">×</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="list-card h-100">
+                    <h5>Payment Information</h5>
+                    <div class="mb-3">
+                        <label class="small text-muted">Payment Status</label>
+                        <select name="payment_status" id="paymentStatus" class="form-select" onchange="togglePaymentFields()">
+                            <option value="Unpaid">Unpaid</option>
+                            <option value="Paid">Paid</option>
+                        </select>
+                    </div>
+                    <div id="paymentFields" style="display: none;">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="small text-muted">Method</label>
+                                <select name="payment_method" class="form-select">
+                                    <option>Cash</option><option>Card</option><option>Online</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="small text-muted">Amount Paid</label>
+                                <input name="amount_paid" id="amountPaid" class="form-control" type="number" value="0" readonly>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="col-md-6 text-end">
+                <div class="list-card h-100 shadow-sm" style="border-right: 5px solid #0d6efd;">
+                    <p class="mb-1 text-muted">Subtotal: <span id="subtotalLabel" class="fw-bold text-dark">Rs 0.00</span></p>
+                    <p class="mb-1 text-danger">Discount: <span id="totalDiscountLabel">Rs 0.00</span></p>
+                    <hr>
+                    <h3 class="text-primary">Grand Total: <span id="grandTotalLabel">Rs 0.00</span></h3>
+                    <button type="submit" class="btn-submit w-100 mt-3 py-2">Generate & Save Bill</button>
+                </div>
+            </div>
         </div>
-    </div>
-    
-    <div class="col-md-6 text-end">
-        <div class="list-card h-100 shadow-sm" style="background: #fdfdfd; border-right: 5px solid #0d6efd;">
-            <p class="mb-1">Subtotal: <span id="subtotalLabel" class="fw-bold">Rs 0</span></p>
-            <p class="mb-1 text-danger">Discount: <span id="totalDiscountLabel">Rs 0</span></p>
-            <hr>
-            <h4 class="text-primary">Grand Total: <span id="grandTotalLabel">Rs 0</span></h4>
-            <button type="submit" class="btn-submit w-100 mt-3">Generate & Save Bill</button>
-        </div>
-    </div>
-</div>
-
-</form>
+    </form>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    document.getElementById('todayDate').valueAsDate = new Date();
-    if(document.getElementById("admitDate")) calculateStayDays();
-});
-
-function calculateStayDays(){
-    let a = new Date(document.getElementById("admitDate").value);
-    let d = new Date(document.getElementById("dischargeDate").value);
-    if(a && d && d >= a){
-        let diff = Math.ceil((d - a) / (1000 * 60 * 60 * 24));
-        document.getElementById("stayDays").value = Math.max(1, diff);
-    }
-}
-
-function calculate(){
-    let total_sub = 0;
-    let total_disc = 0;
-    
-    document.querySelectorAll("#billBody tr").forEach(r => {
-        // Har value ko Math.max(0, ...) se guzarain taake negative input 0 treat ho
-        let q = Math.max(0, +r.querySelector(".qty").value || 0);
-        let p = Math.max(0, +r.querySelector(".price").value || 0);
-        let d = Math.max(0, +r.querySelector(".discount").value || 0);
-        
-        let row_subtotal = q * p;
-        
-        // CHECK: Discount cannot be more than Row Subtotal
-        if (d > row_subtotal) {
-            d = row_subtotal;
-        }
-        
-        let lineTotal = row_subtotal - d;
-        r.querySelector(".total").value = lineTotal.toFixed(2);
-        
-        total_sub += row_subtotal;
-        total_disc += d;
+    document.addEventListener("DOMContentLoaded", function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('todayDate').value = today;
+        // Admit date ko aaj se aage nahi jane dena
+        document.getElementById('admitDate').setAttribute('max', today);
+        document.getElementById('dischargeDate').setAttribute('max', today);
+        checkSelection();
     });
 
-    let grandTotal = total_sub - total_disc;
-    
-    document.getElementById("subtotalLabel").innerText = `Rs ${total_sub.toFixed(2)}`;
-    document.getElementById("totalDiscountLabel").innerText = `Rs ${total_disc.toFixed(2)}`;
-    // Final Grand Total check (cannot be less than 0)
-    document.getElementById("grandTotalLabel").innerText = `Rs ${Math.max(0, grandTotal).toFixed(2)}`;
+    function checkSelection() {
+        const patientId = document.getElementById('patientSelect').value;
+        const patientType = document.getElementById('patientType').value;
+        const detailsBox = document.getElementById('patientDetailsBox');
+        const ipdBox = document.getElementById('ipdBox');
 
-    if(document.getElementById("paymentStatus").value === "Paid") {
-        document.getElementById("amountPaid").value = Math.max(0, grandTotal).toFixed(2);
+        if (patientId && patientType) {
+            loadPatientDetails();
+            detailsBox.style.display = "flex";
+            if (patientType === "In-Patient") {
+                ipdBox.style.display = "block";
+                document.getElementById('admitDate').required = true;
+                document.getElementById('dischargeDate').required = true;
+            } else {
+                ipdBox.style.display = "none";
+                document.getElementById('admitDate').required = false;
+                document.getElementById('dischargeDate').required = false;
+            }
+        } else {
+            detailsBox.style.display = "none";
+            ipdBox.style.display = "none";
+        }
     }
-}
 
-document.addEventListener("input", calculate);
+    function loadPatientDetails() {
+        const select = document.getElementById('patientSelect');
+        const opt = select.options[select.selectedIndex];
+        document.getElementById('p_age').innerText = opt.dataset.age;
+        document.getElementById('p_gender').innerText = opt.dataset.gender;
+        document.getElementById('p_contact').innerText = opt.dataset.contact;
+    }
 
-function addRow(){
-    const tbody = document.querySelector("#billBody");
-    tbody.insertAdjacentHTML("beforeend",`
-    <tr>
-        <td><input name="service_name[]" class="form-control" required></td>
-        <td><input name="qty[]" class="form-control qty" type="number" value="1" min="1"></td>
-        <td><input name="unit_price[]" class="form-control price" type="number" min="0" required></td>
-        <td><input name="discount[]" class="form-control discount" type="number" value="0" min="0"></td>
-        <td><input class="form-control total" readonly value="0"></td>
-        <td><button type="button" class="btn btn-outline-danger removeRow">×</button></td>
-    </tr>`);
-}
+    function calculateStayDays() {
+        const admitVal = document.getElementById("admitDate").value;
+        const dischargeVal = document.getElementById("dischargeDate").value;
+        const errorMsg = document.getElementById("dateError");
+        const stayInput = document.getElementById("stayDays");
 
-document.addEventListener("click", e => {
-    if(e.target.classList.contains("removeRow")){
-        e.target.closest("tr").remove(); 
+        if (admitVal && dischargeVal) {
+            const a = new Date(admitVal);
+            const d = new Date(dischargeVal);
+
+            if (d < a) {
+                errorMsg.style.display = "block";
+                stayInput.value = 0;
+                document.getElementById("dischargeDate").classList.add("is-invalid");
+            } else {
+                errorMsg.style.display = "none";
+                document.getElementById("dischargeDate").classList.remove("is-invalid");
+                const diffTime = Math.abs(d - a);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                stayInput.value = (diffDays === 0) ? 1 : diffDays; // Minimum 1 day stay
+            }
+        }
+    }
+
+    function calculate() {
+        let sub = 0, disc = 0;
+        document.querySelectorAll("#billBody tr").forEach(r => {
+            let q = +r.querySelector(".qty").value || 0;
+            let p = +r.querySelector(".price").value || 0;
+            let d = +r.querySelector(".discount").value || 0;
+            let row_sub = q * p;
+            let row_total = Math.max(0, row_sub - d);
+            r.querySelector(".total").value = row_total.toFixed(2);
+            sub += row_sub; disc += d;
+        });
+        let grand = sub - disc;
+        document.getElementById("subtotalLabel").innerText = `Rs ${sub.toFixed(2)}`;
+        document.getElementById("totalDiscountLabel").innerText = `Rs ${disc.toFixed(2)}`;
+        document.getElementById("grandTotalLabel").innerText = `Rs ${grand.toFixed(2)}`;
+        if(document.getElementById("paymentStatus").value === "Paid") {
+            document.getElementById("amountPaid").value = grand.toFixed(2);
+        }
+    }
+
+    function addRow() {
+        const row = `<tr>
+            <td><input name="service_name[]" class="form-control" required placeholder="Service description"></td>
+            <td><input name="qty[]" class="form-control qty" type="number" value="1" min="1"></td>
+            <td><input name="unit_price[]" class="form-control price" type="number" min="0" required></td>
+            <td><input name="discount[]" class="form-control discount" type="number" value="0" min="0"></td>
+            <td><input class="form-control total" readonly value="0.00"></td>
+            <td><button type="button" class="btn btn-outline-danger removeRow">×</button></td>
+        </tr>`;
+        document.getElementById("billBody").insertAdjacentHTML("beforeend", row);
+    }
+
+    document.addEventListener("input", calculate);
+    document.addEventListener("click", e => {
+        if (e.target.classList.contains("removeRow")) {
+            e.target.closest("tr").remove(); calculate();
+        }
+    });
+
+    function togglePaymentFields() {
+        const status = document.getElementById("paymentStatus").value;
+        document.getElementById("paymentFields").style.display = (status === "Paid") ? "block" : "none";
         calculate();
     }
-});
 
-function togglePaymentFields() {
-    const status = document.getElementById("paymentStatus").value;
-    const fields = document.getElementById("paymentFields");
-    const amountInput = document.getElementById("amountPaid");
-    const grandTotalVal = parseFloat(document.getElementById("grandTotalLabel").innerText.replace('Rs ', '')) || 0;
-
-    if (status === "Paid") {
-        fields.style.display = "block";
-        amountInput.value = grandTotalVal.toFixed(2);
-    } else {
-        fields.style.display = "none";
-        amountInput.value = 0;
+    // Final Validation before Submit
+    function validateForm() {
+        const pType = document.getElementById("patientType").value;
+        if (pType === "In-Patient") {
+            const stay = parseInt(document.getElementById("stayDays").value);
+            if (stay <= 0) {
+                alert("Please select valid Admission and Discharge dates.");
+                return false;
+            }
+        }
+        return true;
     }
-}
 </script>
 {% endblock %}
