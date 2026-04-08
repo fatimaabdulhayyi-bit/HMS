@@ -14,72 +14,83 @@
   <div class="patient-dashboard">
     
     <div class="token-card">
-    <div class="token-header">Token Status</div>
-    <div class="token-body">
-        {% if latest_active and latest_active.appointment_date == today %}
-            <p class="current-label">Current Serving</p>
-            
-            <div class="token-circle">
-                <span class="token-text">Serving:</span>
-                <div id="tokenNumber" class="token-number">
-                    {{ latest_active.current_serving|default:"0" }}
-                </div>
-            </div>
-
-            <div class="token-details">
-                <div id="readyAlert" class="alert alert-warning text-center" 
-                     style="display: {% if latest_active.show_alert %}block{% else %}none{% endif %}; border-radius: 8px; font-weight: bold; border: 2px solid #ffc107; background-color: #fff3cd; color: #856404; margin-bottom: 15px;">
-                    <i class="fas fa-bell"></i> ATTENTION: Your turn is approaching. Please stay near the clinic!
-                </div>
-
-                <div class="time-info text-center mb-2">
-                    <span style="color: #6c757d; font-size: 0.9rem;">Appointment Time:</span>
-                    <p style="font-weight: 600; color: #333; margin-bottom: 5px;">
-                        <i class="far fa-clock"></i> {{ latest_active.appointment_time }}
-                    </p>
-                </div>
-
-                <p class="your-token">Your Token: <strong>#{{ latest_active.token }}</strong></p>
+        <div class="token-header">Token Status</div>
+        <div class="token-body">
+            {% if latest_active and latest_active.appointment_date == today %}
+                <p class="current-label">Current Serving</p>
                 
-                <div class="progress-bar" style="background: #e9ecef; border-radius: 10px; height: 12px; width: 100%; overflow: hidden; margin: 10px 0;">
-                    <div id="progressFill" class="progress-fill" 
-                         style="width: {{ latest_active.progress_val|default:0 }}%; background: #007bff; height: 100%; transition: width 0.8s ease;">
+                <div class="token-circle">
+                    <span class="token-text">Serving:</span>
+                    <div id="tokenNumber" class="token-number">
+                        {{ latest_active.current_serving|default:"0" }}
                     </div>
                 </div>
-                
-                <p class="wait-time">
-                    {% if latest_active.status == 'Pending' %}
-                        Estimated Wait: <strong id="timerDisplay">{{ latest_active.wait_time|default:"--" }}</strong>
-                    {% elif latest_active.status == 'Serving' %}
-                        <span style="color: #28a745; font-weight: bold;">It's your turn! Please proceed.</span>
-                    {% endif %}
-                </p>
-            </div>
-        {% elif latest_active %}
-            <div class="text-center py-4">
-                <div style="font-size: 40px; color: #17a2b8; margin-bottom: 10px;">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <p class="mb-1">Next Appointment: <strong>{{ latest_active.appointment_date }}</strong></p>
-                <p class="text-muted" style="font-size: 0.9rem;">Live tracking will start on the appointment day.</p>
-            </div>
-        {% else %}
-            <div class="text-center py-4">
-                <div style="font-size: 40px; color: #dee2e6; margin-bottom: 10px;">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <p class="text-muted">No active appointments</p>
-            </div>
-        {% endif %}
-    </div>
-</div>
 
-    <div class="appointments-card">
+                <div class="token-details">
+                    <div id="readyAlert" class="alert alert-warning text-center" 
+                         style="display: {% if latest_active.show_alert %}block{% else %}none{% endif %}; border-radius: 8px; font-weight: bold; border: 2px solid #ffc107; background-color: #fff3cd; color: #856404; margin-bottom: 15px;">
+                        <i class="fas fa-bell"></i> ATTENTION: Your turn is approaching. Please stay near the clinic!
+                    </div>
+
+                    <div class="time-info text-center mb-2">
+                        <span style="color: #6c757d; font-size: 0.9rem;">Appointment Time:</span>
+                        <p style="font-weight: 600; color: #333; margin-bottom: 5px;">
+                            <i class="far fa-clock"></i> {{ latest_active.appointment_time }}
+                        </p>
+                    </div>
+
+                    <p class="your-token">Your Token: <strong>#{{ latest_active.token }}</strong></p>
+                    
+                    <div id="progressContainer" style="display: {% if latest_active.show_alert %}none{% else %}block{% endif %};">
+                        <div class="progress-bar" style="background: #e9ecef; border-radius: 10px; height: 12px; width: 100%; overflow: hidden; margin: 10px 0;">
+                            <div id="progressFill" class="progress-fill" 
+                                 style="width: {{ latest_active.progress_val|default:0 }}%; background: #007bff; height: 100%; transition: width 0.8s ease;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="dynamicWaitInfo" class="text-center" style="margin-top: 10px;">
+                        {% if latest_active.status == 'Pending' %}
+                            <div id="wait-logic-container" style="display: {% if latest_active.show_alert %}none{% else %}block{% endif %};">
+                                <span style="color: #6c757d;">Estimated Wait: </span>
+                                <strong id="timerDisplay">{{ latest_active.wait_time|default:"--" }}</strong>
+                            </div>
+                        {% elif latest_active.status == 'Serving' %}
+                            <span style="color: #28a745; font-weight: bold;">It's your turn! Please proceed.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% elif latest_active %}
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar-alt" style="font-size: 40px; color: #17a2b8;"></i>
+                    <p class="mt-2">Next Appointment: <strong>{{ latest_active.appointment_date }}</strong></p>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar-check" style="font-size: 40px; color: #dee2e6;"></i>
+                    <p class="text-muted">No active appointments</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="appointments-card mt-4">
       <div class="appointments-top">
         <h3>My Appointments History</h3>
       </div>
       <div class="table-wrapper">
         <table class="table">
+          <thead>
+            <tr>
+                <th>Doctor</th>
+                <th>Department</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Token</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+          </thead>
           <tbody>
             {% for appt in patient_appointments %}
             <tr>
@@ -88,31 +99,13 @@
               <td>{{ appt.appointment_date }}</td>
               <td>{{ appt.appointment_time }}</td>
               <td><span class="token-badge">#{{ appt.token }}</span></td>
+              <td><span class="status {{ appt.status|lower }}">{{ appt.status }}</span></td>
               <td>
                 {% if appt.status == 'Pending' %}
-                  <span class="status pending">Pending</span>
-                {% elif appt.status == 'Serving' %}
-                  <span class="status serving" style="background: #ffc107; color: #000; padding: 4px 8px; border-radius: 4px;">Serving</span>
-                {% elif appt.status == 'Completed' or appt.status == 'Billed' %}
-                  <span class="status completed">Completed</span>
-                {% elif appt.status == 'Cancelled' %}
-                  <span class="status cancelled">Cancelled</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if appt.status == 'Pending' %}
-                  <a href="{% url 'cancel_appointment' appt.id %}" 
-                     class="btn btn-sm btn-outline-danger" 
-                     onclick="return confirm('Are you sure?')">
-                     <i class="fas fa-times"></i> Cancel
-                  </a>
-                {% else %}
-                  <span class="text-muted">-</span>
-                {% endif %}
+                  <a href="{% url 'cancel_appointment' appt.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">Cancel</a>
+                {% else %}-{% endif %}
               </td>
             </tr>
-            {% empty %}
-            <tr><td colspan="7" class="text-center">No appointments found.</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -125,7 +118,6 @@
 <script>
     function updateDataFromServer() {
         const apptId = "{{ latest_active.id }}";
-        // Sirf tab update karein jab aaj ki appointment ho
         if (!apptId || apptId === "None" || "{{ latest_active.appointment_date }}" !== "{{ today }}") return;
 
         $.ajax({
@@ -134,20 +126,25 @@
                 $("#tokenNumber").text(data.current_serving);
                 $("#progressFill").css("width", data.progress + "%");
 
+                // --- ALERT VS (TIME & PROGRESS) LOGIC ---
                 if (data.show_alert) {
-                    $("#readyAlert").slideDown();
+                    $("#readyAlert").slideDown();        // Alert dikhao
+                    $("#wait-logic-container").hide();   // Time chhupa do
+                    $("#progressContainer").hide();     // Progress Bar chhupa do
                 } else {
-                    $("#readyAlert").slideUp();
+                    $("#readyAlert").slideUp();          // Alert chhupa do
+                    if (data.status === 'Pending') {
+                        $("#wait-logic-container").show(); 
+                        $("#progressContainer").show();     
+                        $("#timerDisplay").text(data.wait_time);
+                    }
                 }
 
                 if (data.status === 'Serving') {
-                    $(".wait-time").html('<span style="color: #28a745; font-weight: bold;">It\'s your turn! Please proceed.</span>');
                     $("#readyAlert").hide();
-                } else if (data.status === 'Pending') {
-                    // Update wait time text carefully
-                    $(".wait-time").html(`Estimated Wait: <strong id="timerDisplay">${data.wait_time}</strong>`);
-                } else {
-                    // Agar status change ho gaya (Completed wagera), toh refresh karein
+                    $("#progressContainer").hide();
+                    $("#dynamicWaitInfo").html('<span style="color: #28a745; font-weight: bold;">It\'s your turn! Please proceed.</span>');
+                } else if (data.status !== 'Pending') {
                     location.reload(); 
                 }
             }
@@ -155,8 +152,6 @@
     }
 
     setInterval(updateDataFromServer, 10000);
-    $(document).ready(function() {
-        updateDataFromServer();
-    });
+    $(document).ready(updateDataFromServer);
 </script>
 {% endblock %}
