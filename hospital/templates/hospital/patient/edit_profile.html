@@ -12,9 +12,9 @@
       <div class="profile-header">
         <h3>Edit {{ patient.user.fullname }} Profile</h3>
 
-        <div class="profile-img-wrapper">
-          {% if patient.profile_image %}
-            <img src="{{ patient.profile_image.url }}" class="docprofile-img">
+         <div class="profile-img-wrapper">
+          {% if patient.user.profile_image %}
+            <img src="{{ patient.user.profile_image.url }}" class="docprofile-img">
           {% else %}
             <div class="profile-img mb-2"><i class="fa fa-user fa-2x"></i></div>
           {% endif %}
@@ -25,9 +25,9 @@
         <div class="profile-card">
           <div class="profile-card-header">
             <h5><i class="fa fa-user"></i> Edit Information</h5>
-            <button type="submit" class="btn btn-danger btn-sm rounded-1">
-             Cancel
-            </button>
+            <a href="{% url 'profile' %}" class="btn btn-danger btn-sm rounded-1">
+            Cancel
+          </a>
           </div>
 
           <div class="profile-info">

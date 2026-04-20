@@ -41,6 +41,58 @@ body {
     align-items: center;
 }
 
+/* Sidebar Profile Section Fix */
+.profile-img-wrapper {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 10px auto;
+    border-radius: 50%;
+    /* Overflow hidden hatana hai taake camera icon dikhe */
+}
+
+/* Image aur Placeholder dono ke liye common shape */
+.sidebar-profile-img,
+.profile-img-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    /* Image ko circle mein rakhne ke liye */
+    border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Jab picture na ho toh ye style apply hoga */
+.profile-img-placeholder {
+    background: #ffffff;
+    /* Light gray background jaisa screenshots mein hai */
+    color: #1976d2;
+    /* Darker gray icon color */
+}
+
+/* Camera button adjustment */
+.camera-btn {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
 .profile {
     text-align: center;
 }
@@ -71,6 +123,7 @@ body {
     font-weight: 400;
     opacity: 0.85;
 }
+
 /* Menu Styles */
 .sidebar .menu {
     list-style: none;

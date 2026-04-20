@@ -266,30 +266,41 @@ def delete_department(request, pk):
 
 @role_required(allowed_roles=['admin'])
 def admin_dashboard(request):
-    # Basic counts
-    total_patients = Patients.objects.count()
-    total_departments = Departments.objects.count()
-    pending_doctors = Doctors.objects.filter(is_approved=False)
-    total_doctors = Doctors.objects.filter(is_approved=True).count()
-    total_appointments = Appointment.objects.count()
+    admin_user = UserAccount.objects.get(id=request.user.id)
+    
+    if request.method == 'POST':
+        # --- 1. ADMIN PHOTO UPDATE ---
+        if 'admin_photo' in request.FILES:
+            uploaded_file = request.FILES.get('admin_photo')
+            if uploaded_file.size <= 2 * 1024 * 1024:
+                admin_user.profile_image = uploaded_file
+                admin_user.save()
+            return redirect('admin_dashboard')
 
-    active_InPatients_count = InPatient.objects.filter(is_discharged=False).count()
-    
-    ongoing_appointments = Appointment.objects.filter(
-        appointment_date=date.today(),
-        status__in=['Pending', 'Serving']
-    ).order_by('token')[:5]
-    
+        # --- 2. ADMIN PHOTO DELETE ---
+        elif 'remove_admin_photo' in request.POST:
+            if admin_user.profile_image:
+                admin_user.profile_image.delete()
+                admin_user.profile_image = None
+                admin_user.save()
+            return redirect('admin_dashboard')
+
+    # --- DASHBOARD DATA ---
     context = {
-        'total_patients': total_patients,
-        'total_doctors' : total_doctors,
-        'total_departments': total_departments,
-        'pending_doctors': pending_doctors,
-        'total_InPatients': active_InPatients_count,
-        'total_appointments': total_appointments,
-        'ongoing_appointments': ongoing_appointments,
+        'total_patients': Patients.objects.count(),
+        'total_doctors' : Doctors.objects.filter(is_approved=True).count(),
+        'total_departments': Departments.objects.count(),
+        'pending_doctors': Doctors.objects.filter(is_approved=False, user__is_active=True),
+        'total_InPatients': InPatient.objects.filter(is_discharged=False).count(),
+        'total_appointments': Appointment.objects.count(),
+        'ongoing_appointments': Appointment.objects.filter(
+            appointment_date=date.today(),
+            status__in=['Pending', 'Serving']
+        ).order_by('token')[:5],
     }
+    
     return render(request, 'hospital/admin/admin_dashboard.html', context)
+
 @role_required(allowed_roles=['admin'])
 def approve_doctor(request, doctor_id):
 
@@ -1140,8 +1151,28 @@ def next_token(request):
 
 @role_required(allowed_roles=['doctor'])
 def profiledoc(request):
-    # Consultation fee display karne ke liye select_related kafi hai
     doctor = Doctors.objects.filter(user=request.user).select_related('user').first()
+    user_obj = request.user
+    
+    if request.method == 'POST':
+        # 1. AUTO-UPLOAD LOGIC
+        if 'photo' in request.FILES:
+            uploaded_file = request.FILES.get('photo')
+            if uploaded_file.size <= 2 * 1024 * 1024:
+                user_obj.profile_image = uploaded_file
+                user_obj.save()
+            else:
+                messages.error(request, "Image size too large! Max 2MB allowed.")
+            return redirect('profiledoc')
+
+        # 2. DELETE IMAGE LOGIC
+        elif 'remove_photo' in request.POST:
+            if user_obj.profile_image:
+                user_obj.profile_image.delete() # Media folder se file remove karega
+                user_obj.profile_image = None
+                user_obj.save()
+            return redirect('profiledoc')
+
     context = {
         'doctor': doctor
     }
@@ -1254,10 +1285,6 @@ def edit_medical_record(request, appointment_id):
 @role_required(allowed_roles=['patient'])
 def patient_dashboard(request):
     return render(request, 'hospital/patient/patient_dashboard.html')
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
-from datetime import datetime, date
 
 @role_required(allowed_roles=['patient'])
 def appointments(request):
@@ -1708,11 +1735,30 @@ def medical_records(request):
 
 @role_required(allowed_roles=['patient'])
 def profile(request):
+    # Patients model se data get karna
     patient = Patients.objects.filter(user=request.user).select_related('user').first()
-    context = {
-        'patient': patient
-    }
-    return render(request, 'hospital/patient/profile.html', context)
+    user_obj = patient.user 
+    
+    if request.method == 'POST':
+        # Agar photo select ki gayi hai (Auto-upload via JS)
+        if 'photo' in request.FILES:
+            uploaded_file = request.FILES.get('photo')
+            if uploaded_file.size <= 2 * 1024 * 1024:
+                user_obj.profile_image = uploaded_file
+                user_obj.save()
+            else:
+                messages.error(request, "Image size too large!")
+            return redirect('profile')
+
+        # Agar Delete button click kiya gaya hai
+        elif 'remove_photo' in request.POST:
+            if user_obj.profile_image:
+                user_obj.profile_image.delete()
+                user_obj.profile_image = None
+                user_obj.save()
+            return redirect('profile')
+
+    return render(request, 'hospital/patient/profile.html', {'patient': patient})
 
 @role_required(allowed_roles=['patient'])
 def edit_profile(request):
