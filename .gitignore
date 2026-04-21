@@ -11,3 +11,5 @@ __pycache__/
 # Distribution/build folders
 # ============================
 dist/
+# ignore media folder
+media/
