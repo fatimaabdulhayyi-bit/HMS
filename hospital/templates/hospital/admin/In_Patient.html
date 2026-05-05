@@ -57,23 +57,30 @@
        <i class="fa fa-clock me-1"></i> Admitted
     </span>
   {% endif %}
+<td class="text-center">
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <a href="{% url 'update_In_Patient' ipd.id %}" class="btn-edit" title="Edit Record">
+            <i class="fa fa-edit"></i>
+        </a>
+        <a href="{% url 'view_ipd' ipd.id %}" class=" btn-view" title="View">
+    <i class="fa fa-eye"></i>
+    
+</a>
+        
+        <!-- {% if not ipd.is_discharged %}
+            <a href="{% url 'discharge_patient' ipd.id %}" 
+               class="btn-delete" 
+               title="Discharge Patient"
+               onclick="return confirm('Are you sure you want to discharge this patient?')">
+                <i class="fa fa-sign-out-alt"></i>
+            </a>
+        {% else %}
+            <span class="badge" style="background-color: #e0f2f1; color: #00796b; border: 1px solid #b2dfdb; padding: 6px 12px; border-radius: 50px; font-size: 12px;">
+                <i class="fa fa-check-double"></i>
+            </span>
+        {% endif %} -->
+    </div>
 </td>
-              <td class="text-center">
-                <a href="{% url 'update_In_Patient' ipd.id %}" class="btn-edit me-2">
-                  Edit
-                </a>
-                
-                {% if not ipd.is_discharged %}
-                  <a href="{% url 'discharge_patient' ipd.id %}" class="btn-delete"
-                     onclick="return confirm('Are you sure you want to discharge this patient?')">
-                    Discharge
-                  </a>
-                {% else %}
-<span class="badge" style="background-color: #e0f2f1; color: #00796b; border: 1px solid #b2dfdb; padding: 5px 12px; border-radius: 50px; font-size: 13px;">
-    <i class="fa fa-check-double me-1"></i> Completed
-</span>
-                {% endif %}
-              </td>
             </tr>
             {% endfor %}
           {% else %}

@@ -68,17 +68,21 @@
       </td>
 
       <td class="text-center">
-        <a href="{% url 'view_appointment' appointment.id %}" class="btn-edit" title="View Details">
-           View
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <a href="{% url 'view_appointment' appointment.id %}" class="btn-view" title="View Details">
+            <i class="fa fa-eye"></i>
         </a>
+
         {% if appointment.status == "Pending" or appointment.status == "Serving" %}
-        <a href="{% url 'delete_appointment' appointment.id %}" 
-           class="btn-delete"
-           onclick="return confirm('Are you sure you want to cancel this appointment?')">
-          Cancel
-        </a>
+            <a href="{% url 'delete_appointment' appointment.id %}" 
+               class="btn-delete"
+               title="Cancel Appointment"
+               onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                <i class="fa fa-times-circle"></i>
+            </a>
         {% endif %}
-      </td>
+    </div>
+</td>
     </tr>
     {% endfor %}
   {% else %}

@@ -1,0 +1,159 @@
+{% extends 'hospital/admin/base_admin.html' %}
+
+{% block content %}
+
+<div class="container-fluid mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Patient Details</h2>
+        <a href="{% url 'patients' %}" class="btn-back">Back</a>
+    </div>
+
+    <!-- Card -->
+    <div class="card shadow border-0 rounded-4 overflow-hidden">
+
+        <!-- Top Section -->
+        <div class="text-white p-4 rounded-top-4 d-flex align-items-center"
+             style="background-color: #1977cc;">
+
+            <!-- <div class="rounded-circle bg-white text-primary d-flex justify-content-center align-items-center me-4"
+                 style="width:70px;height:70px;font-size:28px;">
+                {{ patient.user.fullname|slice:":1" }}
+            </div> -->
+            <div class="rounded-circle bg-white d-flex justify-content-center align-items-center me-4 overflow-hidden"
+     style="width:80px;height:80px;">
+
+    {% if patient.user.profile_image %}
+        <img src="{{ patient.user.profile_image.url }}" 
+             alt="Patient Image"
+             style="width:100%; height:100%; object-fit:cover;">
+    {% else %}
+        <i class="fa fa-user text-primary" style="font-size:30px;"></i>
+    {% endif %}
+
+</div>
+
+            <div>
+                <h4 class="mb-1">{{ patient.user.fullname }}</h4>
+                <p class="mb-0">Patient Profile</p>
+            </div>
+
+        </div>
+        
+
+        <!-- Body -->
+        <div class="card-body p-4">
+
+            <h5 class="fw-bold mb-4">Personal Information</h5>
+
+            <div class="row g-4">
+                <!-- Full Name -->
+<div class="col-md-6">
+    <div class="p-3 border rounded-3 bg-light h-100">
+        <small class="text-muted">Full Name</small>
+        <h6 class="mb-0 fw-semibold">
+            {{ patient.user.fullname }}
+        </h6>
+    </div>
+</div>
+<!-- NEW FIELD: Guardian Name -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">Father / Husband Name</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ patient.guardian_name }}
+                        </h6>
+                    </div>
+                </div>
+
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">Email</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ patient.user.email }}
+                        </h6>
+                    </div>
+                </div>
+
+                
+
+                <!-- DOB -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">Date of Birth</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ patient.dob }}
+                        </h6>
+                    </div>
+                </div>
+                <!-- NEW FIELD: Gender -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">Gender</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ patient.gender }}
+                        </h6>
+                    </div>
+                </div>
+
+                <!-- NEW FIELD: CNIC -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">CNIC</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ patient.cnic }}
+                        </h6>
+                    </div>
+                </div>
+                <!-- Phone -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">Phone</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ patient.phone }}
+                        </h6>
+                    </div>
+                </div>
+
+                <!-- Blood Group -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100 d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">Blood Group</small>
+                            <h6 class="mb-0 fw-semibold">
+                                {{ patient.blood_group }}
+                            </h6>
+                        </div>
+
+                        <!-- <span class="badge px-3 py-2 bg-danger">
+                            {{ patient.blood_group }}
+                        </span> -->
+                    </div>
+                </div>
+
+                
+
+                
+
+                <!-- NEW FIELD: Address -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">Address</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ patient.address }}
+                        </h6>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

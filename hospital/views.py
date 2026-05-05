@@ -75,6 +75,9 @@ def index(request):
     total_departments = Departments.objects.count()
     total_doctors = Doctors.objects.filter(is_approved=True).count()
     total_appointments = Appointment.objects.count()
+    doctors = Doctors.objects.filter(is_approved=True)
+    feedbacks = PatientFeedback.objects.select_related('patient__user').order_by('-created_at')[:5]
+
 
     context = {
         'total_patients': total_patients,
@@ -82,6 +85,9 @@ def index(request):
         'departments': active_depts,
         'total_doctors' : total_doctors,
         'total_appointments': total_appointments,
+        'doctors': doctors,
+        'feedbacks': feedbacks
+
     }
     if request.user.is_authenticated:
         # User ke role ke mutabiq usay sahi dashboard par bhej do
@@ -92,7 +98,6 @@ def index(request):
         elif request.user.role == 'admin':
             return redirect('admin_dashboard')
     return render(request, 'hospital/index.html', context)
-
 def login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -300,10 +305,23 @@ def admin_dashboard(request):
     }
     
     return render(request, 'hospital/admin/admin_dashboard.html', context)
+def view_doctors(request, id):
+    doctor = get_object_or_404(Doctors, id=id)
+    return render(request, 'hospital/admin/view_doctors.html', {'doctor': doctor})
 
+def view_patient(request, id):
+    patient = Patients.objects.get(id=id)   
+    return render(request, 'hospital/admin/view_patient.html', {'patient': patient})
+
+def view_ipd(request, id):
+    ipd = InPatient.objects.get(id=id)
+    return render(request, 'hospital/admin/view_ipd.html', {'ipd': ipd})
+
+def view_department(request, id):
+    department = Departments.objects.get(id=id)
+    return render(request, 'hospital/admin/view_department.html', {'department': department})
 @role_required(allowed_roles=['admin'])
 def approve_doctor(request, doctor_id):
-
     doctor = get_object_or_404(Doctors, id=doctor_id)
 
     doctor.is_approved = True
@@ -1786,4 +1804,4 @@ def doctor_recommendation(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('index')

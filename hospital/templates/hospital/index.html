@@ -402,87 +402,67 @@
     <!-- Doctors Section -->
     <section id="doctors" class="doctors section">
 
-      <!-- Section Title -->
-      <div class="container section-title fade-up"> 
-      {% comment %} <div class="container section-title" data-aos="fade-up"> {% endcomment %}
-        <h2>Doctors</h2>
-         <p>Meet our team of dedicated specialists committed to providing the best healthcare services.</p>
-      </div><!-- End Section Title -->
+  <div class="container section-title fade-up"> 
+    <h2>Doctors</h2>
+    <p>Meet our team of dedicated specialists committed to providing the best healthcare services.</p>
+  </div>
 
-      <div class="container">
+  <div class="container">
+    <div class="row gy-4">
+      
+      {% for doctor in doctors %}
+      <div class="col-lg-6 fade-up">
+        <div class="team-member d-flex align-items-start">
+          
+          <div class="pic" style="width: 100px; height: 100px; overflow: hidden; border-radius: 50%; background: #d3d3d3; display: flex; justify-content: center; align-items: center;">
+  
+  {% if doctor.user.profile_image %}
+    <img src="{{ doctor.user.profile_image.url }}" style="width: 100%; height: 100%; object-fit: cover;" class="img-fluid" alt="{{ doctor.user.fullname }}">
+  {% else %}
+    <i class="fa fa-user fa-2x text-secondary"></i>
+  {% endif %}
 
-        <div class="row gy-4">
-        <div class="col-lg-6 fade-up"  data-delay="100">
-          {% comment %} <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
-            <div class="team-member d-flex align-items-start">
-              <div class="pic"><img src="{% static 'images/doctor_01.png' %}" style="background: #d3d3d3;" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>Muhammad Ahmad</h4>
-                <span>orthopaedic Surgeon</span>
-     <p>Hello, I am Dr. Muhammad Ahmed, a orthopaedic surgeon providing expert and caring treatment.</p>
-                {% comment %} <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""> <i class="bi bi-linkedin"></i> </a>
-                </div> {% endcomment %}
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-        <div class="col-lg-6 fade-up" data-delay="200">
-          {% comment %} <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200"> {% endcomment %}
-            <div class="team-member d-flex align-items-start">
-              <div class="pic"><img src="{% static 'images/doctor_02.png' %}" style="background-color: #d3d3d3;" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>Sara javeed</h4>
-                <span>Dentist</span>
-<p>Hello, I am Dr. Sara javeed, a expert in oral health and dental care, providing quality treatment with compassion.</p>             
-             {% comment %} <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""> <i class="bi bi-linkedin"></i> </a>
-                </div> {% endcomment %}
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-        <div class="col-lg-6 fade-up" data-delay="300">
-          {% comment %} <div class="col-lg-6" data-aos="fade-up" data-aos-delay="300"> {% endcomment %}
-            <div class="team-member d-flex align-items-start">
-              <div class="pic"><img src="{% static 'images/doctor_03.png' %}" style="background-color: #d3d3d3;" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>Omer Malik</h4>
-                <span>Neurosurgen</span>
-                <p>Hello, I am Dr. Omer Malik, a specialist in diagnosing and treating brain, spine, and nervous system disorders.</p>     
-           {% comment %} <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""> <i class="bi bi-linkedin"></i> </a>
-                </div> {% endcomment %}
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-        <div class="col-lg-6 fade-up" data-delay="400">
-          {% comment %} <div class="col-lg-6" data-aos="fade-up" data-aos-delay="400"> {% endcomment %}
-            <div class="team-member d-flex align-items-start">
-              <div class="pic"><img src="{% static 'images/doctor_04.png' %}" style="background-color: #d3d3d3;" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>Ayesha Khan</h4>
-                <span>Cardiologist</span>
-     <p>Hello, I am Dr. Ayesha Khan, a senior cardiologist with 15 years of experience in heart care and treatment.</p>
-                {% comment %} <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""> <i class="bi bi-linkedin"></i> </a>
-                </div> {% endcomment %}
-              </div>
-            </div>
-          </div><!-- End Team Member -->
+</div>
+          
+          <div class="member-info">
+            <h4>{{ doctor.user.fullname }}</h4>
+            
+            <span>
+              {% if doctor.department %}
+                {{ doctor.department.name }}
+              {% else %}
+                N/A
+              {% endif %}
+            </span>
+            
+            <p>
+              Hello, I am Dr. {{ doctor.user.fullname }}, 
+              {% if doctor.department.name == "Cardiology" %}
+                a senior cardiologist with years of experience in heart care and treatment.
+              {% elif doctor.department.name == "Orthopaedic" %}
+                an orthopaedic surgeon providing expert and caring treatment for bone and joint health.
+              {% elif doctor.department.name == "Dentistry" %}
+                an expert in oral health and dental care, providing quality treatment with compassion.
+              {% elif doctor.department.name == "Neurology" %}
+                a specialist in diagnosing and treating brain, spine, and nervous system disorders.
+              {% else %}
+                a dedicated specialist committed to providing the best healthcare services.
+              {% endif %}
+            </p>
+            
+          </div>
         </div>
       </div>
-    </section><!-- /Doctors Section -->
+      
+      {% empty %}
+      <div class="col-12 text-center">
+        <p class="text-muted">No approved doctors available at the moment.</p>
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+</section>
 
     <!-- Faq Section -->
     <section id="faq" class="faq section light-background">
@@ -539,138 +519,83 @@
     </section><!-- /Faq Section -->
 
     <!-- Testimonials Section -->
-    <section id="testimonials" class="testimonials section">
-      <div class="container">
-        <div class="row align-items-center">
+<section id="testimonials" class="testimonials section">
+  <div class="container">
+    <div class="row align-items-center">
+
       <div class="col-lg-5 info fade-up" data-delay="100">
-          {% comment %} <div class="col-lg-5 info" data-aos="fade-up" data-aos-delay="100"> {% endcomment %}
-            <h3>Testimonials</h3>
-           <p>
+        <h3>Testimonials</h3>
+        <p>
           Hear from our patients, doctors, and partners who trust our services and commitment to providing 
           quality healthcare with compassion and professionalism.
         </p>
-          </div>
+      </div>
+
       <div class="col-lg-7 fade-up" data-delay="200">
-          {% comment %} <div class="col-lg-7" data-aos="fade-up" data-aos-delay="200"> {% endcomment %}
-            <div class="swiper init-swiper">
-              <script type="application/json" class="swiper-config">
-                {
-                  "loop": true,
-                  "speed": 600,
-                  "autoplay": {
-                    "delay": 5000
-                  },
-                  "slidesPerView": "auto",
-                  "pagination": {
-                    "el": ".swiper-pagination",
-                    "type": "bullets",
-                    "clickable": true
-                  }
-                }
-              </script>
-              <div class="swiper-wrapper">
-                <div class="swiper-slide">
-                  <div class="testimonial-item">
-                    <div class="d-flex">
-                      <img src="{% static 'images/testi_01.png' %}" class="testimonial-img flex-shrink-0" alt="">
-                      <div>
-                        <h3>Ali Saeed</h3>
-                        <h4>Founder & Patient</h4>
-                        <div class="stars">
-                          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <p>
-                      <i class="bi bi-quote quote-icon-left"></i>
-<span>The team here provides exceptional care and support. I truly appreciate their dedication and professionalism.</span>
-                  <i class="bi bi-quote quote-icon-right"></i>       
-                    </p>
+        <div class="swiper init-swiper">
+
+          <script type="application/json" class="swiper-config">
+            {
+              "loop": true,
+              "speed": 600,
+              "autoplay": {
+                "delay": 5000
+              },
+              "slidesPerView": "auto",
+              "pagination": {
+                "el": ".swiper-pagination",
+                "type": "bullets",
+                "clickable": true
+              }
+            }
+          </script>
+
+          <!-- ✅ YAHAN SE CHANGE START -->
+          <div class="swiper-wrapper">
+
+            {% for fb in feedbacks %}
+            <div class="swiper-slide">
+              <div class="testimonial-item">
+
+                <div class="d-flex">
+
+                  <!-- Profile Image -->
+                  {% if fb.patient.user.profile_image %}
+                    <img src="{{ fb.patient.user.profile_image.url }}" 
+                         class="testimonial-img flex-shrink-0" alt="">
+                  {% else %}
+                    <img src="{% static 'images/default-user.png' %}" 
+                         class="testimonial-img flex-shrink-0" alt="">
+                  {% endif %}
+
+                  <div>
+                    <h3>{{ fb.patient.user.fullname }}</h3>
+                    <h4>{{ fb.patient.user.role|title }}</h4>
                   </div>
-                </div><!-- End testimonial item -->
-                <div class="swiper-slide">
-                  <div class="testimonial-item">
-                    <div class="d-flex">
-                      <img src="{% static 'images/testi_02.png' %}" class="testimonial-img flex-shrink-0" alt="">
-                      <div>
-                        <h3>Sara Ahmad</h3>
-                        <h4>Designer & Visitor</h4>
-                        <div class="stars">
-                          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <p>
-                      <i class="bi bi-quote quote-icon-left"></i>
-<span>The hospital environment is welcoming and well-organized. The staff made the entire process smooth and stress-free.</span>
-                    <i class="bi bi-quote quote-icon-right"></i>
-                    </p>
-                  </div>
-                </div><!-- End testimonial item -->
-                <div class="swiper-slide">
-                  <div class="testimonial-item">
-                    <div class="d-flex">
-                      <img src="{% static 'images/testi_05.png' %}" class="testimonial-img flex-shrink-0" alt="">
-                      <div>
-                        <h3>Farhan Arshad</h3>
-                        <h4>Store Owner & Partner</h4>
-                        <div class="stars">
-                          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <p>
-                      <i class="bi bi-quote quote-icon-left"></i>
-                      <span>Working with this hospital has been a great experience. Their commitment to quality care is evident in everything they do.</span>
-                      <i class="bi bi-quote quote-icon-right"></i>
-                    </p>
-                  </div>
-                </div><!-- End testimonial item -->
-                <div class="swiper-slide">
-                  <div class="testimonial-item">
-                    <div class="d-flex">
-                      <img src="{% static 'images/testi_04.png' %}" class="testimonial-img flex-shrink-0" alt="">
-                      <div>
-                        <h3>Umair Butt</h3>
-                        <h4>Patient</h4>
-                        <div class="stars">
-                          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <p>
-                      <i class="bi bi-quote quote-icon-left"></i>
-                      <span>I received personalized care and quick diagnosis. The hospital management system made appointments hassle-free.</span>
-                     <i class="bi bi-quote quote-icon-right"></i>
-                    </p>
-                  </div>
-                </div><!-- End testimonial item -->
-                <div class="swiper-slide">
-                  <div class="testimonial-item">
-                    <div class="d-flex">
-                      <img src="{% static 'images/testi_03.png' %}" class="testimonial-img flex-shrink-0" alt="">
-                      <div>
-                        <h3>Zainab Ali</h3>
-                        <h4>Patient's Family</h4>
-                        <div class="stars">
-                          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <p>
-                      <i class="bi bi-quote quote-icon-left"></i>
-                      <span>I received personalized care and quick diagnosis. The hospital management system made appointments hassle-free.</span>
-                      <i class="bi bi-quote quote-icon-right"></i>
-                    </p>
-                  </div>
-                </div><!-- End testimonial item -->
+
+                </div>
+
+                <p>
+                  <i class="bi bi-quote quote-icon-left"></i>
+                  <span>{{ fb.description }}</span>
+                  <i class="bi bi-quote quote-icon-right"></i>
+                </p>
+
               </div>
-              <div class="swiper-pagination"></div>
             </div>
+            {% endfor %}
+
           </div>
+          <!-- ✅ YAHAN TAK CHANGE END -->
+
+          <div class="swiper-pagination"></div>
+
         </div>
       </div>
-    </section><!-- /Testimonials Section -->
+
+    </div>
+  </div>
+ </section> <!-- testimonials -->
     <!-- Gallery Section -->
     {% comment %} <section id="gallery" class="gallery section">
       

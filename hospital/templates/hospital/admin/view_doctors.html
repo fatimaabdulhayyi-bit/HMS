@@ -1,0 +1,202 @@
+{% extends 'hospital/admin/base_admin.html' %}
+
+{% block content %}
+
+<div class="container-fluid mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Doctor Details</h2>
+        <a href="{% url 'doctors' %}" class="btn-back">Back</a>
+    </div>
+
+    <!-- Card -->
+    <div class="card shadow border-0 rounded-4 overflow-hidden">
+
+        <!-- Top Section -->
+        <div class="text-white p-4 d-flex align-items-center"
+             style="background-color: #1977cc;">
+
+            <!-- Profile Circle -->
+            <!-- <div class="rounded-circle bg-white text-primary d-flex justify-content-center align-items-center me-4"
+                 style="width:80px;height:80px;font-size:30px;">
+                {{ doctor.user.fullname|slice:":1" }}
+            </div> -->
+            <div class="rounded-circle bg-white d-flex justify-content-center align-items-center me-4 overflow-hidden"
+     style="width:80px;height:80px;">
+
+    {% if doctor.user.profile_image %}
+        <img src="{{ doctor.user.profile_image.url }}" 
+             alt="Doctor Image"
+             style="width:100%; height:100%; object-fit:cover;">
+    {% else %}
+        <i class="fa fa-user-md text-primary" style="font-size:30px;"></i>
+    {% endif %}
+
+</div>
+
+            <!-- Info -->
+            <div>
+                <h4 class="mb-1">{{ doctor.user.fullname }}</h4>
+                <p class="mb-0">{{ doctor.department.name }}</p>
+            </div>
+
+        </div>
+
+        <!-- Body -->
+        <div class="card-body p-4">
+
+            <!-- Personal Info -->
+            <h5 class="fw-bold mb-4">Personal Information</h5>
+
+            <div class="row g-4 mb-4">
+                <!-- Full Name -->
+<div class="col-md-6">
+    <div class="p-3 border rounded-3 bg-light h-100">
+        <small class="text-muted">Full Name</small>
+        <h6 class="mb-0 fw-semibold">
+            {{ doctor.user.fullname }}
+        </h6>
+    </div>
+</div>
+
+<!-- Father Name -->
+<div class="col-md-6">
+    <div class="p-3 border rounded-3 bg-light h-100">
+        <small class="text-muted">Father Name</small>
+        <h6 class="mb-0 fw-semibold">
+            {{ doctor.father_name }}
+        </h6>
+    </div>
+</div>
+
+<!-- CNIC -->
+<div class="col-md-6">
+    <div class="p-3 border rounded-3 bg-light h-100">
+        <small class="text-muted">CNIC</small>
+        <h6 class="mb-0 fw-semibold">
+            {{ doctor.cnic }}
+        </h6>
+    </div>
+</div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">Email</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ doctor.user.email }}
+                        </h6>
+                    </div>
+                </div>
+
+                <!-- Phone -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">Phone</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ doctor.phone }}
+                        </h6>
+                    </div>
+                </div>
+                <!-- Extra Information -->
+<div class="col-md-6">
+    <div class="p-3 border rounded-3 bg-light h-100">
+        <small class="text-muted">Gender</small>
+        <h6 class="mb-0 fw-semibold">
+            {{ doctor.gender }}
+        </h6>
+    </div>
+</div>
+
+<div class="col-md-6">
+    <div class="p-3 border rounded-3 bg-light h-100">
+        <small class="text-muted">Date of Birth</small>
+        <h6 class="mb-0 fw-semibold">
+            {{ doctor.dob }}
+        </h6>
+    </div>
+</div>
+
+<div class="col-md-12">
+    <div class="p-3 border rounded-3 bg-light h-100">
+        <small class="text-muted">Address</small>
+        <h6 class="mb-0 fw-semibold">
+            {{ doctor.address }}
+        </h6>
+    </div>
+</div>
+
+            </div>
+
+            <hr>
+
+            <!-- Professional Info -->
+            <h5 class="fw-bold mb-4">Professional Information</h5>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+    <div class="p-3 border rounded-3 bg-light h-100">
+        <small class="text-muted">Consultation Fee</small>
+        <h6 class="mb-0 fw-semibold">
+            Rs. {{ doctor.consultation_fee }}
+        </h6>
+    </div>
+</div>
+
+                <!-- Qualification -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">Qualification</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ doctor.qualification }}
+                        </h6>
+                    </div>
+                </div>
+
+                <!-- License -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">License Number</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ doctor.license_number }}
+                        </h6>
+                    </div>
+                </div>
+
+                <!-- Experience -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted">Experience</small>
+                        <h6 class="mb-0 fw-semibold">
+                            {{ doctor.experience }} Years
+                        </h6>
+                    </div>
+                </div>
+
+                <!-- Department -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100 d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">Department</small>
+                            <h6 class="mb-0 fw-semibold">
+                                {{ doctor.department.name }}
+                            </h6>
+                        </div>
+
+                        <!-- Badge -->
+                        <!-- <span class="badge px-3 py-2 bg-primary">
+                            {{ doctor.department.name }}
+                        </span> -->
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

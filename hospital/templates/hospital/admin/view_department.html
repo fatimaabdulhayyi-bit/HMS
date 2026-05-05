@@ -1,0 +1,67 @@
+{% extends 'hospital/admin/base_admin.html' %}
+
+{% block content %}
+
+<div class="container-fluid mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Department Details</h2>
+        <a href="{% url 'department' %}" class="btn-back">Back</a>
+    </div>
+
+    <!-- Card -->
+    <div class="card shadow border-0 rounded-4">
+
+        <!-- Top Section -->
+        <div class="text-white p-4 rounded-top-4" style="background-color: #1977cc;">
+            <h4 class="mb-1">{{ department.name }}</h4>
+            <p class="mb-0">Department Information</p>
+        </div>
+
+        <!-- Body -->
+        <div class="card-body p-4">
+
+            <!-- Basic Info -->
+            <h5 class="fw-bold mb-4">Basic Information</h5>
+
+            <div class="row g-4 mb-4">
+
+                <!-- Name Box -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <small class="text-muted">Department Name</small>
+                        <h6 class="mb-0 fw-semibold">{{ department.name }}</h6>
+                    </div>
+                </div>
+
+                <!-- Status Box -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <small class="text-muted">Status</small><br>
+                        {% if department.status %}
+                            <span class="badge px-3 py-2 bg-success">Active</span>
+                        {% else %}
+                            <span class="badge px-3 py-2 bg-danger">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Description -->
+            <h5 class="fw-bold mb-3">Description</h5>
+
+            <div class="p-3 border rounded-3 bg-light">
+                <p class="mb-0 text-muted">
+                    {{ department.description }}
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

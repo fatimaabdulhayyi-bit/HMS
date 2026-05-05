@@ -48,13 +48,22 @@
       <td>{{ patient.blood_group }}</td>
       <td>{{ patient.phone }}</td>      
       <td class="text-center">
-        <a href="{% url 'update_patient' patient.id %}" class="btn-edit">Edit</a>
-        <a href="{% url 'delete_patient' patient.id %}" 
-   class="btn-delete" 
-   onclick="return confirm('WARNING: This will permanently delete the patient and their login account. Are you sure?')">
-   Delete
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <a href="{% url 'update_patient' patient.id %}" class="btn-edit" title="Edit">
+            <i class="fa fa-edit"></i>
+        </a>
+        <a href="{% url 'view_patient' patient.id %}" class="btn-view" title="View">
+    <i class="fa fa-eye"></i>
 </a>
-      </td>
+        
+        <a href="{% url 'delete_patient' patient.id %}" 
+           class="btn-delete" 
+           title="Delete"
+           onclick="return confirm('Are you sure?')">
+            <i class="fa fa-trash-alt"></i>
+        </a>
+    </div>
+</td>
     </tr>
     {% endfor %}
           {% else %}
