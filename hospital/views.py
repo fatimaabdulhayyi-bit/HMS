@@ -8,6 +8,31 @@ from datetime import date,datetime,timedelta
 from django.db import transaction
 from .decorators import role_required
 from decimal import Decimal
+from thefuzz import process
+# from django.conf import settings
+import os
+import pickle
+import pandas as pd
+# from google import genai
+
+# client = genai.Client(api_key=settings.GEMINI_API_KEY)
+# 1. Project ki base directory dynamic calculate karein
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# 2. Files ka dynamic path banayein
+MODEL_PATH = os.path.join(BASE_DIR, 'hospital', 'ml_model', 'doctor_model.pkl')
+FEATURES_PATH = os.path.join(BASE_DIR, 'hospital', 'ml_model', 'doctor_features.pkl')
+
+# 3. Model aur features ko load karein
+model = pickle.load(open(MODEL_PATH, 'rb'))
+features_list = pickle.load(open(FEATURES_PATH, 'rb'))
+features_list = [f.strip() for f in features_list]
+
+def match_symptom(entered_text, features_list):
+    match, score = process.extractOne(entered_text, features_list)
+    if score >= 80:
+        return match
+    return None
 
 def signup(request):
     if request.method == "POST":
@@ -700,14 +725,17 @@ def edit_bill(request, pk):
     return render(request, 'hospital/admin/edit_bill.html', {'bill': bill, 'items': items})
 
 @role_required(allowed_roles=['admin'])
+@role_required(allowed_roles=['admin'])
 def delete_bill(request, pk):
     bill = get_object_or_404(Bills, id=pk)
     
-    if request.method == "POST":
+    try:
         bill.delete()
-        return redirect('bill_list')
+        messages.success(request, "Bill deleted successfully.")
+    except Exception as e:
+        messages.error(request, f"Error: {e}")
         
-    return render(request, 'hospital/admin/confirm_delete_bill.html', {'bill': bill})
+    return redirect('bill_list')
 
 @role_required(allowed_roles=['admin'])
 def doctors(request):
@@ -1800,7 +1828,43 @@ def edit_profile(request):
     return render(request, 'hospital/patient/edit_profile.html', {'patient': patient})
 
 def doctor_recommendation(request):
-    return render(request, 'hospital/doctor_recommendation.html')
+    if request.method == 'POST':
+        user_input = request.POST.get('symptoms', '').strip().lower()
+
+        # Sare symptoms ko 0 ki list se initialize karein
+        input_data = {symptom: 0 for symptom in features_list}
+
+        # Input ko split karein
+        entered_symptoms = [s.strip().lower() for s in user_input.split(',')]
+
+        # 2. Fuzzy Logic apply karna
+        for entered in entered_symptoms:
+            matched_feat = match_symptom(entered, features_list)
+            if matched_feat:
+                input_data[matched_feat] = 1
+
+        # DataFrame banayein aur predict karein
+        df_input = pd.DataFrame([input_data])
+        prediction = model.predict(df_input)
+        predicted_department = prediction[0]
+
+        # Department ki base par top 3 approved doctors fetch karein
+        top_doctors = Doctors.objects.filter(
+            department__name=predicted_department,
+            is_approved=True
+        ).order_by('-experience')[:3]
+
+        return render(request, 'hospital/doctor_recommendation.html', {
+            'department': predicted_department, 
+            'user_symptoms': user_input,
+            'top_doctors': top_doctors,
+            'all_symptoms': features_list,
+        })
+
+    return render(request, 'hospital/doctor_recommendation.html', {
+    'all_symptoms': features_list,  # ✅ Ye add karo
+})
+                  
 
 def logout_view(request):
     logout(request)
