@@ -9,14 +9,15 @@ from django.db import transaction
 from .decorators import role_required
 from decimal import Decimal
 from thefuzz import process
-# from django.conf import settings
+from django.conf import settings
+import stripe
 import os
 import pickle
 import pandas as pd
-# from google import genai
 
-# client = genai.Client(api_key=settings.GEMINI_API_KEY)
-# 1. Project ki base directory dynamic calculate karein
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # 2. Files ka dynamic path banayein
@@ -724,7 +725,6 @@ def edit_bill(request, pk):
 
     return render(request, 'hospital/admin/edit_bill.html', {'bill': bill, 'items': items})
 
-@role_required(allowed_roles=['admin'])
 @role_required(allowed_roles=['admin'])
 def delete_bill(request, pk):
     bill = get_object_or_404(Bills, id=pk)
@@ -1619,8 +1619,8 @@ def appointment_form(request):
                     total=doctor.consultation_fee
                 )
 
-            messages.success(request, f"Request Sent! Please pay Rs.{doctor.consultation_fee} at reception to get your token.")
-            return redirect('appointments')
+            messages.success(request, f"Request Sent! Please pay Rs.{doctor.consultation_fee} online or at reception to get your token.")
+            return redirect('bill')
 
         except Exception as e:
             messages.error(request, f"Database Error: {str(e)}")
@@ -1694,43 +1694,84 @@ def bill(request):
 @role_required(allowed_roles=['patient'])
 def pay_bill(request, pk):
     bill = get_object_or_404(Bills, id=pk, patient__user=request.user)
-    
+
     if bill.payment_status == 'Paid':
         messages.info(request, "This bill is already paid.")
-    else:
+        return redirect('bill')
+
+    if request.method == 'POST':
+        try:
+            # Stripe checkout session create karo
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'pkr',
+                        'product_data': {
+                            'name': f'Hospital Bill #{bill.id}',
+                            'description': f'Patient: {bill.patient.user.fullname}',
+                        },
+                        'unit_amount': int(bill.grand_total * 100),  # Paisay mein
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=request.build_absolute_uri(f'/payment-success/{bill.id}/'),
+                cancel_url=request.build_absolute_uri(f'/payment-cancel/{bill.id}/'),
+                metadata={'bill_id': bill.id}
+            )
+            return redirect(session.url)
+
+        except stripe.error.StripeError as e:
+            messages.error(request, f"Payment failed: {str(e)}")
+            return redirect('bill')
+
+    return render(request, 'hospital/patient/pay_bill.html', {
+        'bill': bill,
+        'stripe_public_key': settings.STRIPE_PUBLIC_KEY
+    })
+
+
+@role_required(allowed_roles=['patient'])
+def payment_success(request, pk):
+    bill = get_object_or_404(Bills, id=pk, patient__user=request.user)
+
+    if bill.payment_status != 'Paid':
         bill.payment_status = 'Paid'
         bill.payment_method = 'Online'
         bill.amount_paid = bill.grand_total
         bill.save()
 
-        # --- TOKEN GENERATION START ---
-        # Patient ki latest appointment uthayein jis ka token None hai
+        # Token generation
         appointment = Appointment.objects.filter(
-            patient_user=bill.patient, 
+            patient_user=bill.patient,
             token__isnull=True
-        ).order_by('-created_at').first() # Sab se latest wali
+        ).order_by('-created_at').first()
 
         if appointment:
-            # Aaj ke din is doctor ka max token
             last_token_record = Appointment.objects.filter(
                 doctor=appointment.doctor,
-                appointment_date=appointment.appointment_date # Use appointment's date
+                appointment_date=appointment.appointment_date
             ).aggregate(Max('token'))
-            
+
             last_val = last_token_record['token__max']
             new_token = (last_val + 1) if last_val is not None else 1
-            
+
             appointment.token = new_token
             appointment.status = 'Pending'
             appointment.save()
-            
+
             messages.success(request, f"Payment Successful! Your Token is {new_token}")
         else:
-            # Agar appointment direct nahi mil rahi to check karein model fields
-            messages.warning(request, "Payment received but no pending appointment found to assign token.")
-        # --- TOKEN GENERATION END ---
+            messages.success(request, "Payment Successful!")
 
-    return redirect('bill')
+    return render(request, 'hospital/patient/payment_success.html', {'bill': bill})
+
+
+@role_required(allowed_roles=['patient'])
+def payment_cancel(request, pk):
+    bill = get_object_or_404(Bills, id=pk, patient__user=request.user)
+    return render(request, 'hospital/patient/payment_cancel.html', {'bill': bill})
 
 @role_required(allowed_roles=['patient'])
 def patient_view_bill(request, pk):

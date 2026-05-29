@@ -13,3 +13,7 @@ __pycache__/
 dist/
 # ignore media folder
 media/
+# ==============================
+# Environment variables / secrets
+# ==============================
+.env

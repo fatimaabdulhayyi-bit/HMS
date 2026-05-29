@@ -1,0 +1,230 @@
+<!-- ================= PAYMENT SUCCESS PAGE ================= -->
+
+{% extends 'hospital/patient/base_patient.html' %}
+{% load static %}
+{% block title %}Payment Successful{% endblock %}
+
+{% block content %}
+
+<style>
+
+.success-wrapper{
+    max-width:680px;
+    margin:50px auto;
+}
+
+.success-card{
+    background:#ffffff;
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:0 10px 35px rgba(25,118,210,0.12);
+    border:1px solid #e3f2fd;
+}
+
+/* TOP SECTION */
+.success-top{
+    background:linear-gradient(135deg,#1565c0,#42a5f5);
+    padding:45px 25px;
+    text-align:center;
+    color:white;
+    position:relative;
+}
+
+.success-top::before{
+    content:"";
+    position:absolute;
+    width:180px;
+    height:180px;
+    background:rgba(255,255,255,0.08);
+    border-radius:50%;
+    top:-70px;
+    right:-60px;
+}
+
+.success-icon{
+    width:105px;
+    height:105px;
+    background:white;
+    color:#1976d2;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:auto;
+    font-size:46px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.12);
+}
+
+.success-title{
+    font-size:32px;
+    font-weight:700;
+    margin-top:25px;
+}
+
+.success-subtitle{
+    font-size:15px;
+    opacity:0.95;
+}
+
+/* BODY */
+.details-box{
+    background:#f5f9ff;
+    border:1px solid #dceeff;
+    border-radius:18px;
+    padding:24px;
+}
+
+.details-box td{
+    padding:13px 0;
+    vertical-align:middle;
+}
+
+.label{
+    color:#6c757d;
+    font-weight:500;
+}
+
+.value{
+    font-weight:600;
+    color:#1e293b;
+}
+
+.amount{
+    font-size:28px;
+    color:#1976d2;
+    font-weight:700;
+}
+
+.status-paid{
+    background:#e3f2fd;
+    color:#1565c0;
+    padding:7px 18px;
+    border-radius:30px;
+    font-size:13px;
+    font-weight:700;
+}
+
+.back-btn{
+    background:linear-gradient(135deg,#1976d2,#42a5f5);
+    color:white;
+    text-decoration:none;
+    padding:14px 34px;
+    border-radius:14px;
+    display:inline-block;
+    font-weight:600;
+    transition:0.3s;
+    box-shadow:0 5px 15px rgba(25,118,210,0.2);
+}
+
+.back-btn:hover{
+    transform:translateY(-2px);
+    background:linear-gradient(135deg,#0d47a1,#1e88e5);
+    color:white;
+}
+
+.alert-success{
+    border-radius:12px;
+}
+
+</style>
+
+<div class="container">
+
+    <div class="success-wrapper">
+
+        <div class="success-card">
+
+            <!-- TOP -->
+            <div class="success-top">
+
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+
+                <h2 class="success-title">
+                    Payment Successful
+                </h2>
+
+                <p class="success-subtitle mb-0">
+                    Your hospital bill payment has been completed successfully.
+                </p>
+
+            </div>
+
+            <!-- BODY -->
+            <div class="p-4 p-md-5">
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-success text-center mb-4">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="details-box">
+
+                    <table class="table table-borderless mb-0">
+
+                        <tr>
+                            <td class="label">Bill ID</td>
+                            <td class="text-end value">#{{ bill.id }}</td>
+                        </tr>
+
+                        <tr>
+                            <td class="label">Patient Name</td>
+                            <td class="text-end value">
+                                {{ bill.patient.user.fullname }}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="label">Bill Date</td>
+                            <td class="text-end value">
+                                {{ bill.bill_date }}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="label">Payment Method</td>
+                            <td class="text-end value">
+                                Online Card Payment
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="label">Amount Paid</td>
+                            <td class="text-end amount">
+                                Rs. {{ bill.grand_total }}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="label">Status</td>
+                            <td class="text-end">
+                                <span class="status-paid">
+                                    Paid
+                                </span>
+                            </td>
+                        </tr>
+
+                    </table>
+
+                </div>
+
+                <div class="text-center mt-5">
+                    <a href="{% url 'bill' %}" class="back-btn">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Bills
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
