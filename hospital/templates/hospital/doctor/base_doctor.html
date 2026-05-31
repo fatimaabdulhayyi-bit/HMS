@@ -50,8 +50,28 @@
             <button class="btn sidebar-toggle d-lg-none" type="button" id="sidebarToggle"><i class="fa fa-bars"></i></button>
             <img src="{% static 'images/logo.png' %}" alt="logo" class="logo">
           </div>
-          <div class="topbar-right d-flex align-items-center gap-2">
-            <button class="btn btn-light" id="notificationBtn"><i class="fa fa-bell fs-5"></i></button>
+          <div class="topbar-right d-flex align-items-center gap-3">
+            
+            <div class="dropdown" style="position:relative; display:inline-block;">
+                <a class="text-dark position-relative" href="#" id="docNotifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchDoctorNotifications()" style="text-decoration:none; color: inherit;">
+                    <i class="fas fa-bell" style="font-size:20px; cursor: pointer;"></i>
+                    {% if unread_count > 0 %}
+                    <span id="doc-notif-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; padding: 4px 6px; margin-top: -5px; margin-left: -3px;">
+                        {{ unread_count }}
+                    </span>
+                    {% endif %}
+                </a>
+                
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notifDropdown" style="width: 330px; max-height: 380px; overflow-y: auto; padding: 0; border-radius: 8px; margin-top: 12px; background-color: #f8f9fa;">
+    <div style="padding: 12px; font-weight: 700; border-bottom: 1px solid #e0e0e0; color: #1976d2; font-size: 14px; background-color: #ffffff; position: sticky; top: 0; z-index: 10;">
+        <i class="fas fa-bell me-2"></i>Notifications
+    </div>
+    <div id="notif-items-container" class="notification-box-list" style="padding: 6px 0;">
+        <div class="text-center py-4 text-muted"><small><i class="fas fa-spinner fa-spin me-1"></i>Loading...</small></div>
+    </div>
+</ul>
+            </div>
+
             <a href="{% url 'logout' %}" class="btn btn-danger"><i class="fa fa-sign-out-alt me-1"></i> Logout</a>
           </div>
         </header>
@@ -63,5 +83,41 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'js/dashboard.js' %}"></script>
+
+  <script>
+    function fetchDoctorNotifications() {
+        fetch("{% url 'notifications_api' %}")
+        .then(response => response.json())
+        .then(data => {
+            let container = document.getElementById('notif-items-container');
+            container.innerHTML = '';
+            
+            if (data.notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-bell-slash d-block mb-2" style="font-size: 24px; color: #ccc;"></i>
+                        <small>No notifications yet.</small>
+                    </div>`;
+            } else {
+                data.notifications.forEach(notif => {
+                    let bgStyle = notif.is_read ? 'background: #ffffff;' : 'background: #f4f9ff;';
+                    let item = `
+                        <li style="padding: 12px 15px; border-bottom: 1px solid #f8f9fa; ${bgStyle} list-style: none;">
+                            <div style="font-size: 13px; font-weight: 600; color: #222;">${notif.title}</div>
+                            <div style="font-size: 12px; color: #555; margin-top: 2px; line-height: 1.4;">${notif.message}</div>
+                            <div style="font-size: 10px; color: #999; margin-top: 5px; text-align: right;"><i class="far fa-clock me-1"></i>${notif.created_at}</div>
+                        </li>`;
+                    container.innerHTML += item;
+                });
+            }
+            let badge = document.getElementById('doc-notif-badge');
+            if (badge) badge.style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('notif-items-container').innerHTML = '<div class="text-center py-3 text-danger"><small>Error loading notifications.</small></div>';
+        });
+    }
+</script>
 </body>
 </html>

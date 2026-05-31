@@ -310,6 +310,16 @@ body {
     font-weight: bolder;
 }
 
+/* Dropdown ke andar har notification ko card/box banane ke liye */
+.notification-box-list li {
+    margin: 8px 12px !important;
+    padding: 12px !important;
+    border-radius: 6px !important;
+    border: 1px solid #e0e0e0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    list-style: none !important;
+}
+
 /* ---------------------- */
 /* Responsive */
 /* ---------------------- */

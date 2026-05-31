@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient, DoctorSchedule, Appointment, Bills, BillItems,MedicalRecord
+from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient, DoctorSchedule, Appointment, Bills, BillItems,MedicalRecord, Notification
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
 from django.http import JsonResponse
@@ -28,6 +28,9 @@ FEATURES_PATH = os.path.join(BASE_DIR, 'hospital', 'ml_model', 'doctor_features.
 model = pickle.load(open(MODEL_PATH, 'rb'))
 features_list = pickle.load(open(FEATURES_PATH, 'rb'))
 features_list = [f.strip() for f in features_list]
+
+def create_notification(user, title, message):
+    Notification.objects.create(user=user, title=title, message=message)
 
 def match_symptom(entered_text, features_list):
     match, score = process.extractOne(entered_text, features_list)
@@ -88,6 +91,16 @@ def signup(request):
         if role == "doctor":
             user.is_approved = False
             user.save()
+            
+            all_admins = UserAccount.objects.filter(role='admin')
+            
+            # Har admin ke liye notification create karo
+            for admin_user in all_admins:
+                Notification.objects.create(
+                    user=admin_user,
+                    title="New Doctor Request",
+                    message=f"Dr. {user.fullname} has registered and is pending approval."
+                )
             return redirect('doctorreg')
 
         return redirect('patientreg')
@@ -471,6 +484,12 @@ def add_appointment(request):
                     total=doctor.consultation_fee
                 )
 
+                create_notification(
+                user=doctor.user,
+                title="New Appointment",
+                message=f"Admin booked an appointment for {patient_profile.user.fullname} on {app_date_str}."
+                )
+
             messages.success(request, f"Appointment Added! Bill of Rs.{doctor.consultation_fee} generated. Token will be assigned after payment.")
             return redirect('manage_appointments')
 
@@ -514,6 +533,12 @@ def delete_appointment(request, pk):
         appointment.status = 'Cancelled'
 
         appointment.save()
+        
+        create_notification(
+            user=appointment.doctor.user,
+            title="Appointment Cancelled",
+            message=f"Appointment on {appointment.appointment_date} for {appointment.fullname} was cancelled by Admin."
+        )
 
         messages.success(request, "Appointment has been cancelled successfully.")
 
@@ -1185,10 +1210,17 @@ def next_token(request):
     if next_patient:
         next_patient.status = 'Serving'
         next_patient.save()
+        
+        create_notification(
+            user=next_patient.patient_user.user,
+            title="Your Turn Soon!",
+            message=f"Token #{next_patient.token} is now being served. Please be ready!"
+        )
         return JsonResponse({
             'success': True, 
             'next_token': next_patient.token
         })
+    
     
     return JsonResponse({
         'success': False, 
@@ -1522,6 +1554,12 @@ def cancel_appointment(request, pk):
     if appointment.status == 'Pending':
         appointment.status = 'Cancelled'
         appointment.save()
+        
+        create_notification(
+            user=appointment.doctor.user,
+            title="Appointment Cancelled",
+            message=f"The appointment for {appointment.fullname} on {appointment.appointment_date} has been cancelled."
+        )
         messages.success(request, f"Appointment #{appointment.token} has been cancelled.")
     else:
         messages.error(request, "You cannot cancel an appointment that is already serving or completed.")
@@ -1618,6 +1656,8 @@ def appointment_form(request):
                     unit_price=doctor.consultation_fee,
                     total=doctor.consultation_fee
                 )
+
+                
 
             messages.success(request, f"Request Sent! Please pay Rs.{doctor.consultation_fee} online or at reception to get your token.")
             return redirect('bill')
@@ -1760,6 +1800,18 @@ def payment_success(request, pk):
             appointment.token = new_token
             appointment.status = 'Pending'
             appointment.save()
+
+            create_notification(
+                user=bill.patient.user,
+                title="Payment Successful",
+                message=f"Bill #{bill.id} of Rs.{bill.grand_total} has been paid. Token #{new_token} has been assigned."
+            )
+
+            create_notification(
+                user=appointment.doctor.user,
+                title="New Appointment",
+                message=f"New appointment booked by {request.user.fullname} for {appointment.appointment_date}."
+                )
 
             messages.success(request, f"Payment Successful! Your Token is {new_token}")
         else:
@@ -1905,7 +1957,25 @@ def doctor_recommendation(request):
     return render(request, 'hospital/doctor_recommendation.html', {
     'all_symptoms': features_list,  # ✅ Ye add karo
 })
-                  
+
+@role_required(allowed_roles=['patient', 'doctor', 'admin'])
+def notifications_api(request):
+    # Logged-in user ki top 10 notifications fetch karein
+    notifs = Notification.objects.filter(user=request.user)[:5]
+    
+    notif_data = []
+    for n in notifs:
+        notif_data.append({
+            'title': n.title,
+            'message': n.message,
+            'is_read': n.is_read,
+            'created_at': n.created_at.strftime("%d %b, %I:%M %p")
+        })
+        
+    # Real-time mein automatically read mark karein
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    
+    return JsonResponse({'notifications': notif_data})
 
 def logout_view(request):
     logout(request)
