@@ -39,6 +39,7 @@ class UserAccount(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)  # Doctor approval flag
+    is_first_login = models.BooleanField(default=False) 
 
     objects = UserAccountManager()
 

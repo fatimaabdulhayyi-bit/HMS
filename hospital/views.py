@@ -1,13 +1,15 @@
 from django.shortcuts import render,redirect,get_object_or_404
 from .models import UserAccount, Patients, Departments, Doctors, PatientFeedback, InPatient, DoctorSchedule, Appointment, Bills, BillItems,MedicalRecord, Notification
-from django.contrib.auth import authenticate, login as auth_login, logout
+from django.contrib.auth import authenticate, login as auth_login, logout, update_session_auth_hash
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Max
 from datetime import date,datetime,timedelta
 from django.db import transaction
 from .decorators import role_required
+from django.core.mail import send_mail
 from decimal import Decimal
+import random
 from thefuzz import process
 from django.conf import settings
 import stripe
@@ -153,6 +155,9 @@ def login(request):
             # User mil gaya aur password sahi hai
             auth_login(request, user)
 
+            if user.is_first_login:
+                return redirect('force_change_password') 
+
             # --- DOCTOR LOGIC ---
             if user.role == 'doctor':
                 try:
@@ -192,6 +197,137 @@ def login(request):
             return render(request, 'hospital/forms/login.html')
 
     return render(request, 'hospital/forms/login.html')
+
+def forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+
+        try:
+            user = UserAccount.objects.get(email=email)
+        except UserAccount.DoesNotExist:
+            messages.error(request, "No account found with this email.")
+            return render(request, 'hospital/forms/forgot_password.html')
+
+        # OTP generate karo
+        otp = str(random.randint(100000, 999999))
+
+        # Session mein save karo
+        request.session['reset_email'] = email
+        request.session['reset_otp'] = otp
+
+        # Email bhejo
+        send_mail(
+            subject='HMS — Password Reset OTP',
+            message=f'''Dear {user.fullname},
+
+Your OTP for password reset is: {otp}
+
+This OTP is valid for 10 minutes only.
+
+If you did not request this, please ignore this email.
+
+Regards,
+HMS Hospital''',
+            from_email=None,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+
+        messages.success(request, f"OTP sent to {email}")
+        return redirect('verify_otp')
+
+    return render(request, 'hospital/forms/forgot_password.html')
+
+
+# ==========================================
+# FORGOT PASSWORD — Step 2: OTP verify karo
+# ==========================================
+def verify_otp(request):
+    email = request.session.get('reset_email')
+    otp_session = request.session.get('reset_otp')
+
+    if not email:
+        return redirect('forgot_password')
+
+    if request.method == 'POST':
+        otp_entered = request.POST.get('otp')
+
+        if otp_entered == otp_session:
+            request.session['otp_verified'] = True
+            return redirect('reset_password')
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+
+    return render(request, 'hospital/forms/verify_otp.html', {'email': email})
+
+
+# ==========================================
+# FORGOT PASSWORD — Step 3: New password set
+# ==========================================
+def reset_password(request):
+    email = request.session.get('reset_email')
+    otp_verified = request.session.get('otp_verified')
+
+    if not email or not otp_verified:
+        return redirect('forgot_password')
+
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return render(request, 'hospital/forms/reset_password.html')
+
+        if len(new_password) < 8:
+            messages.error(request, "Password must be at least 8 characters.")
+            return render(request, 'hospital/forms/reset_password.html')
+
+        user = UserAccount.objects.get(email=email)
+        user.set_password(new_password)
+        user.save()
+
+        # Session clear karo
+        request.session.flush()
+
+        messages.success(request, "Password changed successfully! Please login.")
+        return redirect('login')
+
+    return render(request, 'hospital/forms/reset_password.html')
+
+
+# ==========================================
+# FORCE CHANGE PASSWORD — Pehli baar login
+# ==========================================
+def force_change_password(request):
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return render(request, 'hospital/forms/force_change_password.html')
+
+        if len(new_password) < 8:
+            messages.error(request, "Password must be at least 8 characters.")
+            return render(request, 'hospital/forms/force_change_password.html')
+
+        request.user.set_password(new_password)
+        request.user.is_first_login = False  # ✅ Flag off
+        request.user.save()
+
+        update_session_auth_hash(request, request.user)
+        messages.success(request, "Password changed successfully!")
+
+        if request.user.role == 'doctor':
+            return redirect('doctor_dashboard')
+        elif request.user.role == 'patient':
+            return redirect('patient_dashboard')
+        else:
+            return redirect('admin_dashboard')
+
+    return render(request, 'hospital/forms/force_change_password.html')
+
 
 @role_required(allowed_roles=['patient'])
 def patientreg(request):

@@ -211,7 +211,9 @@ input[type="password"] {
 </div>
 
         <input type="submit" value="Login">
-
+<div class="signUp-link" style="margin-top: 10px;">
+    <p>Forgot your password? <a href="{% url 'forgot_password' %}">Reset here</a></p>
+</div>
         <div class="signUp-link">
           <p>Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
         </div>

@@ -146,3 +146,11 @@ AUTH_USER_MODEL = 'hospital.UserAccount'
 load_dotenv()
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER' )     # ✅ Apni Gmail
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')      # ✅ 16 digit app password
+DEFAULT_FROM_EMAIL = f'HEF Care Hospital <{os.getenv("EMAIL_HOST_USER")}>'

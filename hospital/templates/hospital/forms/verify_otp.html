@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'images/favicon.png' %}" rel="icon">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(rgba(253,253,253,0.1), rgba(21,127,218,0.8));
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 420px;
+            padding: 40px;
+            border: none;
+        }
+        .card h2 {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: rgba(0,128,241,0.9);
+            margin-bottom: 8px;
+        }
+        .card p { text-align: center; color: #888; font-size: 13px; margin-bottom: 24px; }
+        .otp-inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .otp-inputs input {
+            width: 50px;
+            height: 55px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            color: rgba(21,127,218,1);
+            outline: none;
+            transition: 0.2s;
+        }
+        .otp-inputs input:focus { border-color: rgba(21,127,218,1); }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: rgba(21,127,218,1);
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 30px;
+            border: none;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        .btn-submit:hover { background: rgba(21,127,218,0.8); }
+        .back-link { text-align: center; margin-top: 16px; font-size: 14px; }
+        .back-link a { color: rgba(21,127,218,1); text-decoration: none; font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Verify OTP</h2>
+        <p>OTP sent to <strong>{{ email }}</strong></p>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-danger text-center">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" id="otp-form">
+            {% csrf_token %}
+            <div class="otp-inputs">
+                <input type="text" maxlength="1" class="otp-digit" autofocus>
+                <input type="text" maxlength="1" class="otp-digit">
+                <input type="text" maxlength="1" class="otp-digit">
+                <input type="text" maxlength="1" class="otp-digit">
+                <input type="text" maxlength="1" class="otp-digit">
+                <input type="text" maxlength="1" class="otp-digit">
+            </div>
+            <input type="hidden" name="otp" id="otp-hidden">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-check me-2"></i>Verify OTP
+            </button>
+        </form>
+
+        <div class="back-link">
+            <p>Didn't receive? <a href="{% url 'forgot_password' %}">Resend OTP</a></p>
+        </div>
+    </div>
+
+    <script>
+        const digits = document.querySelectorAll('.otp-digit');
+        digits.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                if (input.value && index < digits.length - 1) {
+                    digits[index + 1].focus();
+                }
+                combineOTP();
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    digits[index - 1].focus();
+                }
+            });
+        });
+
+        function combineOTP() {
+            let otp = '';
+            digits.forEach(d => otp += d.value);
+            document.getElementById('otp-hidden').value = otp;
+        }
+
+        document.getElementById('otp-form').addEventListener('submit', combineOTP);
+    </script>
+</body>
+</html>
