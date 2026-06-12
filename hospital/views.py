@@ -1283,18 +1283,28 @@ def doctor_dashboard(request):
 
 @role_required(allowed_roles=['doctor'])
 def my_appointments(request):
+    # ✅ Expired cleanup
+    cancel_expired_unpaid_appointments()
+    
     doctor = get_object_or_404(Doctors, user=request.user)
     
-    # FILTER FIX: Sirf wo appointments dikhayen jin ka Token generate ho chuka hai
     today_all = Appointment.objects.filter(
         doctor=doctor, 
         appointment_date=date.today(),
-        token__isnull=False # <--- Ye line unpaid/untokenized logo ko filter kar degi
+        token__isnull=False
     ).order_by('token')
 
-    # Baki queries same raheingi...
-    upcoming = Appointment.objects.filter(doctor=doctor, appointment_date__gt=date.today()).exclude(status='Cancelled')
-    checked = Appointment.objects.filter(doctor=doctor, status__in=['Completed', 'Cancelled', 'Billed']).order_by('-token')
+    # ✅ Upcoming mein sirf paid (token assigned) appointments
+    upcoming = Appointment.objects.filter(
+        doctor=doctor, 
+        appointment_date__gt=date.today(),
+        token__isnull=False  # ✅ Unpaid filter
+    ).exclude(status='Cancelled')
+    
+    checked = Appointment.objects.filter(
+        doctor=doctor, 
+        status__in=['Completed', 'Cancelled', 'Billed']
+    ).order_by('-appointment_date')
 
     context = {
         'today_appointments': today_all, 
@@ -1500,8 +1510,111 @@ def edit_medical_record(request, appointment_id):
 def patient_dashboard(request):
     return render(request, 'hospital/patient/patient_dashboard.html')
 
+def send_appointment_reminder(appointment):
+    """1 ghanta pehle patient ko email bhejo"""
+    try:
+        now = datetime.now()
+        
+        # Appointment datetime combine karo
+        appt_datetime = datetime.combine(
+            appointment.appointment_date, 
+            appointment.appointment_time
+        )
+        
+        # Time difference check karo
+        time_diff = appt_datetime - now
+        minutes_remaining = time_diff.total_seconds() / 60
+        
+        # 60 minutes ya kam bacha ho aur reminder nahi bheja
+        if 0 < minutes_remaining <= 60 and not appointment.reminder_sent:
+            send_mail(
+                subject='Appointment Reminder — HEF Care Hospital',
+                message=f'''Dear {appointment.fullname},
+
+This is a reminder that your appointment is in less than 1 hour.
+
+Appointment Details:
+- Doctor: Dr. {appointment.doctor.user.fullname}
+- Department: {appointment.department}
+- Date: {appointment.appointment_date}
+- Time: {appointment.appointment_time.strftime("%I:%M %p")}
+- Token: #{appointment.token}
+
+Please arrive on time.
+
+Regards,
+HEF Care Hospital''',
+                from_email=None,
+                recipient_list=[appointment.patient_user.user.email],
+                fail_silently=True,
+            )
+            
+            # Reminder sent mark karo
+            appointment.reminder_sent = True
+            appointment.save()
+            
+            # In-app notification bhi bhejo
+            create_notification(
+                user=appointment.patient_user.user,
+                title="Appointment Reminder",
+                message=f"Your appointment with Dr. {appointment.doctor.user.fullname} is in less than 1 hour. Token #{appointment.token}"
+            )
+            
+            print(f"Reminder sent to {appointment.patient_user.user.email}")
+            
+    except Exception as e:
+        print(f"Reminder email error: {e}")
+
+def cancel_expired_unpaid_appointments():
+    """
+    2 cases handle karo:
+    1. Bill pay nahi hua + date guzar gayi → cancel
+    2. Bill pay hua (token assigned) + appointment time guzar gaya → cancel
+    """
+    today = date.today()
+    now = datetime.now()
+
+    # Case 1: Unpaid — date guzar gayi
+    expired_unpaid = Appointment.objects.filter(
+        token__isnull=True,
+        status='Pending',
+        appointment_date__lt=today
+    )
+    for appt in expired_unpaid:
+        appt.status = 'Cancelled'
+        appt.save()
+        Bills.objects.filter(
+            patient=appt.patient_user,
+            payment_status='Unpaid',
+            bill_date=appt.appointment_date
+        ).update(payment_status='Cancelled')
+
+    # ✅ Case 2: Paid (token assigned) + appointment time guzar gaya
+    expired_paid = Appointment.objects.filter(
+        token__isnull=False,
+        status='Pending',
+        appointment_date=today  # Aaj ki
+    )
+    for appt in expired_paid:
+        if appt.appointment_time:
+            appt_datetime = datetime.combine(today, appt.appointment_time)
+            # Appointment time 30 min se zyada guzar gaya
+            if now > appt_datetime + timedelta(minutes=30):
+                appt.status = 'Cancelled'
+                appt.save()
+
+    # Case 3: Purani dates ki paid appointments bhi cancel
+    Appointment.objects.filter(
+        token__isnull=False,
+        status='Pending',
+        appointment_date__lt=today
+    ).update(status='Cancelled')
+
 @role_required(allowed_roles=['patient'])
 def appointments(request):
+    # ✅ Expired unpaid appointments cancel karo
+    cancel_expired_unpaid_appointments()
+
     try:
         profile = Patients.objects.get(user=request.user)
     except Patients.DoesNotExist:
@@ -1511,19 +1624,18 @@ def appointments(request):
     
     latest_active = all_appointments.filter(
         appointment_date=date.today(), 
-        status__in=['Pending', 'Serving']
+        status__in=['Pending', 'Serving'],
     ).first()
     
     if latest_active and latest_active.token is not None:
+        send_appointment_reminder(latest_active) 
         now = datetime.now()
         now_time = now.time()
         today_day = now.strftime('%A') 
 
-        # 1. Doctor schedule logic
         schedule = DoctorSchedule.objects.filter(doctor=latest_active.doctor, day=today_day).first()
         doctor_start_time = schedule.start_time if schedule else None
 
-        # 2. Serving Token Logic
         serving_now = Appointment.objects.filter(
             doctor=latest_active.doctor,
             appointment_date=date.today(),
@@ -1542,7 +1654,6 @@ def appointments(request):
             
         latest_active.current_serving = current_val
 
-        # 3. Wait Time & Alert Logic
         show_alert = False
         if latest_active.status == 'Pending':
             if doctor_start_time and now_time < doctor_start_time:
@@ -1566,7 +1677,6 @@ def appointments(request):
                 wait_val = mins_remaining if 0 < mins_remaining < token_wait else token_wait
                 if mins_remaining <= 0: wait_val = 2
                 
-                # Check Alert Condition
                 token_gap = latest_active.token - current_val
                 if 0 < token_gap <= 3 and mins_remaining <= 20:
                     show_alert = True
@@ -1579,7 +1689,6 @@ def appointments(request):
         
         latest_active.show_alert = show_alert
 
-        # Progress Calculation
         progress = 0
         if latest_active.token > 0:
             progress = (current_val / latest_active.token) * 100
@@ -1676,27 +1785,35 @@ def get_live_update(request, appt_id):
 
 @role_required(allowed_roles=['patient'])
 def cancel_appointment(request, pk):
-    # 1. Pehle login user ki Patient Profile nikalen
     try:
-        # Agar aapne model mein related_name='patient_profile' rakha hai
         patient_profile = request.user.patient_profile 
     except:
-        # Alternate tareeqa agar related_name nahi hai
         patient_profile = get_object_or_404(Patients, user=request.user)
 
-    # 2. Ab 'patient_user' mein patient_profile pass karein (request.user nahi)
     appointment = get_object_or_404(Appointment, id=pk, patient_user=patient_profile)
     
     if appointment.status == 'Pending':
         appointment.status = 'Cancelled'
         appointment.save()
-        
-        create_notification(
-            user=appointment.doctor.user,
-            title="Appointment Cancelled",
-            message=f"The appointment for {appointment.fullname} on {appointment.appointment_date} has been cancelled."
-        )
-        messages.success(request, f"Appointment #{appointment.token} has been cancelled.")
+
+        # ✅ Related unpaid bill bhi cancel karo
+        Bills.objects.filter(
+            patient=patient_profile,
+            payment_status='Unpaid'
+        ).filter(
+            created_at__date__gte=appointment.appointment_date
+        ).update(payment_status='Cancelled')
+
+        # ✅ Doctor ko notification — sirf tab jab token assigned tha
+        if appointment.token:
+            create_notification(
+                user=appointment.doctor.user,
+                title="Appointment Cancelled",
+                message=f"The appointment for {appointment.fullname} on {appointment.appointment_date} has been cancelled."
+            )
+
+        # ✅ Token None check fix
+        messages.success(request, "Appointment has been cancelled successfully.")
     else:
         messages.error(request, "You cannot cancel an appointment that is already serving or completed.")
         
@@ -1854,14 +1971,40 @@ def ajax_load_doctors(request):
 
 @role_required(allowed_roles=['patient'])
 def bill(request):
-
+    cancel_expired_unpaid_appointments()
+    
     try:
-        # Agar aapne related_name='patient' nahi rakha to niche wala line error de sakti hai
-        # Check karein aapke model mein related_name kya hai
-        patient = Patients.objects.get(user=request.user) 
-        bills = Bills.objects.filter(patient=patient)
+        patient = Patients.objects.get(user=request.user)
+
+        # ✅ Cancelled appointment ki unpaid bills cancel karo
+        # appointment_date se match karne ki jagah appointment object se link karo
+        cancelled_appts = Appointment.objects.filter(
+            patient_user=patient,
+            status='Cancelled',
+            token__isnull=True
+        )
+        
+        for appt in cancelled_appts:
+            Bills.objects.filter(
+                patient=patient,
+                payment_status='Unpaid',
+                bill_date__lte=appt.appointment_date,
+                bill_date__gte=appt.appointment_date - timedelta(days=1)
+            ).update(payment_status='Cancelled')
+
+        # ✅ Purani unpaid bills bhi cancel karo — date guzar gayi
+        Bills.objects.filter(
+            patient=patient,
+            payment_status='Unpaid',
+            bill_date__lt=date.today()
+        ).update(payment_status='Cancelled')
+
+        # ✅ Cancelled bills exclude karo
+        bills = Bills.objects.filter(
+            patient=patient
+        ).exclude(payment_status='Cancelled').order_by('-created_at')
+
     except Patients.DoesNotExist:
-        # Agar user patient nahi hai (maslan admin hai) to empty list bhej dein ya error handle karein
         bills = []
         patient = None
 
@@ -1918,10 +2061,10 @@ def payment_success(request, pk):
         bill.amount_paid = bill.grand_total
         bill.save()
 
-        # Token generation
         appointment = Appointment.objects.filter(
             patient_user=bill.patient,
-            token__isnull=True
+            token__isnull=True,
+            status='Pending'  # ✅ Sirf pending
         ).order_by('-created_at').first()
 
         if appointment:
@@ -1937,24 +2080,25 @@ def payment_success(request, pk):
             appointment.status = 'Pending'
             appointment.save()
 
+            # ✅ Patient ko notification
             create_notification(
                 user=bill.patient.user,
                 title="Payment Successful",
                 message=f"Bill #{bill.id} of Rs.{bill.grand_total} has been paid. Token #{new_token} has been assigned."
             )
 
+            # ✅ Doctor ko notification — appointment.doctor use karo
             create_notification(
                 user=appointment.doctor.user,
-                title="New Appointment",
-                message=f"New appointment booked by {request.user.fullname} for {appointment.appointment_date}."
-                )
+                title="New Appointment Confirmed",
+                message=f"{bill.patient.user.fullname} ne payment kar di. Token #{new_token} — {appointment.appointment_date} ko."
+            )
 
             messages.success(request, f"Payment Successful! Your Token is {new_token}")
         else:
             messages.success(request, "Payment Successful!")
 
     return render(request, 'hospital/patient/payment_success.html', {'bill': bill})
-
 
 @role_required(allowed_roles=['patient'])
 def payment_cancel(request, pk):

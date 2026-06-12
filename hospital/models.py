@@ -205,6 +205,7 @@ class Appointment(models.Model):
     token = models.PositiveIntegerField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
+    reminder_sent = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'Appointments'
@@ -215,7 +216,7 @@ class Appointment(models.Model):
     
 class Bills(models.Model):
     BILL_TYPES = [('Out-Patient', 'Out-Patient'), ('In-Patient', 'In-Patient')]
-    PAYMENT_STATUS = [('Paid', 'Paid'), ('Unpaid', 'Unpaid'), ('Partial', 'Partial')]
+    PAYMENT_STATUS = [('Paid', 'Paid'), ('Unpaid', 'Unpaid'), ('Partial', 'Partial'), ('Cancelled', 'Cancelled')]
 
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE, related_name='bills')
     patient_type = models.CharField(max_length=20, choices=BILL_TYPES)
