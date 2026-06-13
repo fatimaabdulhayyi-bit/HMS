@@ -96,7 +96,6 @@ def signup(request):
             
             all_admins = UserAccount.objects.filter(role='admin')
             
-            # Har admin ke liye notification create karo
             for admin_user in all_admins:
                 Notification.objects.create(
                     user=admin_user,
@@ -139,6 +138,7 @@ def index(request):
         elif request.user.role == 'admin':
             return redirect('admin_dashboard')
     return render(request, 'hospital/index.html', context)
+
 def login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -184,8 +184,6 @@ def login(request):
                 return redirect('patient_dashboard')
 
         else:
-            # --- ERROR HANDLING ---
-            # Yahan check karte hain ke masla email mein hai ya password mein
             from hospital.models import UserAccount
             user_exists = UserAccount.objects.filter(email=email).exists()
             
@@ -211,7 +209,6 @@ def forgot_password(request):
         # OTP generate karo
         otp = str(random.randint(100000, 999999))
 
-        # Session mein save karo
         request.session['reset_email'] = email
         request.session['reset_otp'] = otp
 
@@ -238,10 +235,6 @@ HMS Hospital''',
 
     return render(request, 'hospital/forms/forgot_password.html')
 
-
-# ==========================================
-# FORGOT PASSWORD — Step 2: OTP verify karo
-# ==========================================
 def verify_otp(request):
     email = request.session.get('reset_email')
     otp_session = request.session.get('reset_otp')
@@ -260,10 +253,6 @@ def verify_otp(request):
 
     return render(request, 'hospital/forms/verify_otp.html', {'email': email})
 
-
-# ==========================================
-# FORGOT PASSWORD — Step 3: New password set
-# ==========================================
 def reset_password(request):
     email = request.session.get('reset_email')
     otp_verified = request.session.get('otp_verified')
@@ -295,10 +284,6 @@ def reset_password(request):
 
     return render(request, 'hospital/forms/reset_password.html')
 
-
-# ==========================================
-# FORCE CHANGE PASSWORD — Pehli baar login
-# ==========================================
 def force_change_password(request):
     if request.method == 'POST':
         new_password = request.POST.get('new_password')
@@ -328,7 +313,6 @@ def force_change_password(request):
 
     return render(request, 'hospital/forms/force_change_password.html')
 
-
 @role_required(allowed_roles=['patient'])
 def patientreg(request):
     if request.method == 'POST':
@@ -343,7 +327,7 @@ def patientreg(request):
 
         # Database mein save karna
         Patients.objects.create(
-            user=request.user, # Ab ye error nahi dega kyunki user login ho chuka hai
+            user=request.user, 
             guardian_name=guardian_name,
             dob=dob,
             gender=gender,
@@ -400,8 +384,7 @@ def doctorreg(request):
 
 @role_required(allowed_roles=['admin'])
 def department(request):
-     # Database se saray patients ka data unke user account ke sath mangwana
-    # select_related use karne se performance behtar hoti hai
+     
     departments = Departments.objects.all()
     
     context = {
@@ -520,8 +503,7 @@ def reject_doctor(request, doctor_id):
 
 @role_required(allowed_roles=['admin'])
 def manage_appointments(request):
-    # select_related use karne se doctor aur department ka data aik hi query mein aa jayega
-    # -appointment_date ka matlab hai ke latest appointments sab se upar aayengi
+    
     all_appointments = Appointment.objects.all().select_related(
         'doctor__user', 
         'department', 
@@ -583,7 +565,6 @@ def add_appointment(request):
         final_time = calculated_dt.time()
 
         # 4. --- TRANSACTION BLOCK (Atomic) ---
-        # Same as patient_form logic
         try:
             with transaction.atomic():
                 # A. Create Appointment (Token is None)
@@ -643,11 +624,8 @@ def add_appointment(request):
 
 @role_required(allowed_roles=['admin'])
 def view_appointment(request, pk):
-    # Specific appointment uthayein ID (pk) ke zariye
     appointment = get_object_or_404(Appointment, id=pk)
     
-    # Agar aap mazeed details dikhana chahti hain jo profile mein hain:
-
     patient_profile = appointment.patient_user
     context = {
         'appt': appointment,
@@ -658,16 +636,10 @@ def view_appointment(request, pk):
 @role_required(allowed_roles=['admin'])
 def delete_appointment(request, pk):
 
-    # Ye function appointment ko cancel karne ke liye use ho raha hai
-
     appointment = get_object_or_404(Appointment, id=pk)
 
-    
-
     if appointment.status != 'Completed':
-
         appointment.status = 'Cancelled'
-
         appointment.save()
         
         create_notification(
@@ -679,7 +651,6 @@ def delete_appointment(request, pk):
         messages.success(request, "Appointment has been cancelled successfully.")
 
     else:
-
         messages.error(request, "Completed appointments cannot be cancelled.")
 
     return redirect('manage_appointments')
@@ -801,13 +772,10 @@ def view_bill(request, pk):
 @role_required(allowed_roles=['admin'])
 def edit_bill(request, pk):
     bill = get_object_or_404(Bills, id=pk)
-    
-    # --- SECURITY CHECK ---
-    # Agar bill pehle se hi 'Paid' hai, toh edit allow nahi karna
+
     if bill.payment_status == 'Paid':
         messages.warning(request, "Paid bills cannot be edited for security reasons.")
         return redirect('bill_list')
-    # ----------------------
 
     items = BillItems.objects.filter(bill=bill)
 
@@ -1155,7 +1123,7 @@ def delete_patient(request, pk):
     patient = get_object_or_404(Patients, id=pk)
     
     try:
-        # 2. UserAccount ko delete karna (CASCADE ki wajah se profile khud hi udd jayegi)
+        # 2. UserAccount ko delete karna (CASCADE ki wajah se profile khud hi delete jayegi)
         user = patient.user
         user.delete() 
         
@@ -1460,11 +1428,8 @@ def add_medical_record(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
     if request.method == 'POST':
-        # 1. Appointment se patient (UserAccount object) nikalna
-        # patient_user 'Patients' model hai, uske andar 'user' field 'UserAccount' hai
         patient_account = appointment.patient_user.user 
         
-        # 2. Doctor (request.user) jo ke already UserAccount object hai
         doctor_account = request.user 
 
         # Record create karna

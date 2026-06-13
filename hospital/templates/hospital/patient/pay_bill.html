@@ -3,6 +3,33 @@
 {% block title %}Pay Bill{% endblock %}
 
 {% block content %}
+
+<style>
+  .btn-pay {
+    background-color: #2e7d32;
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .btn-pay:hover { 
+    background-color: #1b5e20; 
+  }
+  .status-badge.paid { 
+    background-color: #d1e7dd; 
+    color: #0f5132; 
+    padding: 4px 10px; 
+    border-radius: 6px; 
+  }
+  .status-badge.unpaid { 
+    background-color: #f8d7da; 
+    color: #842029; 
+    padding: 4px 10px; 
+    border-radius: 6px; 
+  }
+</style>
+
 <section class="bills-section">
   <div class="bills-container" style="max-width: 550px; margin: 40px auto;">
     
@@ -62,17 +89,5 @@
   </div>
 </section>
 
-<style>
-  .btn-pay {
-    background-color: #2e7d32;
-    color: white;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-  .btn-pay:hover { background-color: #1b5e20; }
-  .status-badge.paid { background-color: #d1e7dd; color: #0f5132; padding: 4px 10px; border-radius: 6px; }
-  .status-badge.unpaid { background-color: #f8d7da; color: #842029; padding: 4px 10px; border-radius: 6px; }
-</style>
+
 {% endblock %}

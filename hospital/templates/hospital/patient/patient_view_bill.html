@@ -4,6 +4,61 @@
 {% block title %}Invoice #{{ bill.id }}{% endblock %}
 
 {% block content %}
+<style>
+.invoice-card{
+    background:#fff;
+    border-radius:15px;
+    overflow:hidden;
+}
+
+.invoice-header{
+    background: #1977cc;
+}
+
+.table tbody tr:hover{
+    background:#f8f9fa;
+}
+
+@media print {
+
+    .navbar,
+    .sidebar,
+    .main-header,
+    header,
+    nav,
+    footer,
+    .d-print-none {
+        display: none !important;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #printableArea,
+    #printableArea * {
+        visibility: visible;
+    }
+
+    #printableArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+    .invoice-header {
+        background: #1977cc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .invoice-card {
+        box-shadow: none !important;
+        border: none !important;
+    }
+}
+</style>
 
 <div class="container-fluid px-4 py-4">
 
@@ -181,60 +236,6 @@
     </div>
 </div>
 
-<style>
-.invoice-card{
-    background:#fff;
-    border-radius:15px;
-    overflow:hidden;
-}
 
-.invoice-header{
-    background: #1977cc;
-}
-
-.table tbody tr:hover{
-    background:#f8f9fa;
-}
-
-@media print {
-
-    .navbar,
-    .sidebar,
-    .main-header,
-    header,
-    nav,
-    footer,
-    .d-print-none {
-        display: none !important;
-    }
-
-    body * {
-        visibility: hidden;
-    }
-
-    #printableArea,
-    #printableArea * {
-        visibility: visible;
-    }
-
-    #printableArea {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-    }
-
-    .invoice-header {
-        background: #1977cc !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-    .invoice-card {
-        box-shadow: none !important;
-        border: none !important;
-    }
-}
-</style>
 
 {% endblock %}
