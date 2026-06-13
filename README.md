@@ -55,8 +55,11 @@ pip install -r requirements.txt
 Create a .env file in the root directory:
 
 STRIPE_PUBLIC_KEY=your_stripe_public_key_here
+
 STRIPE_SECRET_KEY=your_stripe_secret_key_here
+
 EMAIL_HOST_USER=your_email@gmail.com
+
 EMAIL_HOST_PASSWORD=your_16_digit_app_password
 
 5. Setup PostgreSQL Database
